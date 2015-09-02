@@ -1,0 +1,80 @@
+﻿<ArcGIS defaultAssembly="GlobeSpotterForArcGISPro.dll"
+        defaultNamespace="GlobeSpotterArcGISPro"
+        xmlns="http://schemas.esri.com/DADF/Registry"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://schemas.esri.com/DADF/Registry file:///C:/Program%20Files/ArcGIS/Pro/bin/ArcGIS.Desktop.Framework.xsd">
+  <AddInInfo id="{914cc234-6eac-401d-a7a8-96baa1782909}"
+             version="0.1.0"
+             desktopVersion="1.1.3308">
+    <Name>GlobeSpotter for ArcGIS Pro</Name>
+    <Description>
+      GlobeSpotter for ArcGIS Pro
+      Copyright © CycloMedia Technology 2015
+    </Description>
+    <Image>Images\GlobeSpotterArcGISPro32.png</Image>
+    <Author>CycloMedia</Author>
+    <Company>CycloMedia</Company>
+    <Date>8/20/2015 4:46:49 PM, 2015</Date>
+    <Subject>Content</Subject>
+  </AddInInfo>
+  <modules>
+    <insertModule id="GlobeSpotterArcGISPro_Module"
+                  className="AddIns.Module.GlobeSpotter"
+                  autoLoad="false"
+                  caption="GlobeSpotter module">
+      <tabs>
+        <tab id="GlobeSpotterArcGISPro_Tab"
+             caption="GlobeSpotter">
+          <group refID="GlobeSpotterArcGISPro_Group" />
+        </tab>
+      </tabs>
+      <groups>
+        <group id="GlobeSpotterArcGISPro_Group"
+               caption="GlobeSpotter controls"
+               appearsOnAddInTab="false">
+          <button refID="GlobeSpotterArcGISPro_CycloMediaOptionsButton"
+                  size="large" />
+        </group>
+      </groups>
+      <controls>
+        <button id="GlobeSpotterArcGISPro_CycloMediaOptionsButton"
+                caption="Settings"
+                className="AddIns.Buttons.CycloMediaOptions"
+                loadOnClick="true"
+                largeImage="Images\CycloMediaOptions32.png">
+          <tooltip heading="Settings">Settings for GlobeSpotter for ArcGIS Desktop<disabledText /></tooltip>
+        </button>
+      </controls>
+    </insertModule>
+  </modules>
+  <propertySheets>
+    <insertSheet id="PropertyScreen_options"
+                 caption="GlobeSpotter for ArcGIS Pro">
+      <page id="Page_Login"
+            caption="Login"
+            className="AddIns.Pages.Login">
+        <content className="AddIns.Views.Login" />
+      </page>
+      <page id="Page_Settings"
+            caption="Settings"
+            className="AddIns.Pages.Settings">
+        <content className="AddIns.Views.Settings" />
+      </page>
+      <page id="Page_Configuration"
+            caption="Configuration"
+            className="AddIns.Pages.Configuration">
+        <content className="AddIns.Views.Configuration" />
+      </page>
+      <page id="Page_About"
+            caption="About"
+            className="AddIns.Pages.About">
+        <content className="AddIns.Views.About" />
+      </page>
+      <page id="Page_Agreement"
+            caption="Agreement"
+            className="AddIns.Pages.Agreement">
+        <content className="AddIns.Views.Agreement" />
+      </page>
+    </insertSheet>
+  </propertySheets>
+</ArcGIS>

@@ -194,3 +194,7 @@ FakesAssemblies/
 
 # Visual Studio 6 workspace options file
 *.opt
+
+## Ignore key files for GlobeSpotter for ArcGIS Pro
+/client-side/C#/GlobeSpotterArcGISPro/GlobeSpotterArcGISPro/Doc/APIKey.xml
+/client-side/C#/SignKey
