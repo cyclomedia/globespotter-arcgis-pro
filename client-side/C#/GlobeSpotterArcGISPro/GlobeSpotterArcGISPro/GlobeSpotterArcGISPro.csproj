@@ -53,12 +53,16 @@
     <AddInContent Include="Images\GlobeSpotterArcGISPro32.png" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddIns\Pages\Agreement.cs" />
     <Compile Include="AddIns\Pages\Configuration.cs" />
     <Compile Include="AddIns\Pages\About.cs" />
     <Compile Include="AddIns\Pages\Settings.cs" />
     <Compile Include="AddIns\Pages\Login.cs" />
     <Compile Include="AddIns\Buttons\CycloMediaOptions.cs" />
     <Compile Include="AddIns\Modules\GlobeSpotter.cs" />
+    <Compile Include="AddIns\Views\Agreement.xaml.cs">
+      <DependentUpon>Agreement.xaml</DependentUpon>
+    </Compile>
     <Compile Include="AddIns\Views\Configuration.xaml.cs">
       <DependentUpon>Configuration.xaml</DependentUpon>
     </Compile>
@@ -76,6 +80,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="AddIns\Views\Agreement.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="AddIns\Views\Configuration.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -97,6 +105,10 @@
     <AddInContent Include="Images\CycloMediaOptions32.png" />
   </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Doc\Agreement.txt" />
+    <EmbeddedResource Include="Doc\APIKey.xml" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <UsingTask AssemblyFile="C:\Program Files\ArcGIS\Pro\bin\proapp-sdk-MSBuild.dll" TaskName="proapp_sdk_MSBuild.PackageAddIn" />
   <UsingTask AssemblyFile="C:\Program Files\ArcGIS\Pro\bin\proapp-sdk-MSBuild.dll" TaskName="proapp_sdk_MSBuild.CleanAddIn" />
