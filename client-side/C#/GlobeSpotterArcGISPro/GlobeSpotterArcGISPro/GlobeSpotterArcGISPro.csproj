@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AddIns\Pages\Configuration.cs" />
+    <Compile Include="AddIns\Pages\About.cs" />
     <Compile Include="AddIns\Pages\Settings.cs" />
     <Compile Include="AddIns\Pages\Login.cs" />
     <Compile Include="AddIns\Buttons\CycloMediaOptions.cs" />
@@ -62,6 +63,9 @@
       <DependentUpon>Configuration.xaml</DependentUpon>
     </Compile>
     <Compile Include="AddIns\Views\Converters\CombineBoolean.cs" />
+    <Compile Include="AddIns\Views\About.xaml.cs">
+      <DependentUpon>About.xaml</DependentUpon>
+    </Compile>
     <Compile Include="AddIns\Views\Settings.xaml.cs">
       <DependentUpon>Settings.xaml</DependentUpon>
     </Compile>
@@ -73,6 +77,10 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="AddIns\Views\Configuration.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="AddIns\Views\About.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

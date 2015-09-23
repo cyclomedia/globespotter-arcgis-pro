@@ -1,7 +1,7 @@
 ﻿namespace GlobeSpotterArcGISPro.AddIns.Views
 {
   /// <summary>
-  /// Interaction logic for LoginView.xaml
+  /// Interaction logic for Settings.xaml
   /// </summary>
   public partial class Settings
   {
