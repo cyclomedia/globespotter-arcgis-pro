@@ -16,18 +16,29 @@
  * License along with this library.
  */
 
-namespace GlobeSpotterArcGISPro.AddIns.Views
+using System;
+using System.Net;
+using System.Threading;
+
+namespace GlobeSpotterArcGISPro.Configuration.Remote
 {
-  /// <summary>
-  /// Interaction logic for Settings.xaml
-  /// </summary>
-  public partial class Settings
+  internal class State
   {
+    #region Properties
+
+    public ManualResetEvent OperationComplete { get; private set; }
+    public WebRequest Request { get; set; }
+    public object Result { get; set; }
+    public Exception OperationException { get; set; }
+
+    #endregion
+
     #region Constructors
 
-    public Settings()
+    public State()
     {
-      InitializeComponent();
+      OperationComplete = new ManualResetEvent(false);
+      OperationException = null;
     }
 
     #endregion

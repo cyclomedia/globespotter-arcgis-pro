@@ -11,6 +11,7 @@
     <ResourceDictionary>
       <converters:InverseBoolean x:Key="InverseBooleanConverter" />
       <converters:CombineBoolean x:Key="CombineBooleanConverter" />
+      <converters:ConfigurationService x:Key="ConfigurationServiceConverter" />
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="pack://application:,,,/ArcGIS.Desktop.Framework;component\Themes\Default.xaml"/>
       </ResourceDictionary.MergedDictionaries>
@@ -27,7 +28,14 @@
       <CheckBox Content="Use default" HorizontalAlignment="Stretch" IsChecked="{Binding UseDefaultBaseUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Foreground="{DynamicResource Esri_Gray155}" Margin="5,5,0,0" />
       <DockPanel Margin="5,5,5,0">
         <TextBlock FontSize="12" Foreground="{DynamicResource Esri_Gray155}" DockPanel.Dock="Left" Text="Location" Width="70" TextAlignment="Right" Margin="0,5,5,0"/>
-        <TextBox Style="{DynamicResource H6TextBlock}" Padding="5" IsEnabled="{Binding UseDefaultBaseUrl, Converter={StaticResource InverseBooleanConverter}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" HorizontalAlignment="Stretch" TextWrapping="Wrap" Text="{Binding BaseUrlLocation}" FontSize="11" Foreground="{DynamicResource Esri_Gray155}" Margin="0,3,0,0"/>
+        <TextBox Style="{DynamicResource H6TextBlock}" Padding="5" IsEnabled="{Binding UseDefaultBaseUrl, Converter={StaticResource InverseBooleanConverter}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" HorizontalAlignment="Stretch" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource Esri_Gray155}" Margin="0,3,0,0">
+          <TextBox.Text>
+            <MultiBinding Converter="{StaticResource ConfigurationServiceConverter}">
+              <Binding Path="BaseUrlLocation" />
+              <Binding Path="UseDefaultBaseUrl" Converter="{StaticResource InverseBooleanConverter}"/>
+            </MultiBinding>
+          </TextBox.Text>
+        </TextBox>
       </DockPanel>
     </StackPanel>
     <StackPanel Grid.Row="1" Margin="5,10,5,0">
@@ -35,12 +43,19 @@
       <CheckBox Content="Use default" HorizontalAlignment="Stretch" IsChecked="{Binding UseDefaultSwfUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Foreground="{DynamicResource Esri_Gray155}" Margin="5,5,0,0" />
       <DockPanel Margin="5,5,5,0">
         <TextBlock FontSize="12" Foreground="{DynamicResource Esri_Gray155}" DockPanel.Dock="Left" Text="Location" Width="70" TextAlignment="Right" Margin="0,5,5,0"/>
-        <TextBox Style="{DynamicResource H6TextBlock}" Padding="5" IsEnabled="{Binding UseDefaultSwfUrl, Converter={StaticResource InverseBooleanConverter}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" HorizontalAlignment="Stretch" TextWrapping="Wrap" Text="{Binding SwfLocation}" FontSize="11" Foreground="{DynamicResource Esri_Gray155}" Margin="0,3,0,0"/>
+        <TextBox Style="{DynamicResource H6TextBlock}" Padding="5" IsEnabled="{Binding UseDefaultSwfUrl, Converter={StaticResource InverseBooleanConverter}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" HorizontalAlignment="Stretch" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource Esri_Gray155}" Margin="0,3,0,0">
+          <TextBox.Text>
+            <MultiBinding Converter="{StaticResource ConfigurationServiceConverter}">
+              <Binding Path="SwfLocation" />
+              <Binding Path="UseDefaultSwfUrl" Converter="{StaticResource InverseBooleanConverter}"/>
+            </MultiBinding>
+          </TextBox.Text>
+        </TextBox>
       </DockPanel>
     </StackPanel>
     <StackPanel Grid.Row="2" Margin="5,10,5,0">
       <TextBlock Style="{DynamicResource H3TextBlock}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource Esri_Gray155}" Text="Proxy server" />
-      <CheckBox Content="Use a proxy server" HorizontalAlignment="Stretch" IsChecked="{Binding UseProxyService, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Foreground="{DynamicResource Esri_Gray155}" Margin="5,5,0,0" />
+      <CheckBox Content="Use a proxy server" HorizontalAlignment="Stretch" IsChecked="{Binding UseProxyServer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Foreground="{DynamicResource Esri_Gray155}" Margin="5,5,0,0" />
       <StackPanel Margin="5,5,5,0">
         <Grid>
           <Grid.ColumnDefinitions>
@@ -50,17 +65,31 @@
           </Grid.ColumnDefinitions>
           <DockPanel Margin="0,0,0,0" Grid.Column="0">
             <TextBlock FontSize="12" Foreground="{DynamicResource Esri_Gray155}" DockPanel.Dock="Left" Text="Address" Width="70" TextAlignment="Right" Margin="0,5,5,0"/>
-            <TextBox Style="{DynamicResource H6TextBlock}" Padding="5" IsEnabled="{Binding UseProxyService, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" Width="150" TextWrapping="Wrap" Text="{Binding ProxyAddress}" FontSize="11" Foreground="{DynamicResource Esri_Gray155}" Margin="0,3,0,0"/>
+            <TextBox Style="{DynamicResource H6TextBlock}" Padding="5" IsEnabled="{Binding UseProxyServer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" Width="150" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource Esri_Gray155}" Margin="0,3,0,0">
+              <TextBox.Text>
+                <MultiBinding Converter="{StaticResource ConfigurationServiceConverter}">
+                  <Binding Path="ProxyAddress" />
+                  <Binding Path="UseProxyServer" />
+                </MultiBinding>
+              </TextBox.Text>
+            </TextBox>
           </DockPanel>
           <DockPanel Margin="0,0,0,0" Grid.Column="2">
             <TextBlock FontSize="12" Foreground="{DynamicResource Esri_Gray155}" DockPanel.Dock="Left" Text="Port" Width="70" TextAlignment="Right" Margin="0,5,5,0"/>
-            <TextBox Style="{DynamicResource H6TextBlock}" Padding="5" IsEnabled="{Binding UseProxyService, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" Width="150" TextWrapping="Wrap" Text="{Binding ProxyPort}" FontSize="11" Foreground="{DynamicResource Esri_Gray155}" Margin="0,3,0,0"/>
+            <TextBox Style="{DynamicResource H6TextBlock}" Padding="5" IsEnabled="{Binding UseProxyServer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" Width="150" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource Esri_Gray155}" Margin="0,3,0,0" PreviewTextInput="OnNumberValidation">
+              <TextBox.Text>
+                <MultiBinding Converter="{StaticResource ConfigurationServiceConverter}" ConverterParameter="80">
+                  <Binding Path="ProxyPort" />
+                  <Binding Path="UseProxyServer" />
+                </MultiBinding>
+              </TextBox.Text>
+            </TextBox>
           </DockPanel>
         </Grid>
       </StackPanel>
       <StackPanel Margin="25,0,0,0">
-        <CheckBox Content="Bypass proxy server for local addresses" HorizontalAlignment="Stretch" IsEnabled="{Binding UseProxyService, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsChecked="{Binding ProxyBypassLocalAddresses}" FontSize="12" Foreground="{DynamicResource Esri_Gray155}" Margin="5,5,0,0" />
-        <CheckBox Content="Use default credentials" HorizontalAlignment="Stretch" IsEnabled="{Binding UseProxyService, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsChecked="{Binding ProxyUseDefaultCredentials, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Foreground="{DynamicResource Esri_Gray155}" Margin="5,5,0,0" />
+        <CheckBox Content="Bypass proxy server for local addresses" HorizontalAlignment="Stretch" IsEnabled="{Binding UseProxyServer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsChecked="{Binding ProxyBypassLocalAddresses}" FontSize="12" Foreground="{DynamicResource Esri_Gray155}" Margin="5,5,0,0" />
+        <CheckBox Content="Use default credentials" HorizontalAlignment="Stretch" IsEnabled="{Binding UseProxyServer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsChecked="{Binding ProxyUseDefaultCredentials, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Foreground="{DynamicResource Esri_Gray155}" Margin="5,5,0,0" />
       </StackPanel>
       <StackPanel Margin="5,5,5,0">
         <Grid>
@@ -75,35 +104,49 @@
           </Grid.RowDefinitions>
           <DockPanel Margin="0,0,0,0" Grid.Column="0" Grid.Row="0">
             <TextBlock FontSize="12" Foreground="{DynamicResource Esri_Gray155}" DockPanel.Dock="Left" Text="Username" Width="70" TextAlignment="Right" Margin="0,5,5,0"/>
-            <TextBox Style="{DynamicResource H6TextBlock}" Padding="5" DockPanel.Dock="Right" Width="150" TextWrapping="Wrap" Text="{Binding ProxyUsername}" FontSize="11" Foreground="{DynamicResource Esri_Gray155}" Margin="0,3,0,0">
+            <TextBox Style="{DynamicResource H6TextBlock}" Padding="5" DockPanel.Dock="Right" Width="150" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource Esri_Gray155}" Margin="0,3,0,0">
               <TextBox.IsEnabled>
                 <MultiBinding Converter="{StaticResource CombineBooleanConverter}">
-                  <Binding Path="UseProxyService" />
+                  <Binding Path="UseProxyServer" />
                   <Binding Path="ProxyUseDefaultCredentials" Converter="{StaticResource InverseBooleanConverter}"/>
                 </MultiBinding>
               </TextBox.IsEnabled>
+              <TextBox.Text>
+                <MultiBinding Converter="{StaticResource ConfigurationServiceConverter}">
+                  <Binding Path="ProxyUsername" />
+                  <Binding Path="UseProxyServer" />
+                  <Binding Path="ProxyUseDefaultCredentials" Converter="{StaticResource InverseBooleanConverter}"/>
+                </MultiBinding>
+              </TextBox.Text>
             </TextBox>
           </DockPanel>
           <DockPanel Margin="0,0,0,0" Grid.Column="2" Grid.Row="0">
             <TextBlock FontSize="12" Foreground="{DynamicResource Esri_Gray155}" DockPanel.Dock="Left" Text="Password" Width="70" TextAlignment="Right" Margin="0,5,5,0"/>
-            <TextBox Style="{DynamicResource H6TextBlock}" Padding="5" DockPanel.Dock="Right" Width="150" TextWrapping="Wrap" Text="{Binding ProxyPassword}" FontSize="11" Foreground="{DynamicResource Esri_Gray155}" Margin="0,3,0,0">
-              <TextBox.IsEnabled>
+            <PasswordBox Style="{DynamicResource H6TextBlock}" Padding="5" DockPanel.Dock="Right" Width="150" PasswordChar="*" FontSize="11" Foreground="{DynamicResource Esri_Gray155}" Margin="0,3,0,0" PasswordChanged="OnPasswordChanged" Loaded="OnPasswordLoaded" IsEnabledChanged="OnPasswordEnabledChanged">
+              <PasswordBox.IsEnabled>
                 <MultiBinding Converter="{StaticResource CombineBooleanConverter}">
-                  <Binding Path="UseProxyService" />
+                  <Binding Path="UseProxyServer" />
                   <Binding Path="ProxyUseDefaultCredentials" Converter="{StaticResource InverseBooleanConverter}"/>
                 </MultiBinding>
-              </TextBox.IsEnabled>
-            </TextBox>
+              </PasswordBox.IsEnabled>
+            </PasswordBox>
           </DockPanel>
           <DockPanel Margin="0,0,0,0" Grid.Column="0" Grid.Row="1">
             <TextBlock FontSize="12" Foreground="{DynamicResource Esri_Gray155}" DockPanel.Dock="Left" Text="Domain" Width="70" TextAlignment="Right" Margin="0,5,5,0"/>
-            <TextBox Style="{DynamicResource H6TextBlock}" Padding="5" DockPanel.Dock="Right" Width="150" TextWrapping="Wrap" Text="{Binding ProxyDomain}" FontSize="11" Foreground="{DynamicResource Esri_Gray155}" Margin="0,3,0,0">
+            <TextBox Style="{DynamicResource H6TextBlock}" Padding="5" DockPanel.Dock="Right" Width="150" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource Esri_Gray155}" Margin="0,3,0,0">
               <TextBox.IsEnabled>
                 <MultiBinding Converter="{StaticResource CombineBooleanConverter}">
-                  <Binding Path="UseProxyService" />
+                  <Binding Path="UseProxyServer" />
                   <Binding Path="ProxyUseDefaultCredentials" Converter="{StaticResource InverseBooleanConverter}"/>
                 </MultiBinding>
               </TextBox.IsEnabled>
+              <TextBox.Text>
+                <MultiBinding Converter="{StaticResource ConfigurationServiceConverter}">
+                  <Binding Path="ProxyDomain" />
+                  <Binding Path="UseProxyServer" />
+                  <Binding Path="ProxyUseDefaultCredentials" Converter="{StaticResource InverseBooleanConverter}"/>
+                </MultiBinding>
+              </TextBox.Text>
             </TextBox>
           </DockPanel>
         </Grid>

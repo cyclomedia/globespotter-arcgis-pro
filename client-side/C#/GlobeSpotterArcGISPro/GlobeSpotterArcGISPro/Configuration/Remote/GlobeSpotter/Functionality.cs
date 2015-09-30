@@ -16,19 +16,16 @@
  * License along with this library.
  */
 
-namespace GlobeSpotterArcGISPro.AddIns.Views
+namespace GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter
 {
-  /// <summary>
-  /// Interaction logic for Settings.xaml
-  /// </summary>
-  public partial class Settings
+  public class Functionality
   {
-    #region Constructors
+    #region Properties
 
-    public Settings()
-    {
-      InitializeComponent();
-    }
+    /// <summary>
+    /// Name
+    /// </summary>
+    public string Name { get; set; }
 
     #endregion
   }

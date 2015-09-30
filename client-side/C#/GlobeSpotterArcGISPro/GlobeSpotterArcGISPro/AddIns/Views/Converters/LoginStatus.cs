@@ -16,18 +16,31 @@
  * License along with this library.
  */
 
-namespace GlobeSpotterArcGISPro.AddIns.Views
-{
-  /// <summary>
-  /// Interaction logic for Settings.xaml
-  /// </summary>
-  public partial class Settings
-  {
-    #region Constructors
+using System;
+using System.Globalization;
+using System.Windows.Data;
 
-    public Settings()
+namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
+{
+  public class LoginStatus : IValueConverter
+  {
+    #region Constants
+
+    private const string LoginFailed = "Login Failed";
+    private const string LoginSuccessfully = "Login Successfully";
+
+    #endregion
+
+    #region IValueConverter Members
+
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-      InitializeComponent();
+      return (((bool) value) ? LoginSuccessfully : LoginFailed);
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+      throw new NotSupportedException();
     }
 
     #endregion

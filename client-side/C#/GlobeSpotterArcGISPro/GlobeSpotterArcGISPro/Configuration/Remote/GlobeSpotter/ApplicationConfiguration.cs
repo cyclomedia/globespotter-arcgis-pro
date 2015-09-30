@@ -16,44 +16,50 @@
  * License along with this library.
  */
 
-using System;
-using System.Diagnostics;
-using System.Reflection;
-using ArcGIS.Desktop.Framework.Contracts;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace GlobeSpotterArcGISPro.AddIns.Pages
+namespace GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter
 {
-  internal class About: Page
+  public class ApplicationConfiguration
   {
+    #region Members
+
+    private readonly List<Functionality> _functionalities;
+
+    #endregion
+
     #region Constructors
 
-    protected About()
+    public ApplicationConfiguration()
     {
-      // empty
+      _functionalities = new List<Functionality>();
     }
 
     #endregion
 
-    #region Properties
+    #region properties
 
-    public string AboutText
+    public Functionality[] Functionalities
     {
-      get
+      get { return _functionalities.ToArray(); }
+      set
       {
-        // Assembly info
-        Type type = GetType();
-        Assembly assembly = type.Assembly;
-        string location = assembly.Location;
-        FileVersionInfo info = FileVersionInfo.GetVersionInfo(location);
-        AssemblyName assName = assembly.GetName();
-
-        // Version info
-        string product = info.ProductName;
-        string copyright = info.LegalCopyright;
-        Version version = assName.Version;
-
-        return string.Format("{0}{3}{1}{3}Version: {2}.", product, copyright, version, Environment.NewLine);
+        if (value != null)
+        {
+          _functionalities.AddRange(value);
+        }
       }
+    }
+
+    #endregion
+
+    #region Functions
+
+    public Functionality GetFunctionality(string name)
+    {
+      return _functionalities.Aggregate<Functionality, Functionality>
+        (null, (current, functionality) => (functionality.Name == name) ? functionality : current);
     }
 
     #endregion

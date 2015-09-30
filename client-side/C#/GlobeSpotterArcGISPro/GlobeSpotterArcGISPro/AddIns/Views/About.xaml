@@ -30,7 +30,7 @@
             <TextBlock FontSize="12" Foreground="{DynamicResource Esri_Gray155}" Text="{Binding AboutText}"/>
           </Paragraph>
           <Paragraph>
-            <Hyperlink FontSize="12" RequestNavigate="EventClickUri" NavigateUri="http://www.cyclomedia.com">http://www.cyclomedia.com</Hyperlink>
+            <Hyperlink FontSize="12" RequestNavigate="OnNavigateUri" NavigateUri="http://www.cyclomedia.com">http://www.cyclomedia.com</Hyperlink>
           </Paragraph>
         </FlowDocument>
       </RichTextBox>

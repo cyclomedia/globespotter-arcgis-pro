@@ -16,19 +16,25 @@
  * License along with this library.
  */
 
-namespace GlobeSpotterArcGISPro.AddIns.Views
+namespace GlobeSpotterArcGISPro.Configuration.Remote
 {
   /// <summary>
-  /// Interaction logic for Settings.xaml
+  /// This file contains default URLs
   /// </summary>
-  public partial class Settings
+  internal class Urls
   {
-    #region Constructors
+    #region Properties
 
-    public Settings()
-    {
-      InitializeComponent();
-    }
+    /// <summary>
+    /// The base url
+    /// </summary>
+    public static string BaseUrl = "https://atlas.cyclomedia.com";
+
+    /// <summary>
+    /// The spatialreferences url
+    /// </summary>
+    public static string SpatialReferencesUrl =
+      "https://globespotter.cyclomedia.com/v285/api/config/srs/globespotterspatialreferences.xml";
 
     #endregion
   }
