@@ -40,7 +40,7 @@
         <button id="GlobeSpotterArcGISPro_CycloMediaOptionsButton"
                 caption="Settings"
                 className="AddIns.Buttons.CycloMediaOptions"
-                loadOnClick="true"
+                loadOnClick="false"
                 largeImage="Images\CycloMediaOptions32.png">
           <tooltip heading="Settings">Settings for GlobeSpotter for ArcGIS Desktop<disabledText /></tooltip>
         </button>

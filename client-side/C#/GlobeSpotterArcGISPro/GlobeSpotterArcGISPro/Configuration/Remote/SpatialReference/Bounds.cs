@@ -16,41 +16,31 @@
  * License along with this library.
  */
 
-using ArcGIS.Desktop.Framework;
-using ArcGIS.Desktop.Framework.Contracts;
-using GlobeSpotterArcGISPro.Configuration.File;
-
-namespace GlobeSpotterArcGISPro.AddIns.Buttons
+namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
 {
-  internal class CycloMediaOptions : Button
+  public class Bounds
   {
-    #region Members
+    #region Properties
 
-    private readonly Agreement _agreement;
+    /// <summary>
+    /// Min X value
+    /// </summary>
+    public double MinX { get; set; }
 
-    #endregion
+    /// <summary>
+    /// Min Y value
+    /// </summary>
+    public double MinY { get; set; }
 
-    #region Constructors
+    /// <summary>
+    /// Max X value
+    /// </summary>
+    public double MaxX { get; set; }
 
-    protected CycloMediaOptions()
-    {
-      _agreement = Agreement.Instance;
-    }
-
-    #endregion
-
-    #region Event handlers
-
-    protected override void OnClick()
-    {
-      PropertySheet.ShowDialog("PropertyScreen_options");
-    }
-
-    protected override void OnUpdate()
-    {
-      Enabled = _agreement.Value;
-      base.OnUpdate();
-    }
+    /// <summary>
+    /// Max Y value
+    /// </summary>
+    public double MaxY { get; set; }
 
     #endregion
   }

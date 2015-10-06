@@ -37,6 +37,12 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ArcGIS.Core">
+      <HintPath>C:\Program Files\ArcGIS\Pro\bin\ArcGIS.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="ArcGIS.Desktop.Mapping">
+      <HintPath>C:\Program Files\ArcGIS\Pro\bin\Extensions\Mapping\ArcGIS.Desktop.Mapping.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -83,6 +89,13 @@
       <DependentUpon>Login.xaml</DependentUpon>
     </Compile>
     <Compile Include="AddIns\Views\Converters\InverseBoolean.cs" />
+    <Compile Include="Configuration\File\Agreement.cs" />
+    <Compile Include="Configuration\File\HistoricalRecordings.cs" />
+    <Compile Include="Configuration\File\Constants.cs" />
+    <Compile Include="Configuration\File\Settings.cs" />
+    <Compile Include="Configuration\Remote\SpatialReference\Bounds.cs" />
+    <Compile Include="Configuration\Remote\SpatialReference\SpatialReference.cs" />
+    <Compile Include="Configuration\Remote\SpatialReference\SpatialReferences.cs" />
     <Compile Include="Configuration\Resource\APIKey.cs" />
     <Compile Include="Configuration\Remote\GlobeSpotter\ApplicationConfiguration.cs" />
     <Compile Include="Configuration\Remote\GlobeSpotter\Functionality.cs" />

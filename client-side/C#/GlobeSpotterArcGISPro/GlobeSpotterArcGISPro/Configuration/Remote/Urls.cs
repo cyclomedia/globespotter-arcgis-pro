@@ -16,25 +16,72 @@
  * License along with this library.
  */
 
+using FileConfiguration = GlobeSpotterArcGISPro.Configuration.File.Configuration;
+
 namespace GlobeSpotterArcGISPro.Configuration.Remote
 {
   /// <summary>
   /// This file contains default URLs
   /// </summary>
-  internal class Urls
+  public class Urls
   {
+    #region Constants
+
+    // ReSharper disable InconsistentNaming
+    private const string baseUrl = "https://atlas.cyclomedia.com";
+    private const string apiUrl = "https://globespotter.cyclomedia.com/v285/api";
+    private const string configurationRequest = "{0}/configuration/configuration/API";
+    private const string apiSwf = "/viewer_api.swf";
+    private const string spatialReferencesXml = "/config/srs/globespotterspatialreferences.xml";
+    // ReSharper restore InconsistentNaming
+
+    #endregion
+
+    #region Members
+
+    protected readonly FileConfiguration Configuration;
+
+    #endregion
+
+    #region Constructor
+
+    protected Urls()
+    {
+      Configuration = FileConfiguration.Instance;
+    }
+
+    #endregion
+
     #region Properties
 
     /// <summary>
-    /// The base url
+    /// Base url
     /// </summary>
-    public static string BaseUrl = "https://atlas.cyclomedia.com";
+    public string BaseUrl
+    {
+      get { return Configuration.UseDefaultBaseUrl ? baseUrl : Configuration.BaseUrlLocation; }
+    }
 
     /// <summary>
-    /// The spatialreferences url
+    /// Configuration URL
     /// </summary>
-    public static string SpatialReferencesUrl =
-      "https://globespotter.cyclomedia.com/v285/api/config/srs/globespotterspatialreferences.xml";
+    public string ConfigurationUrl
+    {
+      get { return string.Format(configurationRequest, BaseUrl); }
+    }
+
+    /// <summary>
+    /// Spatialreferences URL
+    /// </summary>
+    public string SpatialReferenceUrl
+    {
+      get
+      {
+        return Configuration.UseDefaultSwfUrl
+          ? string.Concat(apiUrl, spatialReferencesXml)
+          : Configuration.SwfLocation.Replace(apiSwf, spatialReferencesXml);
+      }
+    }
 
     #endregion
   }

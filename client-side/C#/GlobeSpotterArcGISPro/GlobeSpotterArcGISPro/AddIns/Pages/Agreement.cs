@@ -17,24 +17,57 @@
  */
 
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using ArcGIS.Desktop.Framework.Contracts;
+
+using FileAgreement = GlobeSpotterArcGISPro.Configuration.File.Agreement;
 
 namespace GlobeSpotterArcGISPro.AddIns.Pages
 {
   internal class Agreement: Page
   {
+    #region Events
+
+    public new event PropertyChangedEventHandler PropertyChanged;
+
+    #endregion
+
+    #region Members
+
+    private readonly FileAgreement _agreement;
+
+    private bool _value;
+
+    #endregion
+
     #region Constructors
 
     protected Agreement()
     {
-      // empty
+      _agreement = FileAgreement.Instance;
+      _value = _agreement.Value;
     }
 
     #endregion
 
     #region Properties
+
+    public bool Value
+    {
+      get { return _value; }
+      set
+      {
+        if (_value != value)
+        {
+          IsModified = true;
+          _value = value;
+          NotifyPropertyChanged("Value");
+        }
+      }
+    }
 
     public string AgreementText
     {
@@ -54,6 +87,29 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         }
 
         return result;
+      }
+    }
+
+    #endregion
+
+    #region Overrides
+
+    protected override Task CommitAsync()
+    {
+      _agreement.Value = _value;
+      _agreement.Save();
+      return base.CommitAsync();
+    }
+
+    #endregion
+
+    #region Functions
+
+    private void NotifyPropertyChanged(string propertyName)
+    {
+      if (PropertyChanged != null)
+      {
+        PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
       }
     }
 

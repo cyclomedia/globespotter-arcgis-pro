@@ -162,7 +162,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter
 
     public static GlobeSpotterConfiguration Load()
     {
-      Stream globeSpotterConf = Web.DownloadGlobeSpotterConfiguration();
+      Stream globeSpotterConf = Web.GlobeSpotterConfiguration();
 
       if (globeSpotterConf != null)
       {

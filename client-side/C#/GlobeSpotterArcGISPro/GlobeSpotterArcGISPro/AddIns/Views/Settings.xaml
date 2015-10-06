@@ -22,12 +22,12 @@
       <TextBlock Style="{DynamicResource H3TextBlock}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource Esri_Gray155}" Text="Coordinate systems" />
       <DockPanel Margin="5,5,5,0">
         <TextBlock FontSize="12" Foreground="{DynamicResource Esri_Gray155}" DockPanel.Dock="Left" TextAlignment="Right" Text="Recording layer" Width="95" Margin="0,5,5,0"/>
-        <ComboBox x:Name ="CbRecordingCoordSystem" HorizontalAlignment="Stretch" Margin="0,5,0,0">
+        <ComboBox ItemsSource="{Binding Path=ExistsInAreaSpatialReferences}" SelectedItem="{Binding Path=RecordingLayerCoordinateSystem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Stretch" Margin="0,5,0,0">
         </ComboBox>
       </DockPanel>
       <DockPanel Margin="5,5,5,0">
         <TextBlock FontSize="12" Foreground="{DynamicResource Esri_Gray155}" DockPanel.Dock="Left" TextAlignment="Right" Text="Cyclorama viewer" Width="95" Margin="0,5,5,0"/>
-        <ComboBox x:Name ="CbCycloramaCoordSystem" HorizontalAlignment="Stretch" Margin="0,5,0,0">
+        <ComboBox ItemsSource="{Binding Path=ExistsInAreaSpatialReferences}" SelectedItem="{Binding Path=CycloramaViewerCoordinateSystem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Stretch" Margin="0,5,0,0">
         </ComboBox>
       </DockPanel>
       <StackPanel Margin="105,5,5,0">
@@ -38,16 +38,16 @@
       <TextBlock Style="{DynamicResource H3TextBlock}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource Esri_Gray155}" Text="General" />
       <DockPanel Margin="5,5,5,0">
         <TextBlock FontSize="12" Foreground="{DynamicResource Esri_Gray155}" DockPanel.Dock="Left" TextAlignment="Right" Text="ctrl-click-#" ToolTip="Sets the initial amount of Cyclorama viewers to be opened when using Ctrl-click to open the nearest cyclorama(s). If more Cyclorama viewers are open a Ctrl-click will replace all of them." Width="95" Margin="0,5,5,0"/>
-        <ComboBox x:Name ="CbClickNr" HorizontalAlignment="Left" Margin="0,5,0,0" Width="30">
+        <ComboBox SelectedIndex="{Binding Path=CtrlClickHashTag}" HorizontalAlignment="Left" Margin="0,5,0,0" Width="30">
           <ComboBoxItem Tag="1" Style="{DynamicResource H6TextBlock}" FontSize="11">1</ComboBoxItem>
           <ComboBoxItem Tag="2" Style="{DynamicResource H6TextBlock}" FontSize="11">2</ComboBoxItem>
-          <ComboBoxItem Tag="3" IsSelected="True" Style="{DynamicResource H6TextBlock}" FontSize="11" >3</ComboBoxItem>
+          <ComboBoxItem Tag="3" IsSelected="True" Style="{DynamicResource H6TextBlock}" FontSize="11">3</ComboBoxItem>
           <ComboBoxItem Tag="4" Style="{DynamicResource H6TextBlock}" FontSize="11">4</ComboBoxItem>
         </ComboBox>
       </DockPanel>
       <DockPanel Margin="5,5,5,0">
         <TextBlock FontSize="12" Foreground="{DynamicResource Esri_Gray155}" DockPanel.Dock="Left" TextAlignment="Right" Text="ctrl-click-Δ" ToolTip="Sets the amount of recordings between the Cycloramas to be opened on a Ctrl-click. Spreading the viewers like this can help to achieve a better intersection when measuring." Width="95" Margin="0,5,5,0"/>
-        <ComboBox x:Name ="CbClickDelta" HorizontalAlignment="Left" Margin="0,5,0,0" Width="30">
+        <ComboBox SelectedIndex="{Binding Path=CtrlClickDelta}" HorizontalAlignment="Left" Margin="0,5,0,0" Width="30">
           <ComboBoxItem Tag="1" IsSelected="True" Style="{DynamicResource H6TextBlock}" FontSize="11">1</ComboBoxItem>
           <ComboBoxItem Tag="2" Style="{DynamicResource H6TextBlock}" FontSize="11">2</ComboBoxItem>
           <ComboBoxItem Tag="3" Style="{DynamicResource H6TextBlock}" FontSize="11">3</ComboBoxItem>

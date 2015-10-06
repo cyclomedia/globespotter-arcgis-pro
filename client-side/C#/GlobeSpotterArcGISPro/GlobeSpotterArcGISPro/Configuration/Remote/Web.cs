@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2014, CycloMedia, All rights reserved.
+ * Copyright (c) 2015, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,80 +17,50 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
-using System.Xml;
-using System.Xml.Linq;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Resource;
 
-using FileConfiguration = GlobeSpotterArcGISPro.Configuration.File.Configuration;
-
 namespace GlobeSpotterArcGISPro.Configuration.Remote
 {
-  public class Web
+  public class Web: Urls
   {
-    #region constants
-
-    // =========================================================================
-    // Constants
-    // =========================================================================
-    private const string RecordingRequest =
-      "{0}?service=WFS&version=1.1.0&request=GetFeature&srsname={1}&featureid={2}&TYPENAME=atlas:Recording";
-
-    private const string WfsBboxRequest =
-      "{0}?SERVICE=WFS&VERSION={1}&REQUEST=GetFeature&SRSNAME={2}&BBOX={3},{4},{5},{6},{7}&TYPENAME={8}";
-
-    private const string CapabilityString = "{0}?REQUEST=GetCapabilities&VERSION={1}&SERVICE=WFS";
-
-    private const string AuthorizationRequest = "{0}/configuration/configuration/API";
+    #region Constants
 
     private const int BufferImageLengthService = 2048;
-    private const int XmlConfig = 0;
-    private const int DownloadImageConfig = 1;
     private const int LeaseTimeOut = 5000;
     private const int DefaultConnectionLimit = 5;
 
     #endregion
 
-    #region members
+    #region Members
 
-    // =========================================================================
-    // Members
-    // =========================================================================
     private readonly int[] _waitTimeInternalServerError = {5000, 0};
     private readonly int[] _timeOutService = {3000, 1000};
     private readonly int[] _retryTimeService = {3, 1};
 
     private static Web _web;
 
-    private readonly CultureInfo _ci;
     private readonly Login _login;
-    private readonly FileConfiguration _configuration;
     private readonly ApiKey _apiKey;
 
     #endregion
 
-    #region properties
+    #region Enums
 
-    // =========================================================================
-    // Properties
-    // =========================================================================
-    private string BaseUrl
+    private enum TypeDownloadConfig
     {
-      get { return (_configuration.UseDefaultBaseUrl ? Urls.BaseUrl : _configuration.BaseUrlLocation); }
+      // ReSharper disable once InconsistentNaming
+      XML = 0,
+      Image = 1
     }
 
-    private string RecordingService
-    {
-      get { return string.Format("{0}/recordings/wfs", BaseUrl); }
-    }
+    #endregion
+
+    #region Properties
 
     public static Web Instance
     {
@@ -101,127 +71,38 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote
 
     #region Constructor
 
-    // =========================================================================
-    // Constructor
-    // =========================================================================
     private Web()
     {
-      _ci = CultureInfo.InvariantCulture;
       _login = Login.Instance;
-      _configuration = FileConfiguration.Instance;
       _apiKey = ApiKey.Instance;
       ServicePointManager.DefaultConnectionLimit = DefaultConnectionLimit;
     }
 
     #endregion
 
-    #region interface functions
+    #region Interface functions
 
-    // =========================================================================
-    // Interface functions
-    // =========================================================================
-    /*
-    public List<XElement> GetByImageId(string imageId, CycloMediaLayer cycloMediaLayer)
+    public Stream SpatialReferences()
     {
-      string epsgCode = cycloMediaLayer.EpsgCode;
-      epsgCode = SpatialReferences.Instance.ToKnownSrsName(epsgCode);
-      string remoteLocation = string.Format(RecordingRequest, RecordingService, epsgCode, imageId);
-      var xml = (string) GetRequest(remoteLocation, GetXmlCallback, XmlConfig);
-      return ParseXml(xml, (Namespaces.GmlNs + "featureMembers"));
+      return GetRequest(SpatialReferenceUrl, GetStreamCallback, TypeDownloadConfig.XML) as Stream;
     }
 
-    public List<XElement> GetByBbox(IEnvelope envelope, CycloMediaLayer cycloMediaLayer)
+    public Stream GlobeSpotterConfiguration()
     {
-      string epsgCode = cycloMediaLayer.EpsgCode;
-      epsgCode = SpatialReferences.Instance.ToKnownSrsName(epsgCode);
-      List<XElement> result;
-
-      if (cycloMediaLayer is WfsLayer)
-      {
-        var wfsLayer = cycloMediaLayer as WfsLayer;
-        string remoteLocation = string.Format(_ci, WfsBboxRequest, wfsLayer.Url, wfsLayer.Version, epsgCode,
-                                              envelope.XMin, envelope.YMin, envelope.XMax, envelope.YMax,
-                                              epsgCode, wfsLayer.TypeName);
-        var xml = (string) GetRequest(remoteLocation, GetXmlCallback, XmlConfig);
-        result = ParseXml(xml, (Namespaces.GmlNs + "featureMember"));
-      }
-      else
-      {
-        string postItem = string.Format(_ci, cycloMediaLayer.WfsRequest, epsgCode, envelope.XMin, envelope.YMin,
-                                        envelope.XMax,
-                                        envelope.YMax, DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:00-00:00"));
-        var xml = (string)PostRequest(RecordingService, GetXmlCallback, postItem, XmlConfig);
-        result = ParseXml(xml, (Namespaces.GmlNs + "featureMembers"));
-      }
-
-      return result;
-    }
-
-    public List<XElement> GetByBbox(IEnvelope envelope, string wfsRequest)
-    {
-      string epsgCode = ArcUtils.EpsgCode;
-      string postItem = string.Format(_ci, wfsRequest, epsgCode, envelope.XMin, envelope.YMin, envelope.XMax,
-                                      envelope.YMax, DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:00-00:00"));
-      var xml = (string)PostRequest(RecordingService, GetXmlCallback, postItem, XmlConfig);
-      return ParseXml(xml, (Namespaces.GmlNs + "featureMembers"));
-    }
-    
-    public List<XElement> GetCapabilities(string wfsService, string version)
-    {
-      string remotelocation = string.Format(CapabilityString, wfsService, version);
-      var xml = (string) GetRequest(remotelocation, GetXmlCallback, XmlConfig);
-      return ParseXml(xml, (Namespaces.WfsNs + "FeatureTypeList"));
-    }
-    */
-    public Image DownloadImage(string url)
-    {
-      var imageStream = GetRequest(url, GetStreamCallback, DownloadImageConfig) as Stream;
-      return (imageStream == null) ? null : Image.FromStream(imageStream);
-    }
-
-    public Stream DownloadSpatialReferences()
-    {
-      string url = _configuration.UseDefaultSwfUrl
-        ? Urls.SpatialReferencesUrl
-        : _configuration.SwfLocation.Replace("viewer_api.swf", "config/srs/globespotterspatialreferences.xml");
-      return GetRequest(url, GetStreamCallback, XmlConfig) as Stream;
-    }
-
-    public Stream DownloadGlobeSpotterConfiguration()
-    {
-      const string postItem = @"<Authorization />";
-      string authorizationService = string.Format(AuthorizationRequest, BaseUrl);
-      return PostRequest(authorizationService, GetStreamCallback, postItem, XmlConfig) as Stream;
+      const string authorizationItem = @"<Authorization />";
+      return PostRequest(ConfigurationUrl, GetStreamCallback, authorizationItem, TypeDownloadConfig.XML) as Stream;
     }
 
     #endregion
 
-    #region parse XML
+    #region Web request functions
 
-    // =========================================================================
-    // Parse XML
-    // =========================================================================
-    private static List<XElement> ParseXml(string xml, XName xName)
-    {
-      var stringReader = new StringReader(xml);
-      var xmlTextReader = new XmlTextReader(stringReader);
-      XDocument xmlDoc = XDocument.Load(xmlTextReader);
-      IEnumerable<XElement> elements = xmlDoc.Descendants(xName);
-      return elements.ToList();
-    }
-
-    #endregion
-
-    #region wfs request functions
-
-    // =========================================================================
-    // wfs request functions
-    // =========================================================================
-    private object GetRequest(string remoteLocation, AsyncCallback asyncCallback, int configId)
+    private object GetRequest(string remoteLocation, AsyncCallback asyncCallback, TypeDownloadConfig typeDownloadConfig)
     {
       object result = null;
       bool download = false;
       int retry = 0;
+      var configId = (int) typeDownloadConfig;
       WebRequest request = OpenWebRequest(remoteLocation, WebRequestMethods.Http.Get, 0);
       var state = new State {Request = request};
 
@@ -280,11 +161,12 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote
       return result;
     }
 
-    private object PostRequest(string remoteLocation, AsyncCallback asyncCallback, string postItem, int configId)
+    private object PostRequest(string remoteLocation, AsyncCallback asyncCallback, string postItem, TypeDownloadConfig typeDownloadConfig)
     {
       object result = null;
       bool download = false;
       int retry = 0;
+      var configId = (int) typeDownloadConfig;
       var bytes = (new UTF8Encoding()).GetBytes(postItem);
       WebRequest request = OpenWebRequest(remoteLocation, WebRequestMethods.Http.Post, bytes.Length);
       var state = new State {Request = request};
@@ -378,17 +260,17 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote
     {
       IWebProxy proxy;
 
-      if (_configuration.UseProxyServer)
+      if (Configuration.UseProxyServer)
       {
-        var webProxy = new WebProxy(_configuration.ProxyAddress, _configuration.ProxyPort)
+        var webProxy = new WebProxy(Configuration.ProxyAddress, Configuration.ProxyPort)
         {
-          BypassProxyOnLocal = _configuration.ProxyBypassLocalAddresses,
-          UseDefaultCredentials = _configuration.ProxyUseDefaultCredentials
+          BypassProxyOnLocal = Configuration.ProxyBypassLocalAddresses,
+          UseDefaultCredentials = Configuration.ProxyUseDefaultCredentials
         };
 
-        if (!_configuration.ProxyUseDefaultCredentials)
+        if (!Configuration.ProxyUseDefaultCredentials)
         {
-          webProxy.Credentials = new NetworkCredential(_configuration.ProxyUsername, _configuration.ProxyPassword, _configuration.ProxyDomain);
+          webProxy.Credentials = new NetworkCredential(Configuration.ProxyUsername, Configuration.ProxyPassword, Configuration.ProxyDomain);
         }
 
         proxy = webProxy;
@@ -415,35 +297,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote
 
     #endregion
 
-    #region callback functions
-
-    // =========================================================================
-    // Call back functions
-    // =========================================================================
-    private static void GetXmlCallback(IAsyncResult ar)
-    {
-      var state = (State) ar.AsyncState;
-
-      try
-      {
-        var response = state.Request.EndGetResponse(ar);
-        Stream responseStream = response.GetResponseStream();
-
-        if (responseStream != null)
-        {
-          var reader = new StreamReader(responseStream);
-          state.Result = reader.ReadToEnd();
-        }
-
-        response.Close();
-        state.OperationComplete.Set();
-      }
-      catch (Exception e)
-      {
-        state.OperationException = e;
-        state.OperationComplete.Set();
-      }
-    }
+    #region Callback functions
 
     private static void GetStreamCallback(IAsyncResult ar)
     {
