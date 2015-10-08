@@ -16,53 +16,40 @@
  * License along with this library.
  */
 
-using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
+using GlobeSpotterArcGISPro.AddIns.Modules;
+using GlobeSpotterArcGISPro.Configuration.File;
 
-namespace GlobeSpotterArcGISPro.AddIns.Modules
+namespace GlobeSpotterArcGISPro.AddIns.Buttons
 {
-  internal class GlobeSpotter : Module
+  internal class RecentRecordingLayer : Button
   {
     #region Members
 
-    private static GlobeSpotter _globeSpotter;
+    private readonly Agreement _agreement;
 
     #endregion
 
-    #region Properties
+    #region Constructors
 
-    /// <summary>
-    /// Retrieve the singleton instance to this module here
-    /// </summary>
-    public static GlobeSpotter Current
+    protected RecentRecordingLayer()
     {
-      get
-      {
-        return _globeSpotter ??
-               (_globeSpotter = (GlobeSpotter) FrameworkApplication.FindModule("GlobeSpotterArcGISPro_Module"));
-      }
+      _agreement = Agreement.Instance;
     }
 
     #endregion
 
-    #region Overrides
+    #region Event handlers
 
-    /// <summary>
-    /// Called by Framework when ArcGIS Pro is closing
-    /// </summary>
-    /// <returns>False to prevent Pro from closing, otherwise True</returns>
-    protected override bool CanUnload()
+    protected override void OnClick()
     {
-      return true;
+      GlobeSpotter.AddRecentRecordingLayer();
     }
 
-    #endregion
-
-    #region Functions
-
-    public static void AddRecentRecordingLayer()
+    protected override void OnUpdate()
     {
-      // Todo: Add functionality
+      Enabled = _agreement.Value;
+      base.OnUpdate();
     }
 
     #endregion

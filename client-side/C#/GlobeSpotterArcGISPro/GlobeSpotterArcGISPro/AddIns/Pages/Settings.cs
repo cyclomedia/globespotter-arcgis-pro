@@ -78,14 +78,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
       {
         if (_existsInAreaSpatialReferences == null)
         {
-          _existsInAreaSpatialReferences = new List<SpatialReference>();
-          SpatialReferences spatialReferences = SpatialReferences.Instance;
-
-          foreach (var spatialReference in spatialReferences)
-          {
-            spatialReference.ExistsInArea();
-            spatialReference.ExistsInAreaEvent += ExistsInAreaListner;
-          }
+          CreateExistsInAreaSpatialReferences();
         }
 
         return _existsInAreaSpatialReferences;
@@ -230,19 +223,20 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
       }
     }
 
-    #endregion
-
-    #region Eventlistners
-
-    private void ExistsInAreaListner(SpatialReference spatialReference, bool exists)
+    private async void CreateExistsInAreaSpatialReferences()
     {
-      if (_existsInAreaSpatialReferences != null)
+      _existsInAreaSpatialReferences = new List<SpatialReference>();
+      SpatialReferences spatialReferences = SpatialReferences.Instance;
+
+      foreach (var spatialReference in spatialReferences)
       {
+        bool exists = await spatialReference.ExistsInArea();
+
         if (exists && (!_existsInAreaSpatialReferences.Contains(spatialReference)))
         {
           _existsInAreaSpatialReferences.Add(spatialReference);
         }
-        
+
         if ((!exists) && (_existsInAreaSpatialReferences.Contains(spatialReference)))
         {
           _existsInAreaSpatialReferences.Remove(spatialReference);
@@ -258,8 +252,6 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
           NotifyPropertyChanged("CycloramaViewerCoordinateSystem");
         }
       }
-
-      spatialReference.ExistsInAreaEvent -= ExistsInAreaListner;
     }
 
     #endregion

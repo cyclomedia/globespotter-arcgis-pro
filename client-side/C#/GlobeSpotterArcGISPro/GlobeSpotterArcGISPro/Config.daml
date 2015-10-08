@@ -1,4 +1,23 @@
-﻿<ArcGIS defaultAssembly="GlobeSpotterForArcGISPro.dll"
+﻿<!--
+ /*
+ * Integration in ArcMap for Cycloramas
+ * Copyright (c) 2015, CycloMedia, All rights reserved.
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3.0 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ */
+-->
+<ArcGIS defaultAssembly="GlobeSpotterForArcGISPro.dll"
         defaultNamespace="GlobeSpotterArcGISPro"
         xmlns="http://schemas.esri.com/DADF/Registry"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -34,6 +53,8 @@
                appearsOnAddInTab="false">
           <button refID="GlobeSpotterArcGISPro_CycloMediaOptionsButton"
                   size="large" />
+          <button refID="GlobeSpotterArcGISPro_RecentRecordingLayerButton"
+                  size="large" />
         </group>
       </groups>
       <controls>
@@ -43,6 +64,13 @@
                 loadOnClick="false"
                 largeImage="Images\CycloMediaOptions32.png">
           <tooltip heading="Settings">Settings for GlobeSpotter for ArcGIS Desktop<disabledText /></tooltip>
+        </button>
+        <button id="GlobeSpotterArcGISPro_RecentRecordingLayerButton"
+                caption="Recent Recording Layer"
+                className="AddIns.Buttons.RecentRecordingLayer"
+                loadOnClick="false"
+                largeImage="Images\RecentRecordingLayer32.png">
+          <tooltip heading="Recent Recording Layer">Add recent cyclorama layer to the map<disabledText /></tooltip>
         </button>
       </controls>
     </insertModule>

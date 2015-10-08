@@ -17,6 +17,7 @@
  */
 
 using System;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
 using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
@@ -30,12 +31,6 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
 
   public class SpatialReference
   {
-    #region Events
-
-    public event SpatialReferenceExistsInAreaDelegate ExistsInAreaEvent;
-
-    #endregion
-
     #region Members
 
     private ArcGISSpatialReference _spatialReference;
@@ -65,95 +60,68 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
     }
 
     /// <summary>
-    /// asynchronous function to request this or spatial reference exists in the current area
+    /// asynchronous function to request or this spatial reference exists in the current area
     /// </summary>
-    public void ExistsInArea()
+    public async Task<bool> ExistsInArea()
     {
       if (_spatialReference == null)
       {
-        CreateSpatialReference();
-      }
-      else
-      {
-        FilterSpatialReference();
-      }
-    }
-
-    #endregion
-
-    #region Overrides
-
-    public override string ToString()
-    {
-      return string.Format("{0} ({1})", (string.IsNullOrEmpty(ESRICompatibleName) ? Name : ESRICompatibleName), SRSName);
-    }
-
-    #endregion
-
-    #region tasks
-
-    private void CreateSpatialReference()
-    {
-      QueuedTask.Run(() =>
-      {
-        if (string.IsNullOrEmpty(SRSName))
+        await QueuedTask.Run(() =>
         {
-          _spatialReference = null;
-        }
-        else
-        {
-          int srs;
-          string strsrs = SRSName.Replace("EPSG:", string.Empty);
-
-          if (int.TryParse(strsrs, out srs))
+          if (string.IsNullOrEmpty(SRSName))
           {
-            try
-            {
-              _spatialReference = SpatialReferenceBuilder.CreateSpatialReference(srs);
-            }
-            catch (ArgumentException)
-            {
-              if (string.IsNullOrEmpty(CompatibleSRSNames))
-              {
-                _spatialReference = null;
-              }
-              else
-              {
-                strsrs = CompatibleSRSNames.Replace("EPSG:", string.Empty);
+            _spatialReference = null;
+          }
+          else
+          {
+            int srs;
+            string strsrs = SRSName.Replace("EPSG:", string.Empty);
 
-                if (int.TryParse(strsrs, out srs))
+            if (int.TryParse(strsrs, out srs))
+            {
+              try
+              {
+                _spatialReference = SpatialReferenceBuilder.CreateSpatialReference(srs);
+              }
+              catch (ArgumentException)
+              {
+                if (string.IsNullOrEmpty(CompatibleSRSNames))
                 {
-                  try
+                  _spatialReference = null;
+                }
+                else
+                {
+                  strsrs = CompatibleSRSNames.Replace("EPSG:", string.Empty);
+
+                  if (int.TryParse(strsrs, out srs))
                   {
-                    _spatialReference = SpatialReferenceBuilder.CreateSpatialReference(srs);
+                    try
+                    {
+                      _spatialReference = SpatialReferenceBuilder.CreateSpatialReference(srs);
+                    }
+                    catch (ArgumentException)
+                    {
+                      _spatialReference = null;
+                    }
                   }
-                  catch (ArgumentException)
+                  else
                   {
                     _spatialReference = null;
                   }
                 }
-                else
-                {
-                  _spatialReference = null;
-                }
               }
             }
+            else
+            {
+              _spatialReference = null;
+            }
           }
-          else
-          {
-            _spatialReference = null;
-          }
-        }
+        });
+      }
 
-        FilterSpatialReference();
-      });
-    }
-
-    private void FilterSpatialReference()
-    {
-      QueuedTask.Run(() =>
+      if (_spatialReference != null)
       {
-        if (_spatialReference != null)
+        await QueuedTask.Run(() =>
         {
           MapView activeView = MapView.Active;
           Envelope envelope = activeView.Extent;
@@ -194,10 +162,19 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
               _spatialReference = null;
             }
           }
-        }
+        });
+      }
 
-        ExistsInAreaEvent(this, (_spatialReference != null));
-      });
+      return (_spatialReference != null);
+    }
+
+    #endregion
+
+    #region Overrides
+
+    public override string ToString()
+    {
+      return string.Format("{0} ({1})", (string.IsNullOrEmpty(ESRICompatibleName) ? Name : ESRICompatibleName), SRSName);
     }
 
     #endregion
