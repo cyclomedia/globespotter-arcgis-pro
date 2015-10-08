@@ -82,6 +82,7 @@
     <Compile Include="AddIns\Views\About.xaml.cs">
       <DependentUpon>About.xaml</DependentUpon>
     </Compile>
+    <Compile Include="AddIns\Views\Converters\CanMeasuring.cs" />
     <Compile Include="AddIns\Views\Converters\LoginStatus.cs" />
     <Compile Include="AddIns\Views\Settings.xaml.cs">
       <DependentUpon>Settings.xaml</DependentUpon>

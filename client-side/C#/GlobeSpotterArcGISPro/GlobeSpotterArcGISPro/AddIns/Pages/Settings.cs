@@ -115,8 +115,17 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
           IsModified = true;
           _settings.CycloramaViewerCoordinateSystem = value;
           NotifyPropertyChanged("CycloramaViewerCoordinateSystem");
+          NotifyPropertyChanged("CanMeasuring");
         }
       }
+    }
+
+    /// <summary>
+    /// Can measuring property
+    /// </summary>
+    public bool CanMeasuring
+    {
+      get { return (_settings.CycloramaViewerCoordinateSystem != null) && _settings.CycloramaViewerCoordinateSystem.CanMeasuring; }
     }
 
     /// <summary>
