@@ -38,7 +38,7 @@
   </AddInInfo>
   <modules>
     <insertModule id="GlobeSpotterArcGISPro_Module"
-                  className="AddIns.Module.GlobeSpotter"
+                  className="AddIns.Modules.GlobeSpotter"
                   autoLoad="false"
                   caption="GlobeSpotter module">
       <tabs>
@@ -73,6 +73,16 @@
           <tooltip heading="Recent Recording Layer">Add recent cyclorama layer to the map<disabledText /></tooltip>
         </button>
       </controls>
+      <panes>
+        <pane id="GlobeSpotterArcGISPro_GlobeSpotter"
+              caption="GlobeSpotter"
+              className="AddIns.Panes.GlobeSpotter"
+              smallImage="Images\GlobeSpotter32.png"
+              defaultTab="esri_mapping_homeTab"
+              defaultTool="esri_mapping_navigateTool">
+          <content className="AddIns.Views.GlobeSpotter" />
+        </pane>
+      </panes>
     </insertModule>
   </modules>
   <propertySheets>

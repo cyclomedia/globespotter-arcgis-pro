@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Globespotter_OnAPIFailed_Initialize_" xml:space="preserve">
+    <value>Initialize API failed</value>
+  </data>
   <data name="Login_CreateAes_Password_must_be_at_least_8_characters_" xml:space="preserve">
     <value>Password must be at least 8 characters.</value>
   </data>

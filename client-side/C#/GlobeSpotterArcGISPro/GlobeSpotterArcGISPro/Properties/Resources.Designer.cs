@@ -61,6 +61,15 @@ namespace GlobeSpotterArcGISPro.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Initialize API failed.
+        /// </summary>
+        internal static string Globespotter_OnAPIFailed_Initialize_ {
+            get {
+                return ResourceManager.GetString("Globespotter_OnAPIFailed_Initialize_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Password must be at least 8 characters..
         /// </summary>
         internal static string Login_CreateAes_Password_must_be_at_least_8_characters_ {

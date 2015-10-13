@@ -44,6 +44,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Buttons
     protected override void OnClick()
     {
       GlobeSpotter.AddRecentRecordingLayer();
+      Panes.GlobeSpotter.Create();
     }
 
     protected override void OnUpdate()

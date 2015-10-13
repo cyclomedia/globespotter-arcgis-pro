@@ -55,6 +55,11 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     /// </summary>
     public int OverlayDrawDistance { get; set; }
 
+    /// <summary>
+    /// Address language code
+    /// </summary>
+    public string AddressLanguageCode { get; set; }
+
     public static Constants Instance
     {
       get
@@ -102,6 +107,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
       {
         MaxViewers = 4,
         OverlayDrawDistance = 30,
+        AddressLanguageCode = "nl"
       };
 
       result.Save();

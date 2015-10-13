@@ -24,11 +24,10 @@ using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 
 using ArcGISSpatialReference = ArcGIS.Core.Geometry.SpatialReference;
+using FileSettings = GlobeSpotterArcGISPro.Configuration.File.Settings;
 
 namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
 {
-  public delegate void SpatialReferenceExistsInAreaDelegate(SpatialReference spatialReference, bool exists);
-
   public class SpatialReference
   {
     #region Members
@@ -59,111 +58,148 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
       get { return ((Units == "m") || (Units == "ft")); }
     }
 
+    #endregion
+
+    #region Functions
+
+    private void CreateSpatialReference()
+    {
+      if (string.IsNullOrEmpty(SRSName))
+      {
+        _spatialReference = null;
+      }
+      else
+      {
+        int srs;
+        string strsrs = SRSName.Replace("EPSG:", string.Empty);
+
+        if (int.TryParse(strsrs, out srs))
+        {
+          try
+          {
+            _spatialReference = SpatialReferenceBuilder.CreateSpatialReference(srs);
+          }
+          catch (ArgumentException)
+          {
+            if (string.IsNullOrEmpty(CompatibleSRSNames))
+            {
+              _spatialReference = null;
+            }
+            else
+            {
+              strsrs = CompatibleSRSNames.Replace("EPSG:", string.Empty);
+
+              if (int.TryParse(strsrs, out srs))
+              {
+                try
+                {
+                  _spatialReference = SpatialReferenceBuilder.CreateSpatialReference(srs);
+                }
+                catch (ArgumentException)
+                {
+                  _spatialReference = null;
+                }
+              }
+              else
+              {
+                _spatialReference = null;
+              }
+            }
+          }
+        }
+        else
+        {
+          _spatialReference = null;
+        }
+      }
+    }
+
     /// <summary>
     /// asynchronous function to request or this spatial reference exists in the current area
     /// </summary>
     public async Task<bool> ExistsInArea()
     {
-      if (_spatialReference == null)
+      await QueuedTask.Run(() =>
       {
-        await QueuedTask.Run(() =>
+        if (_spatialReference == null)
         {
-          if (string.IsNullOrEmpty(SRSName))
+          CreateSpatialReference();
+        }
+
+        if (_spatialReference != null)
+        {
+          MapView activeView = MapView.Active;
+          Envelope envelope = null;
+
+          if (activeView == null)
           {
-            _spatialReference = null;
+            FileSettings settings = FileSettings.Instance;
+            SpatialReference spatialReference = settings.CycloramaViewerCoordinateSystem;
+
+            if (spatialReference != null)
+            {
+              if (spatialReference._spatialReference == null)
+              {
+                spatialReference.CreateSpatialReference();
+              }
+
+              if (spatialReference._spatialReference != null)
+              {
+                Bounds bounds = spatialReference.NativeBounds;
+                var minCoordinate = new Coordinate(bounds.MinX, bounds.MinY);
+                var maxCoordinate = new Coordinate(bounds.MaxX, bounds.MaxY);
+                envelope = EnvelopeBuilder.CreateEnvelope(minCoordinate, maxCoordinate,
+                  spatialReference._spatialReference);
+              }
+            }
           }
           else
           {
-            int srs;
-            string strsrs = SRSName.Replace("EPSG:", string.Empty);
+            envelope = activeView.Extent;
+          }
 
-            if (int.TryParse(strsrs, out srs))
+          if (envelope != null)
+          {
+            ArcGISSpatialReference spatEnv = envelope.SpatialReference;
+            int spatEnvFactoryCode = (spatEnv == null) ? 0 : spatEnv.Wkid;
+
+            if ((spatEnv != null) && (spatEnvFactoryCode != _spatialReference.Wkid))
             {
               try
               {
-                _spatialReference = SpatialReferenceBuilder.CreateSpatialReference(srs);
-              }
-              catch (ArgumentException)
-              {
-                if (string.IsNullOrEmpty(CompatibleSRSNames))
+                ProjectionTransformation projection = ProjectionTransformation.Create(envelope.SpatialReference,
+                  _spatialReference);
+                var copyEnvelope = GeometryEngine.ProjectEx(envelope, projection) as Envelope;
+
+                if ((copyEnvelope == null) || (copyEnvelope.IsEmpty))
                 {
                   _spatialReference = null;
                 }
                 else
                 {
-                  strsrs = CompatibleSRSNames.Replace("EPSG:", string.Empty);
-
-                  if (int.TryParse(strsrs, out srs))
+                  if (NativeBounds != null)
                   {
-                    try
-                    {
-                      _spatialReference = SpatialReferenceBuilder.CreateSpatialReference(srs);
-                    }
-                    catch (ArgumentException)
+                    double xMin = NativeBounds.MinX;
+                    double yMin = NativeBounds.MinY;
+                    double xMax = NativeBounds.MaxX;
+                    double yMax = NativeBounds.MaxY;
+
+                    if ((copyEnvelope.XMin < xMin) || (copyEnvelope.XMax > xMax) || (copyEnvelope.YMin < yMin) ||
+                        (copyEnvelope.YMax > yMax))
                     {
                       _spatialReference = null;
                     }
                   }
-                  else
-                  {
-                    _spatialReference = null;
-                  }
                 }
               }
-            }
-            else
-            {
-              _spatialReference = null;
-            }
-          }
-        });
-      }
-
-      if (_spatialReference != null)
-      {
-        await QueuedTask.Run(() =>
-        {
-          MapView activeView = MapView.Active;
-          Envelope envelope = activeView.Extent;
-          ArcGISSpatialReference spatEnv = envelope.SpatialReference;
-          int spatEnvFactoryCode = (spatEnv == null) ? 0 : spatEnv.Wkid;
-
-          if ((spatEnv != null) && (spatEnvFactoryCode != _spatialReference.Wkid))
-          {
-            try
-            {
-              ProjectionTransformation projection = ProjectionTransformation.Create(envelope.SpatialReference,
-                _spatialReference);
-              var copyEnvelope = GeometryEngine.ProjectEx(envelope, projection) as Envelope;
-
-              if ((copyEnvelope == null) || (copyEnvelope.IsEmpty))
+              catch (ArgumentException)
               {
                 _spatialReference = null;
               }
-              else
-              {
-                if (NativeBounds != null)
-                {
-                  double xMin = NativeBounds.MinX;
-                  double yMin = NativeBounds.MinY;
-                  double xMax = NativeBounds.MaxX;
-                  double yMax = NativeBounds.MaxY;
-
-                  if ((copyEnvelope.XMin < xMin) || (copyEnvelope.XMax > xMax) || (copyEnvelope.YMin < yMin) ||
-                      (copyEnvelope.YMax > yMax))
-                  {
-                    _spatialReference = null;
-                  }
-                }
-              }
-            }
-            catch (ArgumentException)
-            {
-              _spatialReference = null;
             }
           }
-        });
-      }
+        }
+      });
 
       return (_spatialReference != null);
     }
