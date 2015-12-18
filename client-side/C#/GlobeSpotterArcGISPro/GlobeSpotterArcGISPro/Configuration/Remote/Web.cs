@@ -17,12 +17,16 @@
  */
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
+using ArcGIS.Core.Geometry;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Resource;
+
+using mySpatialReferences = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReferences;
 
 namespace GlobeSpotterArcGISPro.Configuration.Remote
 {
@@ -46,6 +50,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote
 
     private readonly Login _login;
     private readonly ApiKey _apiKey;
+    private readonly CultureInfo _ci;
 
     #endregion
 
@@ -62,10 +67,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote
 
     #region Properties
 
-    public static Web Instance
-    {
-      get { return _web ?? (_web = new Web()); }
-    }
+    public static Web Instance => _web ?? (_web = new Web());
 
     #endregion
 
@@ -75,6 +77,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote
     {
       _login = Login.Instance;
       _apiKey = ApiKey.Instance;
+      _ci = CultureInfo.InvariantCulture;
       ServicePointManager.DefaultConnectionLimit = DefaultConnectionLimit;
     }
 
@@ -91,6 +94,16 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote
     {
       const string authorizationItem = @"<Authorization />";
       return PostRequest(ConfigurationUrl, GetStreamCallback, authorizationItem, TypeDownloadConfig.XML) as Stream;
+    }
+
+    public Stream GetByBbox(Envelope envelope, string wfsRequest)
+    {
+      string epsgCode = $"EPSG:{envelope.SpatialReference.Wkid}";
+      epsgCode = mySpatialReferences.Instance.ToKnownSrsName(epsgCode);
+      string dateString = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:00-00:00");
+      string recordingItem = string.Format(_ci, wfsRequest, epsgCode, envelope.XMin, envelope.YMin, envelope.XMax,
+        envelope.YMax, dateString);
+      return PostRequest(RecordingServiceUrl, GetStreamCallback, recordingItem, TypeDownloadConfig.XML) as Stream;
     }
 
     #endregion
@@ -134,12 +147,9 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote
           retry++;
           var responce = ex.Response as HttpWebResponse;
 
-          if (responce != null)
+          if (responce?.StatusCode == HttpStatusCode.InternalServerError && (retry < _retryTimeService[configId]))
           {
-            if ((responce.StatusCode == HttpStatusCode.InternalServerError) && (retry < _retryTimeService[configId]))
-            {
-              Thread.Sleep(_waitTimeInternalServerError[configId]);
-            }
+            Thread.Sleep(_waitTimeInternalServerError[configId]);
           }
 
           if (retry == _retryTimeService[configId])

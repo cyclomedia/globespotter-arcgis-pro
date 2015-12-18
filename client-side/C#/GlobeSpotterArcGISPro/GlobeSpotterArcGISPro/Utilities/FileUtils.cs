@@ -18,6 +18,7 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 
 namespace GlobeSpotterArcGISPro.Utilities
 {
@@ -38,6 +39,46 @@ namespace GlobeSpotterArcGISPro.Utilities
         }
 
         return result;
+      }
+    }
+
+    public static void GetFileFromAddIn(string addInFile, string relOutPath)
+    {
+      Type thisType = typeof (FileUtils);
+      Assembly thisAssembly = Assembly.GetAssembly(thisType);
+      string manualPath = $@"GlobeSpotterArcGISPro.Resources.{addInFile}";
+      Stream manualStream = thisAssembly.GetManifestResourceStream(manualPath);
+      string fileName = Path.Combine(FileDir, relOutPath);
+      string fileDirectory = Path.GetDirectoryName(fileName);
+
+      if (fileDirectory != null)
+      {
+        if (!Directory.Exists(fileDirectory))
+        {
+          Directory.CreateDirectory(fileDirectory);
+        }
+
+        if (File.Exists(fileName))
+        {
+          File.Delete(fileName);
+        }
+
+        if (manualStream != null)
+        {
+          var fileStream = new FileStream(fileName, FileMode.CreateNew);
+          const int readBuffer = 2048;
+          var buffer = new byte[readBuffer];
+          int readBytes;
+
+          do
+          {
+            readBytes = manualStream.Read(buffer, 0, readBuffer);
+            fileStream.Write(buffer, 0, readBytes);
+          } while (readBytes != 0);
+
+          fileStream.Flush();
+          fileStream.Close();
+        }
       }
     }
 

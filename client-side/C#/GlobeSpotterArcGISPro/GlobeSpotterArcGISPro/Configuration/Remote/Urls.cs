@@ -57,31 +57,24 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote
     /// <summary>
     /// Base url
     /// </summary>
-    public string BaseUrl
-    {
-      get { return Configuration.UseDefaultBaseUrl ? baseUrl : Configuration.BaseUrlLocation; }
-    }
+    private string BaseUrl => Configuration.UseDefaultBaseUrl ? baseUrl : Configuration.BaseUrlLocation;
 
     /// <summary>
     /// Configuration URL
     /// </summary>
-    public string ConfigurationUrl
-    {
-      get { return string.Format(configurationRequest, BaseUrl); }
-    }
+    protected string ConfigurationUrl => string.Format(configurationRequest, BaseUrl);
 
     /// <summary>
     /// Spatialreferences URL
     /// </summary>
-    public string SpatialReferenceUrl
-    {
-      get
-      {
-        return Configuration.UseDefaultSwfUrl
-          ? string.Concat(apiUrl, spatialReferencesXml)
-          : Configuration.SwfLocation.Replace(apiSwf, spatialReferencesXml);
-      }
-    }
+    protected string SpatialReferenceUrl => Configuration.UseDefaultSwfUrl
+      ? string.Concat(apiUrl, spatialReferencesXml)
+      : Configuration.SwfLocation.Replace(apiSwf, spatialReferencesXml);
+
+    /// <summary>
+    /// Recordings URL
+    /// </summary>
+    protected string RecordingServiceUrl => $"{BaseUrl}/recordings/wfs";
 
     #endregion
   }

@@ -55,9 +55,19 @@
                   size="large" />
           <button refID="GlobeSpotterArcGISPro_RecentRecordingLayerButton"
                   size="large" />
+          <tool refID="GlobeSpotterArcGISPro_OpenImageTool"
+                size="large" />
         </group>
       </groups>
       <controls>
+        <tool id="GlobeSpotterArcGISPro_OpenImageTool"
+              caption="Open Location"
+              className="AddIns.Tools.OpenLocation"
+              loadOnClick="false"
+              largeImage="Images\OpenLocation32.png"
+              condition="esri_mapping_mapPane">
+          <tooltip heading="Open Location">Open the location in a cyclorama<disabledText /></tooltip>
+        </tool>
         <button id="GlobeSpotterArcGISPro_CycloMediaOptionsButton"
                 caption="Settings"
                 className="AddIns.Buttons.CycloMediaOptions"

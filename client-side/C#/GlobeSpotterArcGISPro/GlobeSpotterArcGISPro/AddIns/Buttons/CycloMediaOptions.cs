@@ -48,6 +48,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Buttons
 
     protected override void OnUpdate()
     {
+      // todo: verander dit stuk code door in daml een state, condition waarde toe te voegen
       Enabled = _agreement.Value;
       base.OnUpdate();
     }

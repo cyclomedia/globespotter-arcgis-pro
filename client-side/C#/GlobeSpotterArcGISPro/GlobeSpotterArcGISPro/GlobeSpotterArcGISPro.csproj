@@ -23,7 +23,7 @@
     <WarningLevel>4</WarningLevel>
     <StartAction>Program</StartAction>
     <StartProgram>C:\Program Files\ArcGIS\Pro\bin\ArcGISPro.exe</StartProgram>
-    <PlatformTarget>x64</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -34,9 +34,19 @@
     <WarningLevel>4</WarningLevel>
     <StartAction>Program</StartAction>
     <StartProgram>C:\Program Files\ArcGIS\Pro\bin\ArcGISPro.exe</StartProgram>
-    <PlatformTarget>x64</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ArcGIS.Desktop.Extensions">
+      <HintPath>C:\Program Files\ArcGIS\Pro\bin\Extensions\DesktopExtensions\ArcGIS.Desktop.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="ArcGIS.Desktop.Framework">
+      <HintPath>C:\Program Files\ArcGIS\Pro\bin\ArcGIS.Desktop.Framework.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="ArcGIS.Desktop.Editing">
+      <HintPath>C:\Program Files\ArcGIS\Pro\bin\Extensions\Editing\ArcGIS.Desktop.Editing.dll</HintPath>
+    </Reference>
     <Reference Include="ArcGIS.Core">
       <HintPath>C:\Program Files\ArcGIS\Pro\bin\ArcGIS.Core.dll</HintPath>
       <Private>False</Private>
@@ -45,17 +55,13 @@
       <HintPath>C:\Program Files\ArcGIS\Pro\bin\Extensions\Core\ArcGIS.Desktop.Core.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="ArcGIS.Desktop.Framework">
-      <HintPath>C:\Program Files\ArcGIS\Pro\bin\ArcGIS.Desktop.Framework.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="ArcGIS.Desktop.Mapping">
       <HintPath>C:\Program Files\ArcGIS\Pro\bin\Extensions\Mapping\ArcGIS.Desktop.Mapping.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="GlobeSpotterAPI">
       <HintPath>..\..\Libs\GlobeSpotterAPI2.85\GlobeSpotterAPI.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -84,6 +90,7 @@
     <Compile Include="AddIns\Pages\Login.cs" />
     <Compile Include="AddIns\Buttons\CycloMediaOptions.cs" />
     <Compile Include="AddIns\Modules\GlobeSpotter.cs" />
+    <Compile Include="AddIns\Tools\OpenLocation.cs" />
     <Compile Include="AddIns\Views\Agreement.xaml.cs">
       <DependentUpon>Agreement.xaml</DependentUpon>
     </Compile>
@@ -108,7 +115,16 @@
     <Compile Include="Configuration\File\HistoricalRecordings.cs" />
     <Compile Include="Configuration\File\Constants.cs" />
     <Compile Include="Configuration\File\Settings.cs" />
+    <Compile Include="Configuration\Remote\Recordings\FeatureCollection.cs" />
+    <Compile Include="Configuration\Remote\Recordings\Images.cs" />
+    <Compile Include="Configuration\Remote\Recordings\Point.cs" />
+    <Compile Include="Configuration\Remote\Recordings\Location.cs" />
+    <Compile Include="Configuration\Remote\Recordings\FeatureMembers.cs" />
+    <Compile Include="Configuration\Remote\Recordings\ProductType.cs" />
+    <Compile Include="Configuration\Remote\Recordings\Image.cs" />
+    <Compile Include="Configuration\Remote\Recordings\TileSchema.cs" />
     <Compile Include="Configuration\Remote\SpatialReference\Bounds.cs" />
+    <Compile Include="Configuration\Remote\Recordings\Recording.cs" />
     <Compile Include="Configuration\Remote\SpatialReference\SpatialReference.cs" />
     <Compile Include="Configuration\Remote\SpatialReference\SpatialReferences.cs" />
     <Compile Include="Configuration\Resource\APIKey.cs" />
@@ -124,6 +140,10 @@
       <DependentUpon>GlobeSpotter.xaml</DependentUpon>
     </Compile>
     <Compile Include="AddIns\Panes\GlobeSpotter.cs" />
+    <Compile Include="Layers\CycloMediaGroupLayer.cs" />
+    <Compile Include="Layers\CycloMediaLayer.cs" />
+    <Compile Include="Layers\HistoricalLayer.cs" />
+    <Compile Include="Layers\RecordingLayer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -162,8 +182,8 @@
     <AddInContent Include="Images\CycloMediaOptions32.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Doc\Agreement.txt" />
-    <EmbeddedResource Include="Doc\APIKey.xml" />
+    <EmbeddedResource Include="Resources\Agreement.txt" />
+    <EmbeddedResource Include="Resources\APIKey.xml" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -174,6 +194,20 @@
   </ItemGroup>
   <ItemGroup>
     <AddInContent Include="Images\GlobeSpotter32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\Doc\LGPL-3.0.txt">
+      <Link>LGPL-3.0.txt</Link>
+    </Content>
+    <Content Include="..\..\Doc\Release notes.txt">
+      <Link>Release notes.txt</Link>
+    </Content>
+    <AddInContent Include="Images\OpenLocation32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Recordings\FCRecordings.dbf" />
+    <EmbeddedResource Include="Resources\Recordings\FCRecordings.shp" />
+    <EmbeddedResource Include="Resources\Recordings\FCRecordings.shx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <UsingTask AssemblyFile="C:\Program Files\ArcGIS\Pro\bin\proapp-sdk-MSBuild.dll" TaskName="proapp_sdk_MSBuild.PackageAddIn" />

@@ -69,7 +69,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Resource
     private static void Load()
     {
       Assembly thisAssembly = Assembly.GetExecutingAssembly();
-      const string manualPath = @"GlobeSpotterArcGISPro.Doc.APIKey.xml";
+      const string manualPath = @"GlobeSpotterArcGISPro.Resources.APIKey.xml";
       Stream manualStream = thisAssembly.GetManifestResourceStream(manualPath);
 
       if (manualStream != null)

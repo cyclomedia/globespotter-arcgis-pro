@@ -22,7 +22,7 @@ using System.Windows.Data;
 
 namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
 {
-  public class InverseBoolean : IValueConverter
+  class InverseBoolean : IValueConverter
   {
     #region IValueConverter Members
 

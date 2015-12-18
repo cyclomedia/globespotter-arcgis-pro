@@ -18,6 +18,7 @@
 
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using ArcGIS.Desktop.Framework.Contracts;
 using GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference;
@@ -97,7 +98,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _settings.RecordingLayerCoordinateSystem = value;
-          NotifyPropertyChanged("RecordingLayerCoordinateSystem");
+          NotifyPropertyChanged();
         }
       }
     }
@@ -114,7 +115,8 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _settings.CycloramaViewerCoordinateSystem = value;
-          NotifyPropertyChanged("CycloramaViewerCoordinateSystem");
+          NotifyPropertyChanged();
+          // ReSharper disable once ExplicitCallerInfoArgument
           NotifyPropertyChanged("CanMeasuring");
         }
       }
@@ -123,10 +125,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
     /// <summary>
     /// Can measuring property
     /// </summary>
-    public bool CanMeasuring
-    {
-      get { return (_settings.CycloramaViewerCoordinateSystem != null) && _settings.CycloramaViewerCoordinateSystem.CanMeasuring; }
-    }
+    public bool CanMeasuring => (_settings.CycloramaViewerCoordinateSystem != null) && _settings.CycloramaViewerCoordinateSystem.CanMeasuring;
 
     /// <summary>
     /// CTRL-CLICK #
@@ -140,7 +139,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _settings.CtrlClickHashTag = value + 1;
-          NotifyPropertyChanged("CtrlClickHashTag");
+          NotifyPropertyChanged();
         }
       }
     }
@@ -157,7 +156,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _settings.CtrlClickDelta = value + 1;
-          NotifyPropertyChanged("ctrlClickDelta");
+          NotifyPropertyChanged();
         }
       }
     }
@@ -174,7 +173,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _settings.ShowDetailImages = value;
-          NotifyPropertyChanged("ShowDetailImages");
+          NotifyPropertyChanged();
         }
       }
     }
@@ -191,7 +190,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _settings.EnableSmartClickMeasurement = value;
-          NotifyPropertyChanged("EnableSmartClickMeasurement");
+          NotifyPropertyChanged();
         }
       }
     }
@@ -224,12 +223,9 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
     #region Functions
 
-    private void NotifyPropertyChanged(string propertyName)
+    private void NotifyPropertyChanged([CallerMemberName] string propertyName =null)
     {
-      if (PropertyChanged != null)
-      {
-        PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-      }
+      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     private async void CreateExistsInAreaSpatialReferences()
@@ -239,7 +235,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
       foreach (var spatialReference in spatialReferences)
       {
-        bool exists = await spatialReference.ExistsInArea();
+        bool exists = await spatialReference.ExistsInAreaAsync();
 
         if (exists && (!_existsInAreaSpatialReferences.Contains(spatialReference)))
         {
@@ -253,11 +249,13 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
         if ((RecordingLayerCoordinateSystem != null) && (spatialReference == RecordingLayerCoordinateSystem))
         {
+          // ReSharper disable once ExplicitCallerInfoArgument
           NotifyPropertyChanged("RecordingLayerCoordinateSystem");
         }
 
         if ((CycloramaViewerCoordinateSystem != null) && (spatialReference == CycloramaViewerCoordinateSystem))
         {
+          // ReSharper disable once ExplicitCallerInfoArgument
           NotifyPropertyChanged("CycloramaViewerCoordinateSystem");
         }
       }

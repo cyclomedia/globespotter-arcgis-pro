@@ -105,10 +105,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
       }
     }
 
-    private static string FileName
-    {
-      get { return Path.Combine(FileUtils.FileDir, "Login.xml"); }
-    }
+    private static string FileName => Path.Combine(FileUtils.FileDir, "Login.xml");
 
     #endregion
 

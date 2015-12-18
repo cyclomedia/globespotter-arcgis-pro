@@ -20,6 +20,7 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using ArcGIS.Desktop.Framework.Contracts;
 
@@ -64,7 +65,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _value = value;
-          NotifyPropertyChanged("Value");
+          NotifyPropertyChanged();
         }
       }
     }
@@ -75,7 +76,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
       {
         Type type = GetType();
         Assembly assembly = type.Assembly;
-        const string agreementPath = "GlobeSpotterArcGISPro.Doc.Agreement.txt";
+        const string agreementPath = "GlobeSpotterArcGISPro.Resources.Agreement.txt";
         Stream agreementStream = assembly.GetManifestResourceStream(agreementPath);
         string result = string.Empty;
 
@@ -105,12 +106,9 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
     #region Functions
 
-    private void NotifyPropertyChanged(string propertyName)
+    private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
     {
-      if (PropertyChanged != null)
-      {
-        PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-      }
+      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     #endregion

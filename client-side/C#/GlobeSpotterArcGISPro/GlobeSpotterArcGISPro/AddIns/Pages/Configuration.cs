@@ -17,6 +17,7 @@
  */
 
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using ArcGIS.Desktop.Framework.Contracts;
 
@@ -94,7 +95,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _configuration.UseDefaultBaseUrl = value;
-          NotifyPropertyChanged("UseDefaultBaseUrl");
+          NotifyPropertyChanged();
         }
       }
     }
@@ -108,7 +109,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _configuration.BaseUrlLocation = value;
-          NotifyPropertyChanged("BaseUrlLocation");
+          NotifyPropertyChanged();
         }
       }
     }
@@ -125,7 +126,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _configuration.UseDefaultSwfUrl = value;
-          NotifyPropertyChanged("UseDefaultSwfUrl");
+          NotifyPropertyChanged();
         }
       }
     }
@@ -139,7 +140,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _configuration.SwfLocation = value;
-          NotifyPropertyChanged("SwfLocation");
+          NotifyPropertyChanged();
         }
       }
     }
@@ -156,7 +157,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _configuration.UseProxyServer = value;
-          NotifyPropertyChanged("UseProxyServer");
+          NotifyPropertyChanged();
         }
       }
     }
@@ -170,7 +171,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _configuration.ProxyAddress = value;
-          NotifyPropertyChanged("ProxyAddress");
+          NotifyPropertyChanged();
         }
       }
     }
@@ -184,7 +185,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _configuration.ProxyPort = value;
-          NotifyPropertyChanged("ProxyPort");
+          NotifyPropertyChanged();
         }
       }
     }
@@ -198,7 +199,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _configuration.ProxyBypassLocalAddresses = value;
-          NotifyPropertyChanged("ProxyBypassLocalAddresses");
+          NotifyPropertyChanged();
         }
       }
     }
@@ -212,7 +213,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _configuration.ProxyUseDefaultCredentials = value;
-          NotifyPropertyChanged("ProxyUseDefaultCredentials");
+          NotifyPropertyChanged();
         }
       }
     }
@@ -226,7 +227,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _configuration.ProxyUsername = value;
-          NotifyPropertyChanged("ProxyUsername");
+          NotifyPropertyChanged();
         }
       }
     }
@@ -240,7 +241,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _configuration.ProxyPassword = value;
-          NotifyPropertyChanged("ProxyPassword");
+          NotifyPropertyChanged();
         }
       }
     }
@@ -254,7 +255,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _configuration.ProxyDomain = value;
-          NotifyPropertyChanged("ProxyDomain");
+          NotifyPropertyChanged();
         }
       }
     }
@@ -294,12 +295,9 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
     #region Functions
 
-    private void NotifyPropertyChanged(string propertyName)
+    private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
     {
-      if (PropertyChanged != null)
-      {
-        PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-      }
+      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     private void Save()

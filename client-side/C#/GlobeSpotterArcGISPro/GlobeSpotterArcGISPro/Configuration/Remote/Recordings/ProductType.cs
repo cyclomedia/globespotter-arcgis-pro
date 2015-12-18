@@ -16,33 +16,17 @@
  * License along with this library.
  */
 
-using System;
-using System.Globalization;
-using System.Windows.Data;
-
-namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
+namespace GlobeSpotterArcGISPro.Configuration.Remote.Recordings
 {
-  class CanMeasuring : IValueConverter
+  #region enumeration (ProductType)
+
+  public enum ProductType
   {
-    #region Constants
-
-    private const string MeasuringSupported = "Measuring supported";
-    private const string MeasuringNotSupported = "Measuring not supported";
-
-    #endregion
-
-    #region IValueConverter Members
-
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-    {
-      return (((bool) value) ? MeasuringSupported : MeasuringNotSupported);
-    }
-
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-    {
-      throw new NotSupportedException();
-    }
-
-    #endregion
+    Cyclorama = 1,
+    Aquarama = 2,
+    Aerial = 3,
+    Aerorama = 4
   }
+
+  #endregion
 }

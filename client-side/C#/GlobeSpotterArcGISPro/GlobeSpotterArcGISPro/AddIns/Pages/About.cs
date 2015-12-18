@@ -29,7 +29,6 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
     protected About()
     {
-      // empty
     }
 
     #endregion

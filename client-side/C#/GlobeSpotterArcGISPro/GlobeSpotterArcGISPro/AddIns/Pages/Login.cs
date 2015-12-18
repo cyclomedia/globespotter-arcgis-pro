@@ -17,6 +17,7 @@
  */
 
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using ArcGIS.Desktop.Framework.Contracts;
 
@@ -63,7 +64,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _login.Username = value;
-          NotifyPropertyChanged("Username");
+          NotifyPropertyChanged();
         }
       }
     }
@@ -77,15 +78,12 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
         {
           IsModified = true;
           _login.Password = value;
-          NotifyPropertyChanged("Password");
+          NotifyPropertyChanged();
         }
       }
     }
 
-    public bool Credentials
-    {
-      get { return _login.Credentials; }
-    }
+    public bool Credentials => _login.Credentials;
 
     #endregion
 
@@ -110,17 +108,15 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
     #region Functions
 
-    private void NotifyPropertyChanged(string propertyName)
+    private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
     {
-      if (PropertyChanged != null)
-      {
-        PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-      }
+      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     public void Save()
     {
       _login.Save();
+      // ReSharper disable once ExplicitCallerInfoArgument
       NotifyPropertyChanged("Credentials");
     }
 

@@ -17,6 +17,7 @@
  */
 
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using ArcGIS.Desktop.Framework.Dialogs;
 using GlobeSpotterAPI;
@@ -27,6 +28,7 @@ using GlobeSpotterArcGISPro.Configuration.Resource;
 using FileSettings = GlobeSpotterArcGISPro.Configuration.File.Settings;
 using FileLogin = GlobeSpotterArcGISPro.Configuration.File.Login;
 using ThisResources = GlobeSpotterArcGISPro.Properties.Resources;
+using PaneGlobeSpotter = GlobeSpotterArcGISPro.AddIns.Panes.GlobeSpotter;
 
 namespace GlobeSpotterArcGISPro.AddIns.Views
 {
@@ -35,11 +37,17 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
   /// </summary>
   public partial class GlobeSpotter : IAPIClient
   {
+    #region Members
+
     private readonly API _api;
     private readonly ApiKey _apiKey;
     private readonly FileSettings _settings;
     private readonly Constants _constants;
     private readonly FileLogin _login;
+
+    #endregion
+
+    #region Constructor
 
     public GlobeSpotter()
     {
@@ -52,6 +60,10 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
       GlobeSpotterForm.Child.Controls.Add(_api.gui);
       _api.Initialize(this);
     }
+
+    #endregion
+
+    #region Events API
 
     public void OnComponentReady()
     {
@@ -67,7 +79,10 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     {
       _api.SetViewerToolBarVisible(false);
       _api.SetViewerWindowBorderVisible(false);
-      _api.OpenNearestImage("Treurenburgstraat 26, Eindhoven", 1);
+      PaneGlobeSpotter globeSpotter = ((dynamic) DataContext);
+      globeSpotter.PropertyChanged += GlobeSpotterPropertyChanged;
+      string imageId = globeSpotter.ImageId;
+      _api.OpenImage(imageId);
     }
 
     public void OnAPIFailed()
@@ -258,5 +273,20 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     public void OnObliqueImageChanged()
     {
     }
+
+    #endregion
+
+    #region Events GlobeSpotter
+
+    private void GlobeSpotterPropertyChanged(object sender, PropertyChangedEventArgs args)
+    {
+      if (args.PropertyName == "ImageId")
+      {
+        string imageId = ((dynamic) DataContext).ImageId;
+        _api.OpenImage(imageId);
+      }
+    }
+
+    #endregion
   }
 }

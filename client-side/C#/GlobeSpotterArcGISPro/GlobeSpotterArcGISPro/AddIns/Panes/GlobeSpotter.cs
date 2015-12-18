@@ -16,6 +16,8 @@
  * License along with this library.
  */
 
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using ArcGIS.Core.CIM;
 using ArcGIS.Desktop.Core;
@@ -23,16 +25,59 @@ using ArcGIS.Desktop.Framework;
 
 namespace GlobeSpotterArcGISPro.AddIns.Panes
 {
-  internal class GlobeSpotter : ViewStatePane
+  internal class GlobeSpotter : ViewStatePane, INotifyPropertyChanged
   {
+    #region Consts
+
     private const string ViewPaneId = "GlobeSpotterArcGISPro_GlobeSpotter";
+
+    #endregion
+
+    #region Events
+
+    public new event PropertyChangedEventHandler PropertyChanged;
+
+    #endregion
+
+    #region Members
+
+    private string _imageId;
+
+    #endregion
+
+    #region Properties
+
+    public string ImageId
+    {
+      get { return _imageId; }
+      set
+      {
+        if (_imageId != value)
+        {
+          _imageId = value;
+          NotifyPropertyChanged();
+        }
+      }
+    }
+
+    #endregion
+
+    #region Constructor
 
     /// <summary>
     /// Consume the passed in CIMView. Call the base constructor to wire up the CIMView.
     /// </summary>
     public GlobeSpotter(CIMView view) : base(view)
     {
-      // empty
+    }
+
+    #endregion
+
+    #region Functions
+
+    private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
+    {
+      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     /// <summary>
@@ -40,9 +85,11 @@ namespace GlobeSpotterArcGISPro.AddIns.Panes
     /// </summary>
     internal static GlobeSpotter Create()
     {
-      var view = new CIMGenericView {ViewType = ViewPaneId};
-      return FrameworkApplication.Panes.Create(ViewPaneId, new object[] { view }) as GlobeSpotter;
+      var view = new CIMGenericView { ViewType = ViewPaneId };
+      return FrameworkApplication.Panes.Create(ViewPaneId, view) as GlobeSpotter;
     }
+
+    #endregion
 
     #region Pane Overrides
 
@@ -75,5 +122,29 @@ namespace GlobeSpotterArcGISPro.AddIns.Panes
     }
 
     #endregion Pane Overrides
+
+    #region GlobeSpotter functions
+
+    public static void ShowLocation(string imageId)
+    {
+      bool globeSpotterPane = false;
+
+      foreach (var pane in FrameworkApplication.Panes)
+      {
+        if (pane is GlobeSpotter)
+        {
+          globeSpotterPane = true;
+          (pane as GlobeSpotter).ImageId = imageId;
+        }
+      }
+
+      if (!globeSpotterPane)
+      {
+        GlobeSpotter globeSpotter = Create();
+        globeSpotter.ImageId = imageId;
+      }
+    }
+
+    #endregion
   }
 }

@@ -16,33 +16,15 @@
  * License along with this library.
  */
 
-using System;
-using System.Globalization;
-using System.Windows.Data;
-
-namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
+namespace GlobeSpotterArcGISPro.Configuration.Remote.Recordings
 {
-  class CanMeasuring : IValueConverter
+  #region enumeration (TileSchema)
+
+  public enum TileSchema
   {
-    #region Constants
-
-    private const string MeasuringSupported = "Measuring supported";
-    private const string MeasuringNotSupported = "Measuring not supported";
-
-    #endregion
-
-    #region IValueConverter Members
-
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-    {
-      return (((bool) value) ? MeasuringSupported : MeasuringNotSupported);
-    }
-
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-    {
-      throw new NotSupportedException();
-    }
-
-    #endregion
+    Dcr9Tiling = 1,
+    Dcr10Tiling = 2,
   }
+
+  #endregion
 }

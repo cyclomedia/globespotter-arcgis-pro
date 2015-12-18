@@ -16,31 +16,35 @@
  * License along with this library.
  */
 
-using System;
-using System.Globalization;
-using System.Windows.Data;
+using System.Collections.Generic;
+using System.Xml.Serialization;
 
-namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
+namespace GlobeSpotterArcGISPro.Configuration.Remote.Recordings
 {
-  class CanMeasuring : IValueConverter
+  [XmlType(AnonymousType = true, Namespace = "http://www.cyclomedia.com/atlas")]
+  [XmlRoot(Namespace = "http://www.cyclomedia.com/atlas", IsNullable = false)]
+  public class Images
   {
-    #region Constants
+    private List<Image> _images;
 
-    private const string MeasuringSupported = "Measuring supported";
-    private const string MeasuringNotSupported = "Measuring not supported";
+    #region Properties
 
-    #endregion
-
-    #region IValueConverter Members
-
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    [XmlElement("Image", Namespace = "http://www.cyclomedia.com/atlas")]
+    public Image[] Image
     {
-      return (((bool) value) ? MeasuringSupported : MeasuringNotSupported);
-    }
+      get { return _images?.ToArray() ?? new Image[0]; }
+      set
+      {
+        if (value != null)
+        {
+          if (_images == null)
+          {
+            _images = new List<Image>();
+          }
 
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-    {
-      throw new NotSupportedException();
+          _images.AddRange(value);
+        }
+      }
     }
 
     #endregion

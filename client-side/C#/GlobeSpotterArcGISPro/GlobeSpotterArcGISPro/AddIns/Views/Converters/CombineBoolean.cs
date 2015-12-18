@@ -23,7 +23,7 @@ using System.Windows.Data;
 
 namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
 {
-  public class CombineBoolean : IMultiValueConverter
+  class CombineBoolean : IMultiValueConverter
   {
     #region IMultiValueConverter Members
 

@@ -16,14 +16,22 @@
  * License along with this library.
  */
 
+using System.Collections.Generic;
 using ArcGIS.Desktop.Framework.Contracts;
 using GlobeSpotterArcGISPro.AddIns.Modules;
 using GlobeSpotterArcGISPro.Configuration.File;
+using GlobeSpotterArcGISPro.Layers;
 
 namespace GlobeSpotterArcGISPro.AddIns.Buttons
 {
   internal class RecentRecordingLayer : Button
   {
+    #region Constants
+
+    private const string LayerName = "Recent Recordings";
+
+    #endregion
+
     #region Members
 
     private readonly Agreement _agreement;
@@ -35,22 +43,75 @@ namespace GlobeSpotterArcGISPro.AddIns.Buttons
     protected RecentRecordingLayer()
     {
       _agreement = Agreement.Instance;
+      IsChecked = false;
+      GlobeSpotter globeSpotter = GlobeSpotter.Current;
+      CycloMediaGroupLayer groupLayer = globeSpotter.CycloMediaGroupLayer;
+
+      if (groupLayer != null)
+      {
+        IList<CycloMediaLayer> layers = groupLayer.Layers;
+
+        foreach (var layer in layers)
+        {
+          if (layer.IsRemoved)
+          {
+            CycloMediaLayerRemoved(layer);
+          }
+          else
+          {
+            CycloMediaLayerAdded(layer);
+          }
+        }
+      }
+
+      CycloMediaLayer.LayerAddedEvent += CycloMediaLayerAdded;
+      CycloMediaLayer.LayerRemoveEvent += CycloMediaLayerRemoved;
     }
 
     #endregion
 
     #region Event handlers
 
-    protected override void OnClick()
+    protected async override void OnClick()
     {
-      GlobeSpotter.AddRecentRecordingLayer();
-      Panes.GlobeSpotter.Create();
+      OnUpdate();
+      GlobeSpotter globeSpotter = GlobeSpotter.Current;
+
+      if (IsChecked)
+      {
+        await globeSpotter.RemoveLayerAsync(LayerName);
+      }
+      else
+      {
+        await globeSpotter.AddLayersAsync(LayerName);
+      }
     }
 
     protected override void OnUpdate()
     {
+      // todo: verander dit stuk code door in daml een state, condition waarde toe te voegen
       Enabled = _agreement.Value;
       base.OnUpdate();
+    }
+
+    #endregion
+
+    #region Other event handlers
+
+    private void CycloMediaLayerAdded(CycloMediaLayer layer)
+    {
+      if (layer != null)
+      {
+        IsChecked = (layer.Name == LayerName) || IsChecked;
+      }
+    }
+
+    private void CycloMediaLayerRemoved(CycloMediaLayer layer)
+    {
+      if (layer != null)
+      {
+        IsChecked = (layer.Name != LayerName) && IsChecked;
+      }
     }
 
     #endregion

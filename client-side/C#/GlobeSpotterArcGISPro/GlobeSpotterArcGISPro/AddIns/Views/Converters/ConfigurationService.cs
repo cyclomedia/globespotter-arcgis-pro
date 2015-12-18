@@ -24,7 +24,7 @@ using SystConvert = System.Convert;
 
 namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
 {
-  public class ConfigurationService : IMultiValueConverter
+  class ConfigurationService : IMultiValueConverter
   {
     #region IMultiValueConverter Members
 

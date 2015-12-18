@@ -63,40 +63,19 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter
     public Exception Exception { get; private set; }
 
     [XmlIgnore]
-    public bool Credentials
-    {
-      get { return ((ApplicationConfiguration != null) && (ApplicationConfiguration.Functionalities.Length >= 1)); }
-    }
+    public bool Credentials => ((ApplicationConfiguration != null) && (ApplicationConfiguration.Functionalities.Length >= 1));
 
-    public static bool MeasureSmartClick
-    {
-      get { return Instance.CheckFunctionality("MeasureSmartClick"); }
-    }
+    public static bool MeasureSmartClick => Instance.CheckFunctionality("MeasureSmartClick");
 
-    public static bool MeasurePoint
-    {
-      get { return Instance.CheckFunctionality("MeasurePoint"); }
-    }
+    public static bool MeasurePoint => Instance.CheckFunctionality("MeasurePoint");
 
-    public static bool MeasureLine
-    {
-      get { return Instance.CheckFunctionality("MeasureLine"); }
-    }
+    public static bool MeasureLine => Instance.CheckFunctionality("MeasureLine");
 
-    public static bool MeasurePolygon
-    {
-      get { return Instance.CheckFunctionality("MeasurePolygon"); }
-    }
+    public static bool MeasurePolygon => Instance.CheckFunctionality("MeasurePolygon");
 
-    public static bool AddLayerWfs
-    {
-      get { return Instance.CheckFunctionality("AddLayerWFS"); }
-    }
+    public static bool AddLayerWfs => Instance.CheckFunctionality("AddLayerWFS");
 
-    public static bool MeasurePermissions
-    {
-      get { return MeasurePoint || MeasureLine || MeasurePolygon || MeasureSmartClick; }
-    }
+    public static bool MeasurePermissions => MeasurePoint || MeasureLine || MeasurePolygon || MeasureSmartClick;
 
     public static GlobeSpotterConfiguration Instance
     {

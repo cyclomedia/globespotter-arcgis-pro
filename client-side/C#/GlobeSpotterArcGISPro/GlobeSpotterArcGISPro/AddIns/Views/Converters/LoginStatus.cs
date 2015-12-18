@@ -22,7 +22,7 @@ using System.Windows.Data;
 
 namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
 {
-  public class LoginStatus : IValueConverter
+  class LoginStatus : IValueConverter
   {
     #region Constants
 

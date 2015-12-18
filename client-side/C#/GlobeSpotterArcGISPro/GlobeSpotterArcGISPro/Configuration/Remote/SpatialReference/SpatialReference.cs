@@ -30,12 +30,6 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
 {
   public class SpatialReference
   {
-    #region Members
-
-    private ArcGISSpatialReference _spatialReference;
-
-    #endregion
-
     #region Properties
 
     // ReSharper disable InconsistentNaming
@@ -53,10 +47,10 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
     // ReSharper restore InconsistentNaming
 
     [XmlIgnore]
-    public bool CanMeasuring
-    {
-      get { return ((Units == "m") || (Units == "ft")); }
-    }
+    public bool CanMeasuring => ((Units == "m") || (Units == "ft"));
+
+    [XmlIgnore]
+    public ArcGISSpatialReference ArcGisSpatialReference { get; private set; }
 
     #endregion
 
@@ -66,7 +60,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
     {
       if (string.IsNullOrEmpty(SRSName))
       {
-        _spatialReference = null;
+        ArcGisSpatialReference = null;
       }
       else
       {
@@ -77,13 +71,13 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
         {
           try
           {
-            _spatialReference = SpatialReferenceBuilder.CreateSpatialReference(srs);
+            ArcGisSpatialReference = SpatialReferenceBuilder.CreateSpatialReference(srs);
           }
           catch (ArgumentException)
           {
             if (string.IsNullOrEmpty(CompatibleSRSNames))
             {
-              _spatialReference = null;
+              ArcGisSpatialReference = null;
             }
             else
             {
@@ -93,40 +87,50 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
               {
                 try
                 {
-                  _spatialReference = SpatialReferenceBuilder.CreateSpatialReference(srs);
+                  ArcGisSpatialReference = SpatialReferenceBuilder.CreateSpatialReference(srs);
                 }
                 catch (ArgumentException)
                 {
-                  _spatialReference = null;
+                  ArcGisSpatialReference = null;
                 }
               }
               else
               {
-                _spatialReference = null;
+                ArcGisSpatialReference = null;
               }
             }
           }
         }
         else
         {
-          _spatialReference = null;
+          ArcGisSpatialReference = null;
         }
       }
+    }
+
+    public async Task<ArcGISSpatialReference> CreateArcGisSpatialReferenceAsync()
+    {
+      await QueuedTask.Run(() =>
+      {
+        CreateSpatialReference();
+      });
+
+      return ArcGisSpatialReference;
     }
 
     /// <summary>
     /// asynchronous function to request or this spatial reference exists in the current area
     /// </summary>
-    public async Task<bool> ExistsInArea()
+    public async Task<bool> ExistsInAreaAsync()
     {
       await QueuedTask.Run(() =>
       {
-        if (_spatialReference == null)
+        if (ArcGisSpatialReference == null)
         {
           CreateSpatialReference();
         }
 
-        if (_spatialReference != null)
+        if (ArcGisSpatialReference != null)
         {
           MapView activeView = MapView.Active;
           Envelope envelope = null;
@@ -138,18 +142,18 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
 
             if (spatialReference != null)
             {
-              if (spatialReference._spatialReference == null)
+              if (spatialReference.ArcGisSpatialReference == null)
               {
                 spatialReference.CreateSpatialReference();
               }
 
-              if (spatialReference._spatialReference != null)
+              if (spatialReference.ArcGisSpatialReference != null)
               {
                 Bounds bounds = spatialReference.NativeBounds;
                 var minCoordinate = new Coordinate(bounds.MinX, bounds.MinY);
                 var maxCoordinate = new Coordinate(bounds.MaxX, bounds.MaxY);
                 envelope = EnvelopeBuilder.CreateEnvelope(minCoordinate, maxCoordinate,
-                  spatialReference._spatialReference);
+                  spatialReference.ArcGisSpatialReference);
               }
             }
           }
@@ -161,19 +165,19 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
           if (envelope != null)
           {
             ArcGISSpatialReference spatEnv = envelope.SpatialReference;
-            int spatEnvFactoryCode = (spatEnv == null) ? 0 : spatEnv.Wkid;
+            int spatEnvFactoryCode = spatEnv?.Wkid ?? 0;
 
-            if ((spatEnv != null) && (spatEnvFactoryCode != _spatialReference.Wkid))
+            if ((spatEnv != null) && (spatEnvFactoryCode != ArcGisSpatialReference.Wkid))
             {
               try
               {
                 ProjectionTransformation projection = ProjectionTransformation.Create(envelope.SpatialReference,
-                  _spatialReference);
+                  ArcGisSpatialReference);
                 var copyEnvelope = GeometryEngine.ProjectEx(envelope, projection) as Envelope;
 
                 if ((copyEnvelope == null) || (copyEnvelope.IsEmpty))
                 {
-                  _spatialReference = null;
+                  ArcGisSpatialReference = null;
                 }
                 else
                 {
@@ -187,21 +191,21 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
                     if ((copyEnvelope.XMin < xMin) || (copyEnvelope.XMax > xMax) || (copyEnvelope.YMin < yMin) ||
                         (copyEnvelope.YMax > yMax))
                     {
-                      _spatialReference = null;
+                      ArcGisSpatialReference = null;
                     }
                   }
                 }
               }
               catch (ArgumentException)
               {
-                _spatialReference = null;
+                ArcGisSpatialReference = null;
               }
             }
           }
         }
       });
 
-      return (_spatialReference != null);
+      return (ArcGisSpatialReference != null);
     }
 
     #endregion
@@ -210,7 +214,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
 
     public override string ToString()
     {
-      return string.Format("{0} ({1})", (string.IsNullOrEmpty(ESRICompatibleName) ? Name : ESRICompatibleName), SRSName);
+      return $"{(string.IsNullOrEmpty(ESRICompatibleName) ? Name : ESRICompatibleName)} ({SRSName})";
     }
 
     #endregion
