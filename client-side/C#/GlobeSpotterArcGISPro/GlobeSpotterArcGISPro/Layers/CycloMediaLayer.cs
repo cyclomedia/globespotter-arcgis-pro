@@ -162,9 +162,19 @@ namespace GlobeSpotterArcGISPro.Layers
         FeatureClassDefinition featureClassDefinition = featureClass?.GetDefinition();
         SpatialReference spatialReference = featureClassDefinition?.GetSpatialReference();
         SpatialReference envSpat = envelope.SpatialReference;
-        ProjectionTransformation projection = ProjectionTransformation.Create(envSpat, spatialReference);
-        Envelope thisEnvelope = GeometryEngine.ProjectEx(envelope, projection) as Envelope;
-        return thisEnvelope;
+        Envelope result;
+
+        if ((spatialReference != null) && (envSpat.Wkid != spatialReference.Wkid))
+        {
+          ProjectionTransformation projection = ProjectionTransformation.Create(envSpat, spatialReference);
+          result = GeometryEngine.ProjectEx(envelope, projection) as Envelope;
+        }
+        else
+        {
+          result = (Envelope) envelope.Clone();
+        }
+
+        return result;
       });
     }
 
