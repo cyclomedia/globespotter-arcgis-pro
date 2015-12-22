@@ -19,7 +19,6 @@
 using System.Collections.Generic;
 using ArcGIS.Desktop.Framework.Contracts;
 using GlobeSpotterArcGISPro.AddIns.Modules;
-using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Layers;
 
 namespace GlobeSpotterArcGISPro.AddIns.Buttons
@@ -32,17 +31,10 @@ namespace GlobeSpotterArcGISPro.AddIns.Buttons
 
     #endregion
 
-    #region Members
-
-    private readonly Agreement _agreement;
-
-    #endregion
-
     #region Constructors
 
     protected RecentRecordingLayer()
     {
-      _agreement = Agreement.Instance;
       IsChecked = false;
       GlobeSpotter globeSpotter = GlobeSpotter.Current;
       CycloMediaGroupLayer groupLayer = globeSpotter.CycloMediaGroupLayer;
@@ -70,7 +62,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Buttons
 
     #endregion
 
-    #region Event handlers
+    #region Overrides
 
     protected async override void OnClick()
     {
@@ -87,16 +79,9 @@ namespace GlobeSpotterArcGISPro.AddIns.Buttons
       }
     }
 
-    protected override void OnUpdate()
-    {
-      // todo: verander dit stuk code door in daml een state, condition waarde toe te voegen
-      Enabled = _agreement.Value;
-      base.OnUpdate();
-    }
-
     #endregion
 
-    #region Other event handlers
+    #region Event handlers
 
     private void CycloMediaLayerAdded(CycloMediaLayer layer)
     {

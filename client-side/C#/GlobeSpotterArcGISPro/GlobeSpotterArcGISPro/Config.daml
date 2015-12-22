@@ -37,55 +37,59 @@
     <Subject>Content</Subject>
   </AddInInfo>
   <modules>
-    <insertModule id="GlobeSpotterArcGISPro_Module"
+    <insertModule id="globeSpotterArcGISPro_module"
                   className="AddIns.Modules.GlobeSpotter"
-                  autoLoad="false"
+                  autoLoad="true"
                   caption="GlobeSpotter module">
       <tabs>
-        <tab id="GlobeSpotterArcGISPro_Tab"
+        <tab id="globeSpotterArcGISPro_tab"
              caption="GlobeSpotter">
-          <group refID="GlobeSpotterArcGISPro_Group" />
+          <group refID="globeSpotterArcGISPro_group" />
         </tab>
       </tabs>
       <groups>
-        <group id="GlobeSpotterArcGISPro_Group"
+        <group id="globeSpotterArcGISPro_group"
                caption="GlobeSpotter controls"
                appearsOnAddInTab="false">
-          <button refID="GlobeSpotterArcGISPro_CycloMediaOptionsButton"
+          <button refID="globeSpotterArcGISPro_cycloMediaOptionsButton"
                   size="large" />
-          <button refID="GlobeSpotterArcGISPro_RecentRecordingLayerButton"
+          <button refID="globeSpotterArcGISPro_recentRecordingLayerButton"
                   size="large" />
-          <tool refID="GlobeSpotterArcGISPro_OpenImageTool"
+          <tool refID="globeSpotterArcGISPro_openImageTool"
+                size="large" />
+          <tool refID="esri_mapping_exploreTool"
                 size="large" />
         </group>
       </groups>
       <controls>
-        <tool id="GlobeSpotterArcGISPro_OpenImageTool"
+        <tool id="globeSpotterArcGISPro_openImageTool"
               caption="Open Location"
               className="AddIns.Tools.OpenLocation"
               loadOnClick="false"
               largeImage="Images\OpenLocation32.png"
-              condition="esri_mapping_mapPane">
+              condition="globeSpotterArcGISPro_recordingsReadyCondition">
           <tooltip heading="Open Location">Open the location in a cyclorama<disabledText /></tooltip>
         </tool>
-        <button id="GlobeSpotterArcGISPro_CycloMediaOptionsButton"
+        <button id="globeSpotterArcGISPro_cycloMediaOptionsButton"
                 caption="Settings"
                 className="AddIns.Buttons.CycloMediaOptions"
                 loadOnClick="false"
-                largeImage="Images\CycloMediaOptions32.png">
+                largeImage="Images\CycloMediaOptions32.png"
+                condition="globeSpotterArcGISPro_agreementAcceptedCondition">
           <tooltip heading="Settings">Settings for GlobeSpotter for ArcGIS Desktop<disabledText /></tooltip>
         </button>
-        <button id="GlobeSpotterArcGISPro_RecentRecordingLayerButton"
+        <button id="globeSpotterArcGISPro_recentRecordingLayerButton"
                 caption="Recent Recording Layer"
                 className="AddIns.Buttons.RecentRecordingLayer"
                 loadOnClick="false"
-                largeImage="Images\RecentRecordingLayer32.png">
+                largeImage="Images\RecentRecordingLayer32.png"
+                condition="globeSpotterArcGISPro_recordingsReadyCondition">
           <tooltip heading="Recent Recording Layer">Add recent cyclorama layer to the map<disabledText /></tooltip>
         </button>
       </controls>
       <panes>
-        <pane id="GlobeSpotterArcGISPro_GlobeSpotter"
-              caption="GlobeSpotter"
+        <pane id="globeSpotterArcGISPro_globeSpotter"
+              caption="Cyclorama Viewer"
               className="AddIns.Panes.GlobeSpotter"
               smallImage="Images\GlobeSpotter32.png"
               defaultTab="esri_mapping_homeTab"
@@ -96,33 +100,53 @@
     </insertModule>
   </modules>
   <propertySheets>
-    <insertSheet id="PropertyScreen_options"
+    <insertSheet id="globeSpotterArcGISPro_optionsPropertyScreen"
                  caption="GlobeSpotter for ArcGIS Pro">
-      <page id="Page_Login"
+      <page id="globeSpotterArcGISPro_loginPage"
             caption="Login"
             className="AddIns.Pages.Login">
         <content className="AddIns.Views.Login" />
       </page>
-      <page id="Page_Settings"
+      <page id="globeSpotterArcGISPro_settingsPage"
             caption="Settings"
             className="AddIns.Pages.Settings">
         <content className="AddIns.Views.Settings" />
       </page>
-      <page id="Page_Configuration"
+      <page id="globeSpotterArcGISPro_configurationPage"
             caption="Configuration"
             className="AddIns.Pages.Configuration">
         <content className="AddIns.Views.Configuration" />
       </page>
-      <page id="Page_About"
+      <page id="globeSpotterArcGISPro_aboutPage"
             caption="About"
             className="AddIns.Pages.About">
         <content className="AddIns.Views.About" />
       </page>
-      <page id="Page_Agreement"
+      <page id="globeSpotterArcGISPro_agreementPage"
             caption="Agreement"
             className="AddIns.Pages.Agreement">
         <content className="AddIns.Views.Agreement" />
       </page>
     </insertSheet>
   </propertySheets>
+  <conditions>
+    <insertCondition id="globeSpotterArcGISPro_agreementAcceptedCondition" caption="The agreement is accepted.">
+      <state id="globeSpotterArcGISPro_agreementAcceptedState"/>
+    </insertCondition>
+    <insertCondition id="globeSpotterArcGISPro_recordingsReadyCondition" caption="The recordings are ready.">
+      <and>
+        <state id="globeSpotterArcGISPro_agreementAcceptedState"/>
+        <state id="globeSpotterArcGISPro_loginSuccessfullyState"/>
+        <state id="esri_mapping_mapPane"/>
+      </and>
+    </insertCondition>
+    <insertCondition id="globeSpotterArcGISPro_historicalLayerReadyCondition" caption="The historical layer is ready.">
+      <and>
+        <state id="globeSpotterArcGISPro_agreementAcceptedState"/>
+        <state id="globeSpotterArcGISPro_historicalLayerEnabledState"/>
+        <state id="globeSpotterArcGISPro_loginSuccessfullyState"/>
+        <state id="esri_mapping_mapPane"/>
+      </and>
+    </insertCondition>
+  </conditions>
 </ArcGIS>

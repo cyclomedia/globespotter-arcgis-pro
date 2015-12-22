@@ -43,7 +43,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
     public static GlobeSpotter Current
       =>
         _globeSpotter ??
-        (_globeSpotter = (GlobeSpotter) FrameworkApplication.FindModule("GlobeSpotterArcGISPro_Module"));
+        (_globeSpotter = (GlobeSpotter) FrameworkApplication.FindModule("globeSpotterArcGISPro_module"));
 
     public CycloMediaGroupLayer CycloMediaGroupLayer { get; private set; }
 
@@ -55,11 +55,17 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
     {
       Agreement agreement = Agreement.Instance;
 
-      if (!agreement.Value)
+      if (agreement.Value)
+      {
+        FrameworkApplication.State.Activate("globeSpotterArcGISPro_agreementAcceptedState");
+      }
+      else
       {
         // ToDo: open agreement form
       }
 
+      Login login = Login.Instance;
+      login.Check();
       MapViewInitializedEvent.Subscribe(OnOpenDocument);
       MapClosedEvent.Subscribe(OnCloseDocument);
     }
@@ -100,7 +106,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
       {
         if ((!ContainsCycloMediaLayer()) || closeDocument)
         {
-          await RemoveLayersAsync();
+          await RemoveLayersAsync(false);
         }
       }
 
@@ -135,24 +141,24 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
     {
       if (CycloMediaGroupLayer != null)
       {
-        await CycloMediaGroupLayer.RemoveLayerAsync(name);
+        await CycloMediaGroupLayer.RemoveLayerAsync(name, true);
       }
     }
 
-    public async Task RemoveLayersAsync()
+    public async Task RemoveLayersAsync(bool fromMap)
     {
       if (CycloMediaGroupLayer != null)
       {
         CycloMediaGroupLayer cycloLayer = CycloMediaGroupLayer;
         CycloMediaGroupLayer = null;
-        await cycloLayer.DisposeAsync();
+        await cycloLayer.DisposeAsync(fromMap);
       }
     }
 
 
     protected async override void Uninitialize()
     {
-      await RemoveLayersAsync();
+      await RemoveLayersAsync(true);
       MapViewInitializedEvent.Unsubscribe(OnOpenDocument);
       MapClosedEvent.Unsubscribe(OnCloseDocument);
       base.Uninitialize();
@@ -197,7 +203,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
       {
         if (!CycloMediaGroupLayer.ContainsLayers)
         {
-          await RemoveLayersAsync();
+          await RemoveLayersAsync(true);
         }
       }
     }

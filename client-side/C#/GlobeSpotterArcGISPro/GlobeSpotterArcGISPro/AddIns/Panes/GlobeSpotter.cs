@@ -29,7 +29,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Panes
   {
     #region Consts
 
-    private const string ViewPaneId = "GlobeSpotterArcGISPro_GlobeSpotter";
+    private const string ViewPaneId = "globeSpotterArcGISPro_globeSpotter";
 
     #endregion
 

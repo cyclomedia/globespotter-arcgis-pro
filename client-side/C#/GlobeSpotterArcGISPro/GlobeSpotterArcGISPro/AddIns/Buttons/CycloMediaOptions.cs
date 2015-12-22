@@ -18,39 +18,16 @@
 
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
-using GlobeSpotterArcGISPro.Configuration.File;
 
 namespace GlobeSpotterArcGISPro.AddIns.Buttons
 {
   internal class CycloMediaOptions : Button
   {
-    #region Members
-
-    private readonly Agreement _agreement;
-
-    #endregion
-
-    #region Constructors
-
-    protected CycloMediaOptions()
-    {
-      _agreement = Agreement.Instance;
-    }
-
-    #endregion
-
-    #region Event handlers
+    #region Overrides
 
     protected override void OnClick()
     {
-      PropertySheet.ShowDialog("PropertyScreen_options");
-    }
-
-    protected override void OnUpdate()
-    {
-      // todo: verander dit stuk code door in daml een state, condition waarde toe te voegen
-      Enabled = _agreement.Value;
-      base.OnUpdate();
+      PropertySheet.ShowDialog("globeSpotterArcGISPro_optionsPropertyScreen");
     }
 
     #endregion

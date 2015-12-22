@@ -17,6 +17,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
@@ -26,6 +27,16 @@ namespace GlobeSpotterArcGISPro.Layers
   public class HistoricalLayer : CycloMediaLayer
   {
     #region Members
+
+    private static Color _color;
+    private static List<int> _yearPip;
+    private static List<int> _yearForbidden;
+    private static SortedDictionary<int, Color> _yearToColor;
+    private static double _minimumScale;
+
+    #endregion
+
+    #region Properties
 
     public override string Name => "Historical Recordings";
     public override string FcName => "FCHistoricalRecordings";
@@ -39,6 +50,24 @@ namespace GlobeSpotterArcGISPro.Layers
         "<gml:upperCorner>{3} {4}</gml:upperCorner></gml:Envelope></ogc:BBOX><ogc:PropertyIsBetween><ogc:PropertyName>recordedAt</ogc:PropertyName><ogc:LowerBoundary>" +
         "<ogc:Literal>1991-12-31T23:00:00-00:00</ogc:Literal></ogc:LowerBoundary><ogc:UpperBoundary><ogc:Literal>{5}</ogc:Literal></ogc:UpperBoundary></ogc:PropertyIsBetween>" +
         "</ogc:And></ogc:Filter></wfs:Query></wfs:GetFeature>";
+
+    public override double MinimumScale
+    {
+      get { return _minimumScale; }
+      set { _minimumScale = value; }
+    }
+
+    public override Color Color
+    {
+      get { return _color; }
+      set { _color = value; }
+    }
+
+    private static SortedDictionary<int, Color> YearToColor => _yearToColor ?? (_yearToColor = new SortedDictionary<int, Color>());
+
+    private static List<int> YearPip => _yearPip ?? (_yearPip = new List<int>());
+
+    private static List<int> YearForbidden => _yearForbidden ?? (_yearForbidden = new List<int>());
 
     #endregion
 
@@ -80,6 +109,14 @@ namespace GlobeSpotterArcGISPro.Layers
       // todo: Add this function
     }
 
+    protected override void Remove()
+    {
+      base.Remove();
+      YearToColor.Clear();
+      YearPip.Clear();
+      YearForbidden.Clear();
+    }
+
     public override void UpdateColor(Color color, int? year)
     {
       // todo: Add this function
@@ -96,7 +133,13 @@ namespace GlobeSpotterArcGISPro.Layers
 
     #endregion
 
-    #region Constructor
+    #region Constructors
+
+    static HistoricalLayer()
+    {
+      _color = Color.Transparent;
+      _minimumScale = 2000.0;
+    }
 
     public HistoricalLayer(CycloMediaGroupLayer layer)
       : base(layer)

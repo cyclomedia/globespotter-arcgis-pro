@@ -19,6 +19,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
@@ -50,11 +51,6 @@ namespace GlobeSpotterArcGISPro.Layers
 
     public bool ContainsLayers => (Layers.Count != 0);
 
-    public bool HistoricalLayerEnabled
-    {
-      get { return Layers.Aggregate(false, (current, layer) => current || layer.UseDateRange); }
-    }
-
     public bool InsideScale
     {
       get { return Layers.Aggregate(false, (current, layer) => layer.InsideScale || current); }
@@ -63,6 +59,55 @@ namespace GlobeSpotterArcGISPro.Layers
     #endregion
 
     #region Functions
+
+    public async Task InitializeAsync()
+    {
+      GroupLayer = null;
+      Layers = new List<CycloMediaLayer>();
+      Map map = MapView.Active?.Map;
+
+      if (map != null)
+      {
+        var layers = map.Layers;
+        var layersForGroupLayer = map.FindLayers(Name);
+        bool leave = false;
+
+        foreach (Layer layer in layersForGroupLayer)
+        {
+          if (layer is GroupLayer)
+          {
+            if (!leave)
+            {
+              GroupLayer = layer as GroupLayer;
+              leave = true;
+            }
+          }
+          else
+          {
+            await QueuedTask.Run(() =>
+            {
+              map.RemoveLayer(layer);
+            });
+          }
+        }
+
+        if (GroupLayer == null)
+        {
+          await QueuedTask.Run(() =>
+          {
+            GroupLayer = LayerFactory.CreateGroupLayer(map, 0, Name);
+            GroupLayer.SetExpanded(true);
+          });
+        }
+
+        foreach (Layer layer in layers)
+        {
+          await AddLayerAsync(layer.Name);
+        }
+      }
+
+      TOCSelectionChangedEvent.Subscribe(OnTocSelectionChanged);
+    }
 
     public CycloMediaLayer GetLayer(Layer layer)
     {
@@ -81,14 +126,20 @@ namespace GlobeSpotterArcGISPro.Layers
 
         if (thisLayer != null)
         {
+          Layers.Add(thisLayer);
           await thisLayer.AddToLayersAsync();
+
+          if (thisLayer.UseDateRange)
+          {
+            FrameworkApplication.State.Activate("globeSpotterArcGISPro_historicalLayerEnabledState");
+          }
         }
       }
 
       return thisLayer;
     }
 
-    public async Task RemoveLayerAsync(string name)
+    public async Task RemoveLayerAsync(string name, bool fromGroup)
     {
       CycloMediaLayer layer = Layers.Aggregate<CycloMediaLayer, CycloMediaLayer>
         (null, (current, checkLayer) => (checkLayer.Name == name) ? checkLayer : current);
@@ -96,7 +147,12 @@ namespace GlobeSpotterArcGISPro.Layers
       if (layer != null)
       {
         Layers.Remove(layer);
-        await layer.DisposeAsync();
+        await layer.DisposeAsync(fromGroup);
+
+        if (layer.UseDateRange)
+        {
+          FrameworkApplication.State.Deactivate("globeSpotterArcGISPro_historicalLayerEnabledState");
+        }
       }
     }
 
@@ -105,32 +161,27 @@ namespace GlobeSpotterArcGISPro.Layers
       return Layers.Aggregate((name == Name), (current, layer) => (layer.Name == name) || current);
     }
 
-    public async Task DisposeAsync()
+    public async Task DisposeAsync(bool fromMap)
     {
-      int i = 0;
-
-      while (Layers.Count > i)
+      while (Layers.Count > 0)
       {
-        CycloMediaLayer layer = Layers[i];
-        await layer.DisposeAsync();
-        i++;
+        await RemoveLayerAsync(Layers[0].Name, false);
       }
 
-      await RemoveLayerFromMapAsync();
-      TOCSelectionChangedEvent.Unsubscribe(OnTocSelectionChanged);
-    }
-
-    public async Task RemoveLayerFromMapAsync()
-    {
-      await QueuedTask.Run(() =>
+      if (fromMap)
       {
-        Map map = MapView.Active?.Map;
-
-        if ((map != null) && (GroupLayer != null))
+        await QueuedTask.Run(() =>
         {
-          map.RemoveLayer(GroupLayer);
-        }
-      });
+          Map map = MapView.Active?.Map;
+
+          if ((map != null) && (GroupLayer != null))
+          {
+            map.RemoveLayer(GroupLayer);
+          }
+        });
+      }
+
+      TOCSelectionChangedEvent.Unsubscribe(OnTocSelectionChanged);
     }
 
     public string GetFeatureFromPoint(int x, int y, out CycloMediaLayer layer)
@@ -165,87 +216,10 @@ namespace GlobeSpotterArcGISPro.Layers
 
       foreach (var layer in AllLayers)
       {
-        result = result && await layer.MakeEmptyAsync();
+        result = result && (await layer.MakeEmptyAsync());
       }
 
       return result;
-    }
-
-    public async Task InitializeAsync()
-    {
-      GroupLayer = null;
-      Layers = new List<CycloMediaLayer>();
-      Map map = MapView.Active?.Map;
-
-      if (map != null)
-      {
-        var layers = map.Layers;
-        var layersForGroupLayer = map.FindLayers(Name);
-        bool leave = false;
-
-        foreach (Layer layer in layersForGroupLayer)
-        {
-          if (layer is GroupLayer)
-          {
-            if (!leave)
-            {
-              GroupLayer = layer as GroupLayer;
-              leave = true;
-            }
-          }
-          else
-          {
-            map.RemoveLayer(layer);
-          }
-        }
-
-        foreach (Layer layer in layers)
-        {
-          CycloMediaLayer thisLayer = AllLayers.Aggregate<CycloMediaLayer, CycloMediaLayer>
-            (null, (current, checkLayer) => (checkLayer.Name == layer.Name) ? checkLayer : current);
-
-          if (thisLayer != null)
-          {
-            Layers.Add(thisLayer);
-          }
-        }
-      }
-
-      if (GroupLayer == null)
-      {
-        if (map != null)
-        {
-          await CreateGroupLayerAsync();
-          await CreateFeatureLayersAsync();
-        }
-      }
-      else
-      {
-        await CreateFeatureLayersAsync();
-      }
-
-      TOCSelectionChangedEvent.Subscribe(OnTocSelectionChanged);
-    }
-
-    private async Task CreateGroupLayerAsync()
-    {
-      await QueuedTask.Run(() =>
-      {
-        Map map = MapView.Active?.Map;
-
-        if (map != null)
-        {
-          GroupLayer = LayerFactory.CreateGroupLayer(map, 0, Name);
-        }
-      });
-    }
-
-    private async Task CreateFeatureLayersAsync()
-    {
-      foreach (var layer in Layers)
-      {
-        await layer.AddToLayersAsync();
-      }
     }
 
     #endregion

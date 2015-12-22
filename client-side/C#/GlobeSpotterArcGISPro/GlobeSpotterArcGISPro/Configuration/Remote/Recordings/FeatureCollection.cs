@@ -68,13 +68,20 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.Recordings
 
       if ((envelope != null) && (!string.IsNullOrEmpty(wfsRequest)))
       {
-        Stream featuresStream = Web.GetByBbox(envelope, wfsRequest);
-
-        if (featuresStream != null)
+        try
         {
-          featuresStream.Position = 0;
-          features = (FeatureCollection) XmlFeatureCollection.Deserialize(featuresStream);
-          featuresStream.Close();
+          Stream featuresStream = Web.GetByBbox(envelope, wfsRequest);
+
+          if (featuresStream != null)
+          {
+            featuresStream.Position = 0;
+            features = (FeatureCollection) XmlFeatureCollection.Deserialize(featuresStream);
+            featuresStream.Close();
+          }
+        }
+        catch
+        {
+          // ignored
         }
       }
 

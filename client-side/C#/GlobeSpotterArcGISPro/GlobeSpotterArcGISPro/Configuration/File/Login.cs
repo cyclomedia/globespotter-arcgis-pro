@@ -21,6 +21,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Serialization;
+using ArcGIS.Desktop.Framework;
 using GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter;
 using GlobeSpotterArcGISPro.Properties;
 using GlobeSpotterArcGISPro.Utilities;
@@ -45,6 +46,8 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     private static readonly byte[] Salt;
 
     private static Login _login;
+
+    private bool _credentials;
 
     #endregion
 
@@ -72,7 +75,23 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     public string Password { get; set; }
 
     [XmlIgnore]
-    public bool Credentials { get; set; }
+    public bool Credentials
+    {
+      get { return _credentials; }
+      set
+      {
+        _credentials = value;
+
+        if (value)
+        {
+          FrameworkApplication.State.Activate("globeSpotterArcGISPro_loginSuccessfullyState");
+        }
+        else
+        {
+          FrameworkApplication.State.Deactivate("globeSpotterArcGISPro_loginSuccessfullyState");
+        }
+      }
+    }
 
     public string Code
     {

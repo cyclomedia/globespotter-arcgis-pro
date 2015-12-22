@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -53,12 +54,7 @@ namespace GlobeSpotterArcGISPro.Layers
     public static event CycloMediaLayerRemoveDelegate LayerRemoveEvent;
     public static event HistoricalDateDelegate HistoricalDateChanged;
 
-    private static Color _color;
-    private static List<int> _yearPip;
-    private static List<int> _yearForbidden;
     private static SortedDictionary<int, int> _yearMonth;
-    private static SortedDictionary<int, Color> _yearToColor;
-    private static double _minimumScale;
 
     private readonly CycloMediaGroupLayer _cycloMediaGroupLayer;
 
@@ -74,27 +70,11 @@ namespace GlobeSpotterArcGISPro.Layers
     public abstract string FcName { get; }
     public abstract bool UseDateRange { get; }
     public abstract string WfsRequest { get; }
+    public abstract Color Color { get; set; }
+    public abstract double MinimumScale { get; set; }
 
     public bool Visible { get; set; }
     public bool IsRemoved { get; set; }
-
-    public double MinimumScale
-    {
-      get { return _minimumScale; }
-      set { _minimumScale = value; }
-    }
-
-    public Color Color
-    {
-      get { return _color; }
-      set { _color = value; }
-    }
-
-    private static SortedDictionary<int, Color> YearToColor => _yearToColor ?? (_yearToColor = new SortedDictionary<int, Color>());
-
-    private static List<int> YearPip => _yearPip ?? (_yearPip = new List<int>());
-
-    private static List<int> YearForbidden => _yearForbidden ?? (_yearForbidden = new List<int>());
 
     public int SizeLayer => 7;
 
@@ -126,12 +106,6 @@ namespace GlobeSpotterArcGISPro.Layers
     #endregion
 
     #region Constructor
-
-    static CycloMediaLayer()
-    {
-      _color = Color.Transparent;
-      _minimumScale = 2000.0;
-    }
 
     protected CycloMediaLayer(CycloMediaGroupLayer layer)
     {
@@ -180,13 +154,6 @@ namespace GlobeSpotterArcGISPro.Layers
 
     public async Task AddToLayersAsync()
     {
-      IList<CycloMediaLayer> layers = _cycloMediaGroupLayer.Layers;
-
-      if (!layers.Contains(this))
-      {
-        layers.Add(this);
-      }
-
       Layer = null;
       Map map = MapView.Active?.Map;
 
@@ -207,7 +174,7 @@ namespace GlobeSpotterArcGISPro.Layers
           }
           else
           {
-            await RemoveLayerAsync();
+            await RemoveLayerAsync(map, layer);
           }
         }
       }
@@ -235,7 +202,9 @@ namespace GlobeSpotterArcGISPro.Layers
         string fcNameWkid = string.Concat(FcName, wkid);
         Project project = CoreModule.CurrentProject;
         await CreateFeatureClassAsync(project, fcNameWkid, spatialReference);
-        await CreateLayerAsync(project, fcNameWkid);
+        FeatureLayer tempLayer = await CreateLayerAsync(project, fcNameWkid, map);
+        Layer = await CreateLayerAsync(project, fcNameWkid, _cycloMediaGroupLayer.GroupLayer);
+        await RemoveLayerAsync(map, tempLayer);
         await MakeEmptyAsync();
         CreateUniqueValueRenderer();
       }
@@ -252,44 +221,40 @@ namespace GlobeSpotterArcGISPro.Layers
       Refresh();
     }
 
-    private async Task CreateLayerAsync(Project project, string fcName)
+    private async Task<FeatureLayer> CreateLayerAsync(Project project, string fcName, ILayerContainerEdit layerContainer)
     {
-      await QueuedTask.Run(() =>
+      return await QueuedTask.Run(() =>
       {
         string featureClassUrl = $@"{project.DefaultGeodatabasePath}\{fcName}";
         Uri uri = new Uri(featureClassUrl);
-//        Layer = LayerFactory.CreateFeatureLayer(uri, _cycloMediaGroupLayer.GroupLayer);
-        Layer = LayerFactory.CreateFeatureLayer(uri, MapView.Active.Map);
-        Layer.SetName(Name);
-        Layer.SetMinScale(MinimumScale);
-        Layer.SetVisibility(true);
-        Layer.SetEditable(true);
+        FeatureLayer result = LayerFactory.CreateFeatureLayer(uri, layerContainer);
+        result.SetName(Name);
+        result.SetMinScale(MinimumScale);
+        result.SetVisibility(true);
+        result.SetEditable(true);
+        return result;
       });
     }
 
-    private async Task RemoveLayerAsync()
+    private async Task RemoveLayerAsync(ILayerContainerEdit layerContainer, Layer layer)
     {
       await QueuedTask.Run(() =>
       {
-//        GroupLayer groupLayer = _cycloMediaGroupLayer.GroupLayer;
-        Map groupLayer = MapView.Active?.Map;
-
-        if (groupLayer?.Layers.Contains(Layer) ?? false)
+        if (layerContainer?.Layers.Contains(layer) ?? false)
         {
-          groupLayer?.RemoveLayer(Layer);
+          layerContainer.RemoveLayer(layer);
         }
       });
     }
 
-    public async Task DisposeAsync()
+    public async Task DisposeAsync(bool fromGroup)
     {
-      await RemoveLayerAsync();
-      Remove();
-    }
+      if (fromGroup)
+      {
+        await RemoveLayerAsync(_cycloMediaGroupLayer.GroupLayer, Layer);
+      }
 
-    public void Refresh()
-    {
-      // todo: to later
+      Remove();
     }
 
     public string GetFeatureFromPoint(int x, int y)
@@ -358,6 +323,21 @@ namespace GlobeSpotterArcGISPro.Layers
       return null;
     }
 
+    public async Task Refresh()
+    {
+      await QueuedTask.Run(() =>
+      {
+        Envelope extent = MapView.Active?.Extent;
+
+        if (extent != null)
+        {
+          _lastextent = extent;
+          _lastextent = _lastextent.Expand(5, 5, true);
+          OnMapViewCameraChanged(null);
+        }
+      });
+    }
+
     public void AddZToSketch()
     {
       // toDo: kijken of deze nog nodig is
@@ -378,16 +358,13 @@ namespace GlobeSpotterArcGISPro.Layers
       return 0.0;
     }
 
-    protected void Remove()
+    protected virtual void Remove()
     {
       IsRemoved = true;
       LayerRemoveEvent?.Invoke(this);
       MapViewCameraChangedEvent.Unsubscribe(OnMapViewCameraChanged);
       TOCSelectionChangedEvent.Unsubscribe(OnContentChanged);
       LayersRemovedEvent.Unsubscribe(OnItemDeleted);
-      YearToColor.Clear();
-      YearPip.Clear();
-      YearForbidden.Clear();
     }
 
     private void CreateUniqueValueRenderer()
@@ -646,22 +623,14 @@ namespace GlobeSpotterArcGISPro.Layers
       LayerChangedEvent?.Invoke(this);
     }
 
-    private async void OnItemDeleted(LayerEventsArgs args)
+    private void OnItemDeleted(LayerEventsArgs args)
     {
-      bool contains = false;
       IEnumerable<Layer> layers = args.Layers;
-
-      foreach (Layer layer in layers)
-      {
-        if (layer == Layer)
-        {
-          contains = true;
-        }
-      }
+      bool contains = layers.Aggregate(false, (current, layer) => (layer == Layer) || current);
 
       if (contains)
       {
-        await RemoveLayerAsync();
+        _cycloMediaGroupLayer.Layers.Remove(this);
         Remove();
         Layer = null;
       }

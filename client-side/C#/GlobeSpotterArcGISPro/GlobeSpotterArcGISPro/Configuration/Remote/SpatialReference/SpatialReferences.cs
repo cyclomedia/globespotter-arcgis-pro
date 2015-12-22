@@ -16,6 +16,7 @@
  * License along with this library.
  */
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -104,13 +105,20 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
 
     public static SpatialReferences Load()
     {
-      Stream spatialRef = Web.SpatialReferences();
-
-      if (spatialRef != null)
+      try
       {
-        spatialRef.Position = 0;
-        _spatialReferences = (SpatialReferences) XmlSpatialReferences.Deserialize(spatialRef);
-        spatialRef.Close();
+        Stream spatialRef = Web.SpatialReferences();
+
+        if (spatialRef != null)
+        {
+          spatialRef.Position = 0;
+          _spatialReferences = (SpatialReferences) XmlSpatialReferences.Deserialize(spatialRef);
+          spatialRef.Close();
+        }
+      }
+      catch
+      {
+        // ignored
       }
 
       return _spatialReferences;

@@ -141,14 +141,21 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter
 
     public static GlobeSpotterConfiguration Load()
     {
-      Stream globeSpotterConf = Web.GlobeSpotterConfiguration();
-
-      if (globeSpotterConf != null)
+      try
       {
-        globeSpotterConf.Position = 0;
-        _globeSpotterConfiguration =
-          (GlobeSpotterConfiguration) XmlGlobeSpotterconfiguration.Deserialize(globeSpotterConf);
-        globeSpotterConf.Close();
+        Stream globeSpotterConf = Web.GlobeSpotterConfiguration();
+
+        if (globeSpotterConf != null)
+        {
+          globeSpotterConf.Position = 0;
+          _globeSpotterConfiguration =
+            (GlobeSpotterConfiguration) XmlGlobeSpotterconfiguration.Deserialize(globeSpotterConf);
+          globeSpotterConf.Close();
+        }
+      }
+      catch
+      {
+        // ignored
       }
 
       return _globeSpotterConfiguration;
