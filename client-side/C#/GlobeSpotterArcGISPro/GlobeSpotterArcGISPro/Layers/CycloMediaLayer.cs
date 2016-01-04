@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2016, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,7 +18,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -28,6 +27,7 @@ using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Core;
 using ArcGIS.Desktop.Core.Geoprocessing;
 using ArcGIS.Desktop.Editing;
+using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
@@ -217,8 +217,8 @@ namespace GlobeSpotterArcGISPro.Layers
       IsRemoved = false;
       MapViewCameraChangedEvent.Subscribe(OnMapViewCameraChanged);
       TOCSelectionChangedEvent.Subscribe(OnContentChanged);
-      LayersRemovedEvent.Subscribe(OnItemDeleted);
-      Refresh();
+      LayersRemovedEvent.Subscribe(OnLayersRemoved);
+      await Refresh();
     }
 
     private async Task<FeatureLayer> CreateLayerAsync(Project project, string fcName, ILayerContainerEdit layerContainer)
@@ -360,11 +360,12 @@ namespace GlobeSpotterArcGISPro.Layers
 
     protected virtual void Remove()
     {
+      Layer = null;
       IsRemoved = true;
       LayerRemoveEvent?.Invoke(this);
       MapViewCameraChangedEvent.Unsubscribe(OnMapViewCameraChanged);
       TOCSelectionChangedEvent.Unsubscribe(OnContentChanged);
-      LayersRemovedEvent.Unsubscribe(OnItemDeleted);
+      LayersRemovedEvent.Unsubscribe(OnLayersRemoved);
     }
 
     private void CreateUniqueValueRenderer()
@@ -576,6 +577,7 @@ namespace GlobeSpotterArcGISPro.Layers
     {
       if (InsideScale)
       {
+        FrameworkApplication.State.Activate("globeSpotterArcGISPro_InsideScaleState");
         MapView mapView = MapView.Active;
 
         if ((mapView != null) && (Layer != null) && (_cycloMediaGroupLayer != null) && (_addData == null))
@@ -609,11 +611,8 @@ namespace GlobeSpotterArcGISPro.Layers
       else
       {
         _addData = null;
-
-        if (YearMonth.Count >= 1)
-        {
-          YearMonth.Clear();
-        }
+        YearMonth.Clear();
+        FrameworkApplication.State.Deactivate("globeSpotterArcGISPro_InsideScaleState");
       }
     }
 
@@ -623,16 +622,14 @@ namespace GlobeSpotterArcGISPro.Layers
       LayerChangedEvent?.Invoke(this);
     }
 
-    private void OnItemDeleted(LayerEventsArgs args)
+    private async void OnLayersRemoved(LayerEventsArgs args)
     {
       IEnumerable<Layer> layers = args.Layers;
       bool contains = layers.Aggregate(false, (current, layer) => (layer == Layer) || current);
 
       if (contains)
       {
-        _cycloMediaGroupLayer.Layers.Remove(this);
-        Remove();
-        Layer = null;
+        await _cycloMediaGroupLayer.RemoveLayerAsync(Name, false);
       }
     }
 

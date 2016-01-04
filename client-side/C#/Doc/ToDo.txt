@@ -1,0 +1,27 @@
+GlobeSpotter Window:
+====================
+  - Als je een GlobeSpotter window wordt geopend, dan moet deze initieel onderaan het scherm worden getoond i.p.v. naast de kaart.
+
+
+Recent Recording Layer:
+=======================
+  - Bij het afsluiten van de laag hoeft geen melding te komen dat je deze laag wilt opslaan.
+  - De limiet van 10 karakters per item in de database moet eruit.
+  - De recent recording layer button ook in de layer tab van de map group plaatsen.
+
+
+Open Location Tool:
+===================
+  - De open locatie tool moet de focus verliezen als deze niet meer gebruikt kan worden.
+
+
+Bugs in ArcGIS Pro / SDK:
+=========================
+  - Het is niet mogelijk om een laag te editen als deze initieel in een grouplayer geplaatst wordt.
+  - Je kunt geen coordinaat transformatie uitvoeren naar 2 dezelfde coordinaat systemen, bijvoorbeeld van RD naar RD.
+  - Als ik 2 keer een geoprocessing tool aanroep vanuit de code, dan gaat de 2e aanroep niet goed, terwijl ik wel netjes wacht tot de eerste is afgerond.
+
+
+Aan te bevelen uitbreidingen van de SDK:
+========================================
+  - Het zou ook mogelijk moeten zijn om geo-databases te creeeren vanuit de code.

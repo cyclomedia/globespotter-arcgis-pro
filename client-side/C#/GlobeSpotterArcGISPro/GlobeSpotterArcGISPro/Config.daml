@@ -1,7 +1,7 @@
 ﻿<!--
  /*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2016, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,17 +23,17 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://schemas.esri.com/DADF/Registry file:///C:/Program%20Files/ArcGIS/Pro/bin/ArcGIS.Desktop.Framework.xsd">
   <AddInInfo id="{914cc234-6eac-401d-a7a8-96baa1782909}"
-             version="0.1.0"
+             version="0.1.3"
              desktopVersion="1.1.3308">
     <Name>GlobeSpotter for ArcGIS Pro</Name>
     <Description>
       GlobeSpotter for ArcGIS Pro
-      Copyright © CycloMedia Technology 2015
+      Copyright © CycloMedia Technology 2015 - 2016
     </Description>
     <Image>Images\GlobeSpotterArcGISPro32.png</Image>
     <Author>CycloMedia</Author>
     <Company>CycloMedia</Company>
-    <Date>8/20/2015 4:46:49 PM, 2015</Date>
+    <Date>01/04/2016 10:16:00 AM, 2016</Date>
     <Subject>Content</Subject>
   </AddInInfo>
   <modules>
@@ -44,17 +44,27 @@
       <tabs>
         <tab id="globeSpotterArcGISPro_tab"
              caption="GlobeSpotter">
-          <group refID="globeSpotterArcGISPro_group" />
+          <group refID="globeSpotterArcGISPro_optionsGroup" />
+          <group refID="globeSpotterArcGISPro_layerGroup" />
+          <group refID="globeSpotterArcGISPro_navigateGroup" />
         </tab>
       </tabs>
       <groups>
-        <group id="globeSpotterArcGISPro_group"
-               caption="GlobeSpotter controls"
+        <group id="globeSpotterArcGISPro_optionsGroup"
+               caption="Options"
                appearsOnAddInTab="false">
           <button refID="globeSpotterArcGISPro_cycloMediaOptionsButton"
                   size="large" />
+        </group>
+        <group id="globeSpotterArcGISPro_layerGroup"
+               caption="Layer"
+               appearsOnAddInTab="false">
           <button refID="globeSpotterArcGISPro_recentRecordingLayerButton"
                   size="large" />
+        </group>
+        <group id="globeSpotterArcGISPro_navigateGroup"
+               caption="Navigate"
+               appearsOnAddInTab="false">
           <tool refID="globeSpotterArcGISPro_openImageTool"
                 size="large" />
           <tool refID="esri_mapping_exploreTool"
@@ -67,7 +77,7 @@
               className="AddIns.Tools.OpenLocation"
               loadOnClick="false"
               largeImage="Images\OpenLocation32.png"
-              condition="globeSpotterArcGISPro_recordingsReadyCondition">
+              condition="globeSpotterArcGISPro_openImageToolReadyCondition">
           <tooltip heading="Open Location">Open the location in a cyclorama<disabledText /></tooltip>
         </tool>
         <button id="globeSpotterArcGISPro_cycloMediaOptionsButton"
@@ -98,6 +108,13 @@
         </pane>
       </panes>
     </insertModule>
+    <updateModule refID="esri_mapping">
+      <groups>
+        <updateGroup refID="esri_mapping_navigateGroup">
+          <insertButton refID="globeSpotterArcGISPro_openImageTool" />
+        </updateGroup>
+      </groups>
+    </updateModule>
   </modules>
   <propertySheets>
     <insertSheet id="globeSpotterArcGISPro_optionsPropertyScreen"
@@ -137,6 +154,15 @@
       <and>
         <state id="globeSpotterArcGISPro_agreementAcceptedState"/>
         <state id="globeSpotterArcGISPro_loginSuccessfullyState"/>
+        <state id="esri_mapping_mapPane"/>
+      </and>
+    </insertCondition>
+    <insertCondition id="globeSpotterArcGISPro_openImageToolReadyCondition" caption="The image tool is ready.">
+      <and>
+        <state id="globeSpotterArcGISPro_agreementAcceptedState"/>
+        <state id="globeSpotterArcGISPro_loginSuccessfullyState"/>
+        <state id="globeSpotterArcGISPro_recordingLayerEnabledState"/>
+        <state id="globeSpotterArcGISPro_InsideScaleState"/>
         <state id="esri_mapping_mapPane"/>
       </and>
     </insertCondition>

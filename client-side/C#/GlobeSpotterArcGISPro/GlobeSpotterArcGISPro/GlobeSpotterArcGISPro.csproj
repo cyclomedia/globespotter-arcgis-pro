@@ -203,6 +203,9 @@
       <Link>Release notes.txt</Link>
     </Content>
     <AddInContent Include="Images\OpenLocation32.png" />
+    <Content Include="..\..\Doc\ToDo.txt">
+      <Link>ToDo.txt</Link>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Recordings\FCRecordings.dbf" />

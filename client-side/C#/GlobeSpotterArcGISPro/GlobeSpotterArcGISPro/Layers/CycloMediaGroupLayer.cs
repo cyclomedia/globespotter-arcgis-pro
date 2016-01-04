@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2016, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -128,11 +128,12 @@ namespace GlobeSpotterArcGISPro.Layers
         {
           Layers.Add(thisLayer);
           await thisLayer.AddToLayersAsync();
+          FrameworkApplication.State.Activate("globeSpotterArcGISPro_recordingLayerEnabledState");
 
           if (thisLayer.UseDateRange)
           {
             FrameworkApplication.State.Activate("globeSpotterArcGISPro_historicalLayerEnabledState");
-          }
+          }          
         }
       }
 
@@ -148,6 +149,7 @@ namespace GlobeSpotterArcGISPro.Layers
       {
         Layers.Remove(layer);
         await layer.DisposeAsync(fromGroup);
+        FrameworkApplication.State.Deactivate("globeSpotterArcGISPro_recordingLayerEnabledState");
 
         if (layer.UseDateRange)
         {
