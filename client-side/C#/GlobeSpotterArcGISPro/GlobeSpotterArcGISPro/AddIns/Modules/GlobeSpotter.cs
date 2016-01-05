@@ -16,6 +16,8 @@
  * License along with this library.
  */
 
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using ArcGIS.Desktop.Framework;
@@ -66,8 +68,8 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
 
       Login login = Login.Instance;
       login.Check();
-      MapViewInitializedEvent.Subscribe(OnOpenDocument);
-      MapClosedEvent.Subscribe(OnCloseDocument);
+      MapViewInitializedEvent.Subscribe(OnMapViewInitialized);
+      MapClosedEvent.Subscribe(OnMapClosedDocument);
     }
 
     #endregion
@@ -81,6 +83,14 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
     protected override bool CanUnload()
     {
       return true;
+    }
+
+    protected async override void Uninitialize()
+    {
+      await RemoveLayersAsync(true);
+      MapViewInitializedEvent.Unsubscribe(OnMapViewInitialized);
+      MapClosedEvent.Unsubscribe(OnMapClosedDocument);
+      base.Uninitialize();
     }
 
     #endregion
@@ -100,21 +110,23 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
         false;
     }
 
-    private async Task CloseCycloMediaLayerAsync(bool closeDocument)
+    private async Task CloseCycloMediaLayerAsync(bool closeMap)
     {
       if (CycloMediaGroupLayer != null)
       {
-        if ((!ContainsCycloMediaLayer()) || closeDocument)
+        if ((!ContainsCycloMediaLayer()) || closeMap)
         {
           await RemoveLayersAsync(false);
         }
       }
 
-      if (closeDocument)
+      if (closeMap)
       {
+        Settings settings = Settings.Instance;
         LayersRemovedEvent.Unsubscribe(OnLayerRemoved);
         DrawCompleteEvent.Unsubscribe(OnDrawComplete);
         CycloMediaLayer.LayerRemoveEvent -= OnLayerRemoved;
+        settings.PropertyChanged -= OnSettingsPropertyChanged;
       }
     }
 
@@ -155,20 +167,11 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
       }
     }
 
-
-    protected async override void Uninitialize()
-    {
-      await RemoveLayersAsync(true);
-      MapViewInitializedEvent.Unsubscribe(OnOpenDocument);
-      MapClosedEvent.Unsubscribe(OnCloseDocument);
-      base.Uninitialize();
-    }
-
     #endregion
 
     #region Event handlers
 
-    private async void OnOpenDocument(MapViewEventArgs args)
+    private async void OnMapViewInitialized(MapViewEventArgs args)
     {
       CycloMediaLayer.ResetYears();
       LayersRemovedEvent.Subscribe(OnLayerRemoved);
@@ -179,10 +182,23 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
         await AddLayersAsync();
       }
 
+      Settings settings = Settings.Instance;
       CycloMediaLayer.LayerRemoveEvent += OnLayerRemoved;
+      settings.PropertyChanged += OnSettingsPropertyChanged;
     }
 
-    private async void OnCloseDocument(MapClosedEventArgs args)
+    private async void OnSettingsPropertyChanged(object sender, PropertyChangedEventArgs args)
+    {
+      if ((CycloMediaGroupLayer != null) && (args.PropertyName == "RecordingLayerCoordinateSystem"))
+      {
+        foreach (var layer in CycloMediaGroupLayer.Layers)
+        {
+          await layer.UpdateLayerAsync();
+        }
+      }
+    }
+
+    private async void OnMapClosedDocument(MapClosedEventArgs args)
     {
       await CloseCycloMediaLayerAsync(true);
     }

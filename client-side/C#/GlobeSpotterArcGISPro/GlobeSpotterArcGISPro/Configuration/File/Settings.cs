@@ -16,7 +16,9 @@
  * License along with this library.
  */
 
+using System.ComponentModel;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Xml.Serialization;
 using GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference;
 using GlobeSpotterArcGISPro.Utilities;
@@ -26,8 +28,14 @@ using SystemIOFile = System.IO.File;
 namespace GlobeSpotterArcGISPro.Configuration.File
 {
   [XmlRoot("Settings")]
-  public class Settings
+  public class Settings: INotifyPropertyChanged
   {
+    #region Events
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    #endregion
+
     #region Members
 
     private static readonly XmlSerializer XmlSettings;
@@ -68,6 +76,8 @@ namespace GlobeSpotterArcGISPro.Configuration.File
               _recordingLayerCoordinateSystem = spatialReference;
             }
           }
+
+          OnPropertyChanged();
         }
       }
     }
@@ -92,6 +102,8 @@ namespace GlobeSpotterArcGISPro.Configuration.File
               _cycloramaViewerCoordinateSystem = spatialReference;
             }
           }
+
+          OnPropertyChanged();
         }
       }
     }
@@ -140,6 +152,11 @@ namespace GlobeSpotterArcGISPro.Configuration.File
       FileStream streamFile = SystemIOFile.Open(FileName, FileMode.Create);
       XmlSettings.Serialize(streamFile, this);
       streamFile.Close();
+    }
+
+    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    {
+      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     private static Settings Load()

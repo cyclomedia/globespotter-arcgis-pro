@@ -152,6 +152,48 @@ namespace GlobeSpotterArcGISPro.Layers
       });
     }
 
+    public async Task UpdateLayerAsync()
+    {
+      if (Layer != null)
+      {
+        Layer oldLayer = Layer;
+        await CreateFeatureLayerAsync();
+        await RemoveLayerAsync(_cycloMediaGroupLayer.GroupLayer, oldLayer);
+        await Refresh();
+      }
+    }
+
+    private async Task CreateFeatureLayerAsync()
+    {
+      Map map = MapView.Active?.Map;
+      SpatialReference spatialReference = null;
+      Settings config = Settings.Instance;
+      MySpatialReference spatialReferenceRecording = config.RecordingLayerCoordinateSystem;
+
+      if (spatialReferenceRecording == null)
+      {
+        if (map != null)
+        {
+          spatialReference = map.SpatialReference;
+        }
+      }
+      else
+      {
+        spatialReference = spatialReferenceRecording.ArcGisSpatialReference ??
+                           await spatialReferenceRecording.CreateArcGisSpatialReferenceAsync();
+      }
+
+      int wkid = spatialReference?.Wkid ?? 0;
+      string fcNameWkid = string.Concat(FcName, wkid);
+      Project project = CoreModule.CurrentProject;
+      await CreateFeatureClassAsync(project, fcNameWkid, spatialReference);
+      FeatureLayer tempLayer = await CreateLayerAsync(project, fcNameWkid, map);
+      Layer = await CreateLayerAsync(project, fcNameWkid, _cycloMediaGroupLayer.GroupLayer);
+      await RemoveLayerAsync(map, tempLayer);
+      await MakeEmptyAsync();
+      CreateUniqueValueRenderer();
+    }
+
     public async Task AddToLayersAsync()
     {
       Layer = null;
@@ -181,32 +223,7 @@ namespace GlobeSpotterArcGISPro.Layers
 
       if (Layer == null)
       {
-        SpatialReference spatialReference = null;
-        Settings config = Settings.Instance;
-        MySpatialReference spatialReferenceRecording = config.RecordingLayerCoordinateSystem;
-
-        if (spatialReferenceRecording == null)
-        {
-          if (map != null)
-          {
-            spatialReference = map.SpatialReference;
-          }
-        }
-        else
-        {
-          spatialReference = spatialReferenceRecording.ArcGisSpatialReference ??
-                             await spatialReferenceRecording.CreateArcGisSpatialReferenceAsync();
-        }
-
-        int wkid = spatialReference?.Wkid ?? 0;
-        string fcNameWkid = string.Concat(FcName, wkid);
-        Project project = CoreModule.CurrentProject;
-        await CreateFeatureClassAsync(project, fcNameWkid, spatialReference);
-        FeatureLayer tempLayer = await CreateLayerAsync(project, fcNameWkid, map);
-        Layer = await CreateLayerAsync(project, fcNameWkid, _cycloMediaGroupLayer.GroupLayer);
-        await RemoveLayerAsync(map, tempLayer);
-        await MakeEmptyAsync();
-        CreateUniqueValueRenderer();
+        await CreateFeatureLayerAsync();
       }
       else
       {

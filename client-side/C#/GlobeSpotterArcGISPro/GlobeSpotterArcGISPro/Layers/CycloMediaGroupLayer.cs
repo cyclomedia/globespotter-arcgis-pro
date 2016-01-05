@@ -68,7 +68,7 @@ namespace GlobeSpotterArcGISPro.Layers
 
       if (map != null)
       {
-        var layers = map.Layers;
+        var layers = map.GetLayersAsFlattenedList();
         var layersForGroupLayer = map.FindLayers(Name);
         bool leave = false;
 
