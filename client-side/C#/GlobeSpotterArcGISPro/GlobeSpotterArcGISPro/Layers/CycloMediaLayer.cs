@@ -22,6 +22,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using ArcGIS.Core.CIM;
 using ArcGIS.Core.Data;
 using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Core;
@@ -36,7 +37,6 @@ using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 using GlobeSpotterArcGISPro.Utilities;
 using MySpatialReference = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReference;
 using RecordingPoint = GlobeSpotterArcGISPro.Configuration.Remote.Recordings.Point;
-using SpatialReference = ArcGIS.Core.Geometry.SpatialReference;
 
 namespace GlobeSpotterArcGISPro.Layers
 {
@@ -47,12 +47,16 @@ namespace GlobeSpotterArcGISPro.Layers
 
   public abstract class CycloMediaLayer
   {
-    #region Members
+    #region Events
 
     public static event CycloMediaLayerAddedDelegate LayerAddedEvent;
     public static event CycloMediaLayerChangedDelegate LayerChangedEvent;
     public static event CycloMediaLayerRemoveDelegate LayerRemoveEvent;
     public static event HistoricalDateDelegate HistoricalDateChanged;
+
+    #endregion
+
+    #region Members
 
     private static SortedDictionary<int, int> _yearMonth;
 
@@ -62,6 +66,30 @@ namespace GlobeSpotterArcGISPro.Layers
     private FeatureCollection _addData;
     private bool _isVisibleInGlobespotter;
 
+    private readonly IList<Color> _colors = new List<Color>
+    {
+      Color.FromArgb(255, Color.FromArgb(0x80B3FF)),
+      Color.FromArgb(255, Color.FromArgb(0x0067FF)),
+      Color.FromArgb(255, Color.FromArgb(0x405980)),
+      Color.FromArgb(255, Color.FromArgb(0x001F4D)),
+      Color.FromArgb(255, Color.FromArgb(0xFFD080)),
+      Color.FromArgb(255, Color.FromArgb(0xFFA100)),
+      Color.FromArgb(255, Color.FromArgb(0x806840)),
+      Color.FromArgb(255, Color.FromArgb(0x4D3000)),
+      Color.FromArgb(255, Color.FromArgb(0xDDFF80)),
+      Color.FromArgb(255, Color.FromArgb(0xBBFF00)),
+      Color.FromArgb(255, Color.FromArgb(0x6F8040)),
+      Color.FromArgb(255, Color.FromArgb(0x384D00)),
+      Color.FromArgb(255, Color.FromArgb(0xFF80D9)),
+      Color.FromArgb(255, Color.FromArgb(0xFF00B2)),
+      Color.FromArgb(255, Color.FromArgb(0x80406C)),
+      Color.FromArgb(255, Color.FromArgb(0x4D0035)),
+      Color.FromArgb(255, Color.FromArgb(0xF2F2F2)),
+      Color.FromArgb(255, Color.FromArgb(0xBFBFBF)),
+      Color.FromArgb(255, Color.FromArgb(0x404040)),
+      Color.FromArgb(255, Color.FromArgb(0x000000))
+    };
+
     #endregion
 
     #region Properties
@@ -70,13 +98,12 @@ namespace GlobeSpotterArcGISPro.Layers
     public abstract string FcName { get; }
     public abstract bool UseDateRange { get; }
     public abstract string WfsRequest { get; }
-    public abstract Color Color { get; set; }
     public abstract double MinimumScale { get; set; }
 
     public bool Visible { get; set; }
     public bool IsRemoved { get; set; }
 
-    public int SizeLayer => 7;
+    protected double SizeLayer => 7.0;
 
     public FeatureLayer Layer { get; private set; }
 
@@ -121,11 +148,22 @@ namespace GlobeSpotterArcGISPro.Layers
     #region Functions
 
     protected abstract bool Filter(Recording recording);
-    protected abstract void PostEntryStep();
+
+    protected abstract Task PostEntryStepAsync();
 
     public async Task SetVisibleAsync(bool value)
     {
       await QueuedTask.Run(() => Layer?.SetVisibility(value));
+    }
+
+    protected Color GetCol(int year)
+    {
+      DateTime now = DateTime.Now;
+      int nowYear = now.Year;
+      int yearDiff = nowYear - year;
+      int nrColors = _colors.Count;
+      int index = Math.Min(yearDiff, (nrColors - 1));
+      return _colors[index];
     }
 
     private async Task<Envelope> GetExtentAsync(Envelope envelope)
@@ -191,7 +229,7 @@ namespace GlobeSpotterArcGISPro.Layers
       Layer = await CreateLayerAsync(project, fcNameWkid, _cycloMediaGroupLayer.GroupLayer);
       await RemoveLayerAsync(map, tempLayer);
       await MakeEmptyAsync();
-      CreateUniqueValueRenderer();
+      await CreateUniqueValueRendererAsync();
     }
 
     public async Task AddToLayersAsync()
@@ -227,7 +265,7 @@ namespace GlobeSpotterArcGISPro.Layers
       }
       else
       {
-        CreateUniqueValueRenderer();
+        await CreateUniqueValueRendererAsync();
       }
 
       LayerAddedEvent?.Invoke(this);
@@ -385,9 +423,18 @@ namespace GlobeSpotterArcGISPro.Layers
       LayersRemovedEvent.Unsubscribe(OnLayersRemoved);
     }
 
-    private void CreateUniqueValueRenderer()
+    private async Task CreateUniqueValueRendererAsync()
     {
-      // todo: later
+      await QueuedTask.Run(() =>
+      {
+        string[] fieldNames = {Recording.FieldYear, Recording.FieldPip, Recording.FieldIsAuthorized};
+        var uniqueValueRendererDefinition = new UniqueValueRendererDefinition(fieldNames);
+        var uniqueValueRenderer = (CIMUniqueValueRenderer) Layer.CreateRenderer(uniqueValueRendererDefinition);
+        uniqueValueRenderer.DefaultLabel = string.Empty;
+        uniqueValueRenderer.DefaultSymbol = null;
+        uniqueValueRenderer.Groups = null;
+        Layer.SetRenderer(uniqueValueRenderer);
+      });
     }
 
     private async Task CreateFeatureClassAsync(Project project, string fcName, SpatialReference spatialReference)
@@ -620,7 +667,7 @@ namespace GlobeSpotterArcGISPro.Layers
               }
 
               _addData = null;
-              PostEntryStep();
+              await PostEntryStepAsync();
             }
           }
         }

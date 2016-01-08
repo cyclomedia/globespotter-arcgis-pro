@@ -20,6 +20,12 @@ Bugs in ArcGIS Pro / SDK:
   - Het is niet mogelijk om een laag te editen als deze initieel in een grouplayer geplaatst wordt.
   - Je kunt geen coordinaat transformatie uitvoeren naar 2 dezelfde coordinaat systemen, bijvoorbeeld van RD naar RD.
   - Als ik 2 keer een geoprocessing tool aanroep vanuit de code, dan gaat de 2e aanroep niet goed, terwijl ik wel netjes wacht tot de eerste is afgerond.
+  - Dit voorbeeld om een default point symbol te maken werkt niet, elke keer krijgt deze een andere kleur:
+		var pointSymbol = SymbolFactory.ConstructPointSymbol(ColorFactory.Blue, 7.0, SimpleMarkerStyle.Circle);
+        var pointSymbolTemplate = pointSymbol.MakeSymbolReference();
+        var uniqueValueRendererDefinition = new UniqueValueRendererDefinition(FieldNames, pointSymbolTemplate);
+        var uniqueValueRenderer = (CIMUniqueValueRenderer)Layer.CreateRenderer(uniqueValueRendererDefinition);
+        FeatureLayer.SetRenderer(uniqueValueRenderer);
 
 
 Aan te bevelen uitbreidingen van de SDK:

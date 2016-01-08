@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Threading.Tasks;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 
@@ -28,7 +29,6 @@ namespace GlobeSpotterArcGISPro.Layers
   {
     #region Members
 
-    private static Color _color;
     private static List<int> _yearPip;
     private static List<int> _yearForbidden;
     private static SortedDictionary<int, Color> _yearToColor;
@@ -55,12 +55,6 @@ namespace GlobeSpotterArcGISPro.Layers
     {
       get { return _minimumScale; }
       set { _minimumScale = value; }
-    }
-
-    public override Color Color
-    {
-      get { return _color; }
-      set { _color = value; }
     }
 
     private static SortedDictionary<int, Color> YearToColor => _yearToColor ?? (_yearToColor = new SortedDictionary<int, Color>());
@@ -104,8 +98,9 @@ namespace GlobeSpotterArcGISPro.Layers
       return result;
     }
 
-    protected override void PostEntryStep()
+    protected override Task PostEntryStepAsync()
     {
+      return null;
       // todo: Add this function
     }
 
@@ -137,7 +132,6 @@ namespace GlobeSpotterArcGISPro.Layers
 
     static HistoricalLayer()
     {
-      _color = Color.Transparent;
       _minimumScale = 2000.0;
     }
 

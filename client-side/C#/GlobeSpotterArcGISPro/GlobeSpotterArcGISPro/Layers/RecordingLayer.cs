@@ -19,6 +19,14 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
+using ArcGIS.Core.CIM;
+using ArcGIS.Core.Data;
+using ArcGIS.Core.Geometry;
+using ArcGIS.Desktop.Framework.Threading.Tasks;
+using ArcGIS.Desktop.Mapping;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 
 namespace GlobeSpotterArcGISPro.Layers
@@ -27,7 +35,6 @@ namespace GlobeSpotterArcGISPro.Layers
   {
     #region Members
 
-    private static Color _color;
     private static List<int> _yearPip;
     private static List<int> _yearForbidden;
     private static SortedDictionary<int, Color> _yearToColor;
@@ -53,12 +60,6 @@ namespace GlobeSpotterArcGISPro.Layers
     {
       get { return _minimumScale; }
       set { _minimumScale = value; }
-    }
-
-    public override Color Color
-    {
-      get { return _color; }
-      set { _color = value; }
     }
 
     private static SortedDictionary<int, Color> YearToColor => _yearToColor ?? (_yearToColor = new SortedDictionary<int, Color>());
@@ -101,9 +102,130 @@ namespace GlobeSpotterArcGISPro.Layers
       return result;
     }
 
-    protected override void PostEntryStep()
+    protected async override Task PostEntryStepAsync()
     {
-      // todo: Add this function
+      await QueuedTask.Run(() =>
+      {
+        MapView activeView = MapView.Active;
+        Envelope envelope = activeView.Extent;
+
+        var added = new List<int>();
+        var pipAdded = new List<int>();
+        var forbiddenAdded = new List<int>();
+
+        using (FeatureClass featureClass = Layer?.GetFeatureClass())
+        {
+          if (featureClass != null)
+          {
+            SpatialQueryFilter spatialFilter = new SpatialQueryFilter
+            {
+              FilterGeometry = envelope,
+              SpatialRelationship = SpatialRelationship.Contains,
+              SubFields = $"{Recording.FieldRecordedAt},{Recording.FieldRecordedAt},{Recording.FieldIsAuthorized}"
+            };
+
+            using (RowCursor existsResult = featureClass.Search(spatialFilter, false))
+            {
+              int imId = existsResult.FindField(Recording.FieldRecordedAt);
+              int pipId = existsResult.FindField(Recording.FieldPip);
+              int forbiddenId = existsResult.FindField(Recording.FieldIsAuthorized);
+
+              while (existsResult.MoveNext())
+              {
+                using (Row row = existsResult.Current)
+                {
+                  object value = row?.GetOriginalValue(imId);
+
+                  if (value != null)
+                  {
+                    var dateTime = (DateTime) value;
+                    int year = dateTime.Year;
+
+                    if (!YearToColor.ContainsKey(year))
+                    {
+                      YearToColor.Add(year, Color.Transparent);
+                      added.Add(year);
+                    }
+
+                    object pipValue = row?.GetOriginalValue(pipId);
+
+                    if (pipValue != null)
+                    {
+                      bool pip = bool.Parse((string) pipValue);
+
+                      if (pip && (!YearPip.Contains(year)))
+                      {
+                        YearPip.Add(year);
+                        pipAdded.Add(year);
+                      }
+                    }
+
+                    object forbiddenValue = row?.GetOriginalValue(forbiddenId);
+
+                    if (forbiddenValue != null)
+                    {
+                      bool forbidden = !bool.Parse((string) forbiddenValue);
+
+                      if (forbidden && (!YearForbidden.Contains(year)))
+                      {
+                        YearForbidden.Add(year);
+                        forbiddenAdded.Add(year);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        CIMRenderer featureRenderer = Layer?.GetRenderer();
+        var uniqueValueRenderer = featureRenderer as CIMUniqueValueRenderer;
+
+        if (uniqueValueRenderer != null)
+        {
+          foreach (var value in added)
+          {
+            Color color = GetCol(value);
+            CIMColor cimColor = ColorFactory.CreateColor(color);
+            var pointSymbol = SymbolFactory.ConstructPointSymbol(cimColor, SizeLayer, SimpleMarkerStyle.Circle);
+            var pointSymbolReference = pointSymbol.MakeSymbolReference();
+
+            CIMUniqueValue uniqueValue = new CIMUniqueValue
+            {
+              FieldValues = new[] {value.ToString(), false.ToString(), true.ToString()}
+            };
+
+            var uniqueValueClass = new CIMUniqueValueClass
+            {
+              Values = new[] {uniqueValue},
+              Symbol = pointSymbolReference,
+              Label = value.ToString(CultureInfo.InvariantCulture)
+            };
+
+            CIMUniqueValueGroup uniqueValueGroup = new CIMUniqueValueGroup
+            {
+              Classes = new[] {uniqueValueClass},
+              Heading = string.Empty
+            };
+
+            var groups = uniqueValueRenderer.Groups?.ToList() ?? new List<CIMUniqueValueGroup>();
+            groups.Add(uniqueValueGroup);
+            uniqueValueRenderer.Groups = groups.ToArray();
+            Layer.SetRenderer(uniqueValueRenderer);
+          }
+
+          foreach (var value in pipAdded)
+          {
+            // toDo: PIP images
+          }
+
+          foreach (var value in forbiddenAdded)
+          {
+            // toDo: Forbidden images
+          }
+        }
+      });
     }
 
     protected override void Remove()
@@ -137,7 +259,6 @@ namespace GlobeSpotterArcGISPro.Layers
 
     static RecordingLayer()
     {
-      _color = Color.Transparent;
       _minimumScale = 2000.0;
     }
 
