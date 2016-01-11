@@ -18,7 +18,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Threading.Tasks;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
@@ -31,7 +30,7 @@ namespace GlobeSpotterArcGISPro.Layers
 
     private static List<int> _yearPip;
     private static List<int> _yearForbidden;
-    private static SortedDictionary<int, Color> _yearToColor;
+    private static List<int> _years;
     private static double _minimumScale;
 
     #endregion
@@ -57,7 +56,7 @@ namespace GlobeSpotterArcGISPro.Layers
       set { _minimumScale = value; }
     }
 
-    private static SortedDictionary<int, Color> YearToColor => _yearToColor ?? (_yearToColor = new SortedDictionary<int, Color>());
+    private static List<int> Years => _years ?? (_years = new List<int>());
 
     private static List<int> YearPip => _yearPip ?? (_yearPip = new List<int>());
 
@@ -107,14 +106,9 @@ namespace GlobeSpotterArcGISPro.Layers
     protected override void Remove()
     {
       base.Remove();
-      YearToColor.Clear();
+      Years.Clear();
       YearPip.Clear();
       YearForbidden.Clear();
-    }
-
-    public override void UpdateColor(Color color, int? year)
-    {
-      // todo: Add this function
     }
 
     private bool YearInsideRange(int year, int month)

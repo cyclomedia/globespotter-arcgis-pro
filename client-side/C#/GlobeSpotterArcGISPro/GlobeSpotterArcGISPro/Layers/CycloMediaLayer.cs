@@ -19,6 +19,8 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -398,11 +400,6 @@ namespace GlobeSpotterArcGISPro.Layers
       // toDo: kijken of deze nog nodig is
     }
 
-    public virtual void UpdateColor(Color color, int? year)
-    {
-      // toDo: later
-    }
-
     public virtual DateTime? GetDate()
     {
       return null;
@@ -631,6 +628,78 @@ namespace GlobeSpotterArcGISPro.Layers
     public static void ResetYears()
     {
       YearMonth.Clear();
+    }
+
+    protected async Task<CIMMarker> GetPipSymbol(Color color)
+    {
+      var size025 = (int) SizeLayer;
+      var size05 = size025 * 2;
+      var size075 = size025 * 3;
+      var size = size025 * 4;
+      var size15 = size025 * 6;
+      var size25 = size025 * 10;
+      var size275 = size025 * 11;
+      var size3 = size025 * 12;
+      var bitmap = new Bitmap(size3, size3);
+      const int sizeLine = 2;
+
+      using (Graphics ga = Graphics.FromImage(bitmap))
+      {
+        var points = new PointF[6];
+        points[0] = new PointF(size05, size025);
+        points[1] = new PointF(size25, size025);
+        points[2] = new PointF(size15, size15);
+        points[3] = new PointF(size25, size275);
+        points[4] = new PointF(size05, size275);
+        points[5] = new PointF(size15, size15);
+        var pathd = new GraphicsPath();
+        pathd.AddPolygon(points);
+        ga.Clear(Color.Transparent);
+        ga.FillPath(Brushes.Yellow, pathd);
+        ga.DrawPath(new Pen(Brushes.Gray, sizeLine), pathd);
+        ga.DrawEllipse(new Pen(color, sizeLine), size, size, size, size);
+        ga.FillEllipse(new SolidBrush(color), size, size, size, size);
+        pathd.Dispose();
+      }
+
+      string tempPath = Path.GetTempPath();
+      string writePath = Path.Combine(tempPath, $"{color.Name}pip.png");
+      bitmap.Save(writePath, ImageFormat.Png);
+      CIMMarker marker = await SymbolFactory.ConstructMarkerFromFileAsync(writePath);
+      marker.Size = size075;
+      return marker;
+    }
+
+    protected async Task<CIMMarker> GetForbiddenSymbol(Color color)
+    {
+      var size025 = (int) SizeLayer;
+      var size075 = size025 * 3;
+      var size = size025 * 4;
+      var size15 = size025 * 6;
+      var size175 = size025 * 7;
+      var size3 = size025 * 12;
+      var bitmap = new Bitmap(size3, size3);
+      const int sizeLine2 = 2;
+      const int sizeLine3 = 3;
+      const int sizeLine6 = 6;
+
+      using (Graphics ga = Graphics.FromImage(bitmap))
+      {
+        ga.Clear(Color.Transparent);
+        ga.DrawEllipse(new Pen(color, sizeLine2), size, size, size, size);
+        ga.FillEllipse(new SolidBrush(color), size, size, size, size);
+        ga.DrawEllipse(new Pen(Color.Red, sizeLine2), size15, size15, size075, size075);
+        ga.FillEllipse(Brushes.Red, size15, size15, size075, size075);
+        ga.DrawRectangle(new Pen(Color.WhiteSmoke, sizeLine2), size15 + sizeLine3, size175, size075 - sizeLine6, size025);
+        ga.FillRectangle(Brushes.WhiteSmoke, size15 + sizeLine3, size175, size075 - sizeLine6, size025);
+      }
+
+      string tempPath = Path.GetTempPath();
+      string writePath = Path.Combine(tempPath, $"{color.Name}forbidden.bmp");
+      bitmap.Save(writePath, ImageFormat.Png);
+      CIMMarker marker = await SymbolFactory.ConstructMarkerFromFileAsync(writePath);
+      marker.Size = size075;
+      return marker;
     }
 
     #endregion

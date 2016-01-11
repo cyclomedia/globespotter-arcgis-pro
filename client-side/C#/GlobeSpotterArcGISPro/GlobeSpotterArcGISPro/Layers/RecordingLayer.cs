@@ -37,7 +37,7 @@ namespace GlobeSpotterArcGISPro.Layers
 
     private static List<int> _yearPip;
     private static List<int> _yearForbidden;
-    private static SortedDictionary<int, Color> _yearToColor;
+    private static List<int> _years;
     private static double _minimumScale;
 
     #endregion
@@ -62,7 +62,7 @@ namespace GlobeSpotterArcGISPro.Layers
       set { _minimumScale = value; }
     }
 
-    private static SortedDictionary<int, Color> YearToColor => _yearToColor ?? (_yearToColor = new SortedDictionary<int, Color>());
+    private static List<int> Years => _years ?? (_years = new List<int>());
 
     private static List<int> YearPip => _yearPip ?? (_yearPip = new List<int>());
 
@@ -141,9 +141,9 @@ namespace GlobeSpotterArcGISPro.Layers
                     var dateTime = (DateTime) value;
                     int year = dateTime.Year;
 
-                    if (!YearToColor.ContainsKey(year))
+                    if (!Years.Contains(year))
                     {
-                      YearToColor.Add(year, Color.Transparent);
+                      Years.Add(year);
                       added.Add(year);
                     }
 
@@ -217,12 +217,70 @@ namespace GlobeSpotterArcGISPro.Layers
 
           foreach (var value in pipAdded)
           {
-            // toDo: PIP images
+            // ToDo: Add a rotation to the PIP symbols
+            Color color = GetCol(value);
+            CIMMarker marker = GetPipSymbol(color).Result;
+            var pointSymbol = SymbolFactory.ConstructPointSymbol(marker);
+            var pointSymbolReference = pointSymbol.MakeSymbolReference();
+
+            CIMUniqueValue uniqueValue = new CIMUniqueValue
+            {
+              FieldValues = new[] { value.ToString(), true.ToString(), true.ToString() }
+            };
+
+            var uniqueValueClass = new CIMUniqueValueClass
+            {
+              Values = new[] { uniqueValue },
+              Symbol = pointSymbolReference,
+              Label = $"{value} (Detail images)"
+            };
+
+            CIMUniqueValueGroup uniqueValueGroup = new CIMUniqueValueGroup
+            {
+              Classes = new[] { uniqueValueClass },
+              Heading = string.Empty
+            };
+
+            var groups = uniqueValueRenderer.Groups?.ToList() ?? new List<CIMUniqueValueGroup>();
+            groups.Add(uniqueValueGroup);
+            uniqueValueRenderer.Groups = groups.ToArray();
+            Layer.SetRenderer(uniqueValueRenderer);
           }
 
           foreach (var value in forbiddenAdded)
           {
-            // toDo: Forbidden images
+            Color color = GetCol(value);
+            CIMMarker marker = GetForbiddenSymbol(color).Result;
+            var pointSymbol = SymbolFactory.ConstructPointSymbol(marker);
+            var pointSymbolReference = pointSymbol.MakeSymbolReference();
+
+            CIMUniqueValue uniqueValue = new CIMUniqueValue
+            {
+              FieldValues = new[] { value.ToString(), false.ToString(), false.ToString() }
+            };
+
+            CIMUniqueValue uniqueValuePip = new CIMUniqueValue
+            {
+              FieldValues = new[] {value.ToString(), true.ToString(), false.ToString()}
+            };
+
+            var uniqueValueClass = new CIMUniqueValueClass
+            {
+              Values = new[] { uniqueValue, uniqueValuePip },
+              Symbol = pointSymbolReference,
+              Label = $"{value} (No Authorization)"
+            };
+
+            CIMUniqueValueGroup uniqueValueGroup = new CIMUniqueValueGroup
+            {
+              Classes = new[] { uniqueValueClass },
+              Heading = string.Empty
+            };
+
+            var groups = uniqueValueRenderer.Groups?.ToList() ?? new List<CIMUniqueValueGroup>();
+            groups.Add(uniqueValueGroup);
+            uniqueValueRenderer.Groups = groups.ToArray();
+            Layer.SetRenderer(uniqueValueRenderer);
           }
         }
       });
@@ -231,14 +289,9 @@ namespace GlobeSpotterArcGISPro.Layers
     protected override void Remove()
     {
       base.Remove();
-      YearToColor.Clear();
+      Years.Clear();
       YearPip.Clear();
       YearForbidden.Clear();
-    }
-
-    public override void UpdateColor(Color color, int? year)
-    {
-      // todo: Add this function
     }
 
     public override DateTime? GetDate()

@@ -8,6 +8,7 @@ Recent Recording Layer:
   - Bij het afsluiten van de laag hoeft geen melding te komen dat je deze laag wilt opslaan.
   - De limiet van 10 karakters per item in de database moet eruit.
   - De recent recording layer button ook in de layer tab van de map group plaatsen.
+  - Bij PIP images moet ook nog de rotation toevoegen
 
 
 Open Location Tool:
