@@ -60,6 +60,41 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     /// </summary>
     public string AddressLanguageCode { get; set; }
 
+    /// <summary>
+    /// CycloMedia layer name
+    /// </summary>
+    public string CycloMediaLayerName { get; set; }
+
+    /// <summary>
+    /// The size of the layer
+    /// </summary>
+    public double SizeLayer { get; set; }
+
+    /// <summary>
+    /// Minimum scale
+    /// </summary>
+    public double MinimumScale { get; set; }
+
+    /// <summary>
+    /// Recording layer name
+    /// </summary>
+    public string RecordingLayerName { get; set; }
+
+    /// <summary>
+    /// Recording feature class name
+    /// </summary>
+    public string RecordingLayerFeatureClassName { get; set; }
+
+    /// <summary>
+    /// Recording layer name
+    /// </summary>
+    public string HistoricalRecordingLayerName { get; set; }
+
+    /// <summary>
+    /// Recording feature class name
+    /// </summary>
+    public string HistoricalRecordingLayerFeatureClassName { get; set; }
+
     public static Constants Instance
     {
       get
@@ -104,7 +139,14 @@ namespace GlobeSpotterArcGISPro.Configuration.File
       {
         MaxViewers = 4,
         OverlayDrawDistance = 30,
-        AddressLanguageCode = "nl"
+        AddressLanguageCode = "nl",
+        CycloMediaLayerName = "CycloMedia",
+        SizeLayer = 7.0,
+        MinimumScale = 2000.0,
+        RecordingLayerName = "Recent Recordings",
+        RecordingLayerFeatureClassName = "FCRecentRecordings",
+        HistoricalRecordingLayerName = "Historical Recordings",
+        HistoricalRecordingLayerFeatureClassName = "FCHistoricalRecordings"
       };
 
       result.Save();

@@ -16,10 +16,10 @@
  * License along with this library.
  */
 
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using ArcGIS.Desktop.Core;
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Mapping;
@@ -123,10 +123,12 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
       if (closeMap)
       {
         Settings settings = Settings.Instance;
+        Login login = Login.Instance;
         LayersRemovedEvent.Unsubscribe(OnLayerRemoved);
         DrawCompleteEvent.Unsubscribe(OnDrawComplete);
         CycloMediaLayer.LayerRemoveEvent -= OnLayerRemoved;
         settings.PropertyChanged -= OnSettingsPropertyChanged;
+        login.PropertyChanged -= OnLoginPropertyChanged;
       }
     }
 
@@ -183,8 +185,10 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
       }
 
       Settings settings = Settings.Instance;
+      Login login = Login.Instance;
       CycloMediaLayer.LayerRemoveEvent += OnLayerRemoved;
       settings.PropertyChanged += OnSettingsPropertyChanged;
+      login.PropertyChanged += OnLoginPropertyChanged;
     }
 
     private async void OnSettingsPropertyChanged(object sender, PropertyChangedEventArgs args)
@@ -194,6 +198,28 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
         foreach (var layer in CycloMediaGroupLayer.Layers)
         {
           await layer.UpdateLayerAsync();
+        }
+      }
+    }
+
+    private async void OnLoginPropertyChanged(object sender, PropertyChangedEventArgs args)
+    {
+      if ((CycloMediaGroupLayer != null) && (args.PropertyName == "Credentials"))
+      {
+        Login login = Login.Instance;
+
+        foreach (var layer in CycloMediaGroupLayer.Layers)
+        {
+          if (login.Credentials)
+          {
+            await layer.RefreshAsync();
+          }
+          else
+          {
+            await layer.MakeEmptyAsync();
+            Project project = Project.Current;
+            await project.SaveEditsAsync();
+          }
         }
       }
     }

@@ -29,6 +29,8 @@ using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 
+using FileConstants = GlobeSpotterArcGISPro.Configuration.File.Constants;
+
 namespace GlobeSpotterArcGISPro.Layers
 {
   public class RecordingLayer : CycloMediaLayer
@@ -40,12 +42,14 @@ namespace GlobeSpotterArcGISPro.Layers
     private static List<int> _years;
     private static double _minimumScale;
 
+    private static readonly FileConstants Constants;
+
     #endregion
 
     #region Properties
 
-    public override string Name => "Recent Recordings";
-    public override string FcName => "FCRecentRecordings";
+    public override string Name => Constants.RecordingLayerName;
+    public override string FcName => Constants.RecordingLayerFeatureClassName;
     public override bool UseDateRange => false;
 
     public override string WfsRequest
@@ -102,13 +106,10 @@ namespace GlobeSpotterArcGISPro.Layers
       return result;
     }
 
-    protected async override Task PostEntryStepAsync()
+    protected async override Task PostEntryStepAsync(Envelope envelope)
     {
       await QueuedTask.Run(() =>
       {
-        MapView activeView = MapView.Active;
-        Envelope envelope = activeView.Extent;
-
         var added = new List<int>();
         var pipAdded = new List<int>();
         var forbiddenAdded = new List<int>();
@@ -121,7 +122,7 @@ namespace GlobeSpotterArcGISPro.Layers
             {
               FilterGeometry = envelope,
               SpatialRelationship = SpatialRelationship.Contains,
-              SubFields = $"{Recording.FieldRecordedAt},{Recording.FieldRecordedAt},{Recording.FieldIsAuthorized}"
+              SubFields = $"{Recording.FieldRecordedAt},{Recording.FieldPip},{Recording.FieldIsAuthorized}"
             };
 
             using (RowCursor existsResult = featureClass.Search(spatialFilter, false))
@@ -188,7 +189,7 @@ namespace GlobeSpotterArcGISPro.Layers
           {
             Color color = GetCol(value);
             CIMColor cimColor = ColorFactory.CreateColor(color);
-            var pointSymbol = SymbolFactory.ConstructPointSymbol(cimColor, SizeLayer, SimpleMarkerStyle.Circle);
+            var pointSymbol = SymbolFactory.ConstructPointSymbol(cimColor, Constants.SizeLayer, SimpleMarkerStyle.Circle);
             var pointSymbolReference = pointSymbol.MakeSymbolReference();
 
             CIMUniqueValue uniqueValue = new CIMUniqueValue
@@ -289,6 +290,11 @@ namespace GlobeSpotterArcGISPro.Layers
     protected override void Remove()
     {
       base.Remove();
+      ClearYears();
+    }
+
+    protected override void ClearYears()
+    {
       Years.Clear();
       YearPip.Clear();
       YearForbidden.Clear();
@@ -312,7 +318,8 @@ namespace GlobeSpotterArcGISPro.Layers
 
     static RecordingLayer()
     {
-      _minimumScale = 2000.0;
+      Constants = FileConstants.Instance;
+      _minimumScale = Constants.MinimumScale;
     }
 
     public RecordingLayer(CycloMediaGroupLayer layer)

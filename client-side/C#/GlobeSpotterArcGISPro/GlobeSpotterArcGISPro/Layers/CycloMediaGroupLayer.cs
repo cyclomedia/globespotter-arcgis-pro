@@ -25,19 +25,21 @@ using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 
+using FileConstants = GlobeSpotterArcGISPro.Configuration.File.Constants;
+
 namespace GlobeSpotterArcGISPro.Layers
 {
   public class CycloMediaGroupLayer
   {
     #region Members
 
+    private readonly FileConstants _constants;
     private IList<CycloMediaLayer> _allLayers;
+    private bool _updateVisibility;
 
     #endregion
 
     #region Properties
-
-    public string Name => "CycloMedia";
 
     public GroupLayer GroupLayer { get; private set; }
 
@@ -58,18 +60,29 @@ namespace GlobeSpotterArcGISPro.Layers
 
     #endregion
 
+    #region Constructor
+
+    public CycloMediaGroupLayer()
+    {
+      _constants = FileConstants.Instance;
+    }
+
+    #endregion
+
     #region Functions
 
     public async Task InitializeAsync()
     {
+      _updateVisibility = false;
       GroupLayer = null;
       Layers = new List<CycloMediaLayer>();
       Map map = MapView.Active?.Map;
+      string name = _constants.CycloMediaLayerName;
 
       if (map != null)
       {
         var layers = map.GetLayersAsFlattenedList();
-        var layersForGroupLayer = map.FindLayers(Name);
+        var layersForGroupLayer = map.FindLayers(name);
         bool leave = false;
 
         foreach (Layer layer in layersForGroupLayer)
@@ -95,7 +108,7 @@ namespace GlobeSpotterArcGISPro.Layers
         {
           await QueuedTask.Run(() =>
           {
-            GroupLayer = LayerFactory.CreateGroupLayer(map, 0, Name);
+            GroupLayer = LayerFactory.CreateGroupLayer(map, 0, name);
             GroupLayer.SetExpanded(true);
           });
         }
@@ -106,7 +119,7 @@ namespace GlobeSpotterArcGISPro.Layers
         }
       }
 
-      TOCSelectionChangedEvent.Subscribe(OnTocSelectionChanged);
+      MapMemberPropertiesChangedEvent.Subscribe(OnMapMemberPropertiesChanged);
     }
 
     public CycloMediaLayer GetLayer(Layer layer)
@@ -149,7 +162,11 @@ namespace GlobeSpotterArcGISPro.Layers
       {
         Layers.Remove(layer);
         await layer.DisposeAsync(fromGroup);
-        FrameworkApplication.State.Deactivate("globeSpotterArcGISPro_recordingLayerEnabledState");
+
+        if (Layers.Count == 0)
+        {
+          FrameworkApplication.State.Deactivate("globeSpotterArcGISPro_recordingLayerEnabledState");
+        }
 
         if (layer.UseDateRange)
         {
@@ -160,7 +177,7 @@ namespace GlobeSpotterArcGISPro.Layers
 
     public bool IsKnownName(string name)
     {
-      return Layers.Aggregate((name == Name), (current, layer) => (layer.Name == name) || current);
+      return Layers.Aggregate((name == _constants.CycloMediaLayerName), (current, layer) => (layer.Name == name) || current);
     }
 
     public async Task DisposeAsync(bool fromMap)
@@ -183,7 +200,7 @@ namespace GlobeSpotterArcGISPro.Layers
         });
       }
 
-      TOCSelectionChangedEvent.Unsubscribe(OnTocSelectionChanged);
+      MapMemberPropertiesChangedEvent.Unsubscribe(OnMapMemberPropertiesChanged);
     }
 
     public string GetFeatureFromPoint(int x, int y, out CycloMediaLayer layer)
@@ -228,30 +245,38 @@ namespace GlobeSpotterArcGISPro.Layers
 
     #region Event handlers
 
-    private async void OnTocSelectionChanged(MapViewEventArgs args)
+    private async void OnMapMemberPropertiesChanged(MapMemberPropertiesChangedEventArgs args)
     {
-      /*
-      foreach (var layer in AllLayers)
+      if (!_updateVisibility)
       {
-        if (!Layers.Aggregate(false, (current, visLayer) => current || (visLayer == layer)))
+        _updateVisibility = true;
+
+        foreach (var layer in AllLayers)
         {
-          await layer.SetVisibleAsync(true);
-          layer.Visible = false;
+          if (!Layers.Aggregate(false, (current, visLayer) => current || (visLayer == layer)))
+          {
+            await layer.SetVisibleAsync(true);
+            layer.Visible = false;
+          }
         }
-      }
 
-      CycloMediaLayer changedLayer = Layers.Aggregate<CycloMediaLayer, CycloMediaLayer>
-        (null, (current, layer) => (layer.IsVisible && (!layer.Visible)) ? layer : current);
-      CycloMediaLayer refreshLayer = null;
+        CycloMediaLayer changedLayer = Layers.Aggregate<CycloMediaLayer, CycloMediaLayer>
+          (null, (current, layer) => (layer.IsVisible && (!layer.Visible)) ? layer : current);
+        CycloMediaLayer refreshLayer = null;
 
-      foreach (var layer in Layers)
-      {
-        bool visible = ((changedLayer == null) || (layer == changedLayer)) && layer.IsVisible;
-        refreshLayer = (layer.IsVisible != visible) ? layer : refreshLayer;
-        await layer.SetVisibleAsync(visible);
-        layer.Visible = layer.IsVisible;
+        foreach (var layer in Layers)
+        {
+          if (layer.IsInitialized)
+          {
+            bool visible = ((changedLayer == null) || (layer == changedLayer)) && layer.IsVisible;
+            refreshLayer = (layer.IsVisible != visible) ? layer : refreshLayer;
+            await layer.SetVisibleAsync(visible);
+            layer.Visible = layer.IsVisible;
+          }
+        }
+
+        _updateVisibility = false;
       }
-      */
     }
 
     #endregion

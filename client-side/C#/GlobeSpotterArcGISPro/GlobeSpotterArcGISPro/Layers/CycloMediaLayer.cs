@@ -37,8 +37,11 @@ using ArcGIS.Desktop.Mapping.Events;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 using GlobeSpotterArcGISPro.Utilities;
+
 using MySpatialReference = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReference;
+using MySpatialReferences = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReferences;
 using RecordingPoint = GlobeSpotterArcGISPro.Configuration.Remote.Recordings.Point;
+using FileConstants = GlobeSpotterArcGISPro.Configuration.File.Constants;
 
 namespace GlobeSpotterArcGISPro.Layers
 {
@@ -63,6 +66,7 @@ namespace GlobeSpotterArcGISPro.Layers
     private static SortedDictionary<int, int> _yearMonth;
 
     private readonly CycloMediaGroupLayer _cycloMediaGroupLayer;
+    private readonly FileConstants _constants;
 
     private Envelope _lastextent;
     private FeatureCollection _addData;
@@ -104,8 +108,7 @@ namespace GlobeSpotterArcGISPro.Layers
 
     public bool Visible { get; set; }
     public bool IsRemoved { get; set; }
-
-    protected double SizeLayer => 7.0;
+    public bool IsInitialized { get; private set; }
 
     public FeatureLayer Layer { get; private set; }
 
@@ -138,11 +141,13 @@ namespace GlobeSpotterArcGISPro.Layers
 
     protected CycloMediaLayer(CycloMediaGroupLayer layer)
     {
+      _constants = FileConstants.Instance;
       _cycloMediaGroupLayer = layer;
       _isVisibleInGlobespotter = true;
       Visible = false;
       IsRemoved = true;
       _lastextent = MapView.Active.Extent;
+      IsInitialized = false;
     }
 
     #endregion
@@ -151,11 +156,24 @@ namespace GlobeSpotterArcGISPro.Layers
 
     protected abstract bool Filter(Recording recording);
 
-    protected abstract Task PostEntryStepAsync();
+    protected abstract Task PostEntryStepAsync(Envelope envelope);
+
+    protected abstract void ClearYears();
 
     public async Task SetVisibleAsync(bool value)
     {
-      await QueuedTask.Run(() => Layer?.SetVisibility(value));
+      await QueuedTask.Run(() =>
+      {
+        if (_cycloMediaGroupLayer.Layers.Contains(this))
+        {
+          Layer?.SetVisibility(value);
+        }
+      });
+
+      if (value)
+      {
+        await RefreshAsync();
+      }
     }
 
     protected Color GetCol(int year)
@@ -168,13 +186,21 @@ namespace GlobeSpotterArcGISPro.Layers
       return _colors[index];
     }
 
-    private async Task<Envelope> GetExtentAsync(Envelope envelope)
+    private async Task<SpatialReference> GetSpatialReferenceAsync()
     {
       return await QueuedTask.Run(() =>
       {
         FeatureClass featureClass = Layer?.GetFeatureClass();
         FeatureClassDefinition featureClassDefinition = featureClass?.GetDefinition();
-        SpatialReference spatialReference = featureClassDefinition?.GetSpatialReference();
+        return featureClassDefinition?.GetSpatialReference();
+      });
+    }
+
+    private async Task<Envelope> GetExtentAsync(Envelope envelope)
+    {
+      return await QueuedTask.Run(() =>
+      {
+        SpatialReference spatialReference = GetSpatialReferenceAsync().Result;
         SpatialReference envSpat = envelope.SpatialReference;
         Envelope result;
 
@@ -198,8 +224,9 @@ namespace GlobeSpotterArcGISPro.Layers
       {
         Layer oldLayer = Layer;
         await CreateFeatureLayerAsync();
+        ClearYears();
         await RemoveLayerAsync(_cycloMediaGroupLayer.GroupLayer, oldLayer);
-        await Refresh();
+        await RefreshAsync();
       }
     }
 
@@ -225,13 +252,14 @@ namespace GlobeSpotterArcGISPro.Layers
 
       int wkid = spatialReference?.Wkid ?? 0;
       string fcNameWkid = string.Concat(FcName, wkid);
-      Project project = CoreModule.CurrentProject;
+      Project project = Project.Current;
       await CreateFeatureClassAsync(project, fcNameWkid, spatialReference);
       FeatureLayer tempLayer = await CreateLayerAsync(project, fcNameWkid, map);
       Layer = await CreateLayerAsync(project, fcNameWkid, _cycloMediaGroupLayer.GroupLayer);
       await RemoveLayerAsync(map, tempLayer);
       await MakeEmptyAsync();
       await CreateUniqueValueRendererAsync();
+      await project.SaveEditsAsync();
     }
 
     public async Task AddToLayersAsync()
@@ -267,7 +295,11 @@ namespace GlobeSpotterArcGISPro.Layers
       }
       else
       {
+        await MakeEmptyAsync();
+        await UpdateSpatialReferenceSettings();
         await CreateUniqueValueRendererAsync();
+        Project project = Project.Current;
+        await project.SaveEditsAsync();
       }
 
       LayerAddedEvent?.Invoke(this);
@@ -275,7 +307,18 @@ namespace GlobeSpotterArcGISPro.Layers
       MapViewCameraChangedEvent.Subscribe(OnMapViewCameraChanged);
       TOCSelectionChangedEvent.Subscribe(OnContentChanged);
       LayersRemovedEvent.Subscribe(OnLayersRemoved);
-      await Refresh();
+      await RefreshAsync();
+      IsInitialized = true;
+    }
+
+    private async Task UpdateSpatialReferenceSettings()
+    {
+      SpatialReference spatialReference = await GetSpatialReferenceAsync();
+      MySpatialReferences mySpatialReferences = MySpatialReferences.Instance;
+      MySpatialReference mySpatialReference = mySpatialReferences.GetItem($"EPSG:{spatialReference.Wkid}");
+      Settings settings = Settings.Instance;
+      settings.RecordingLayerCoordinateSystem = mySpatialReference;
+      settings.Save();
     }
 
     private async Task<FeatureLayer> CreateLayerAsync(Project project, string fcName, ILayerContainerEdit layerContainer)
@@ -312,6 +355,7 @@ namespace GlobeSpotterArcGISPro.Layers
       }
 
       Remove();
+      IsInitialized = false;
     }
 
     public string GetFeatureFromPoint(int x, int y)
@@ -380,7 +424,7 @@ namespace GlobeSpotterArcGISPro.Layers
       return null;
     }
 
-    public async Task Refresh()
+    public async Task RefreshAsync()
     {
       await QueuedTask.Run(() =>
       {
@@ -422,6 +466,8 @@ namespace GlobeSpotterArcGISPro.Layers
 
     private async Task CreateUniqueValueRendererAsync()
     {
+      ClearYears();
+
       await QueuedTask.Run(() =>
       {
         string[] fieldNames = {Recording.FieldYear, Recording.FieldPip, Recording.FieldIsAuthorized};
@@ -514,7 +560,8 @@ namespace GlobeSpotterArcGISPro.Layers
               {
                 using (Row row = rowCursor.Current)
                 {
-                  editOperation.Delete(Layer, row.GetObjectID());
+                  long objectId = row.GetObjectID();
+                  editOperation.Delete(Layer, objectId);
                 }
               }
             }
@@ -554,7 +601,7 @@ namespace GlobeSpotterArcGISPro.Layers
                 {
                   FilterGeometry = envelope,
                   SpatialRelationship = SpatialRelationship.Contains,
-                  SubFields = idField
+                  SubFields = $"OBJECTID, {idField}"
                 };
 
                 using (RowCursor existsResult = featureClass.Search(spatialFilter, false))
@@ -567,9 +614,10 @@ namespace GlobeSpotterArcGISPro.Layers
                     {
                       string recValue = row?.GetOriginalValue(imId) as string;
 
-                      if ((recValue != null) && (!exists.ContainsKey(recValue)))
+                      if ((!string.IsNullOrEmpty(recValue)) && (!exists.ContainsKey(recValue)))
                       {
-                        exists.Add(recValue, row.GetObjectID());
+                        long objectId = row.GetObjectID();
+                        exists.Add(recValue, objectId);
                       }
                     }
                   }
@@ -585,7 +633,7 @@ namespace GlobeSpotterArcGISPro.Layers
 
                   if ((location != null) && (point != null))
                   {
-                    if (!exists.ContainsKey((string) recording.FieldToItem(idField)))
+                    if (!exists.ContainsKey((string)recording.FieldToItem(idField)))
                     {
                       if (Filter(recording))
                       {
@@ -632,7 +680,7 @@ namespace GlobeSpotterArcGISPro.Layers
 
     protected async Task<CIMMarker> GetPipSymbol(Color color)
     {
-      var size025 = (int) SizeLayer;
+      var size025 = (int) _constants.SizeLayer;
       var size05 = size025 * 2;
       var size075 = size025 * 3;
       var size = size025 * 4;
@@ -672,7 +720,7 @@ namespace GlobeSpotterArcGISPro.Layers
 
     protected async Task<CIMMarker> GetForbiddenSymbol(Color color)
     {
-      var size025 = (int) SizeLayer;
+      var size025 = (int) _constants.SizeLayer;
       var size075 = size025 * 3;
       var size = size025 * 4;
       var size15 = size025 * 6;
@@ -708,9 +756,8 @@ namespace GlobeSpotterArcGISPro.Layers
 
     private async void OnMapViewCameraChanged(MapViewCameraChangedEventArgs args)
     {
-      if (InsideScale)
+      if (InsideScale && IsVisible)
       {
-        FrameworkApplication.State.Activate("globeSpotterArcGISPro_InsideScaleState");
         MapView mapView = MapView.Active;
 
         if ((mapView != null) && (Layer != null) && (_cycloMediaGroupLayer != null) && (_addData == null))
@@ -736,7 +783,10 @@ namespace GlobeSpotterArcGISPro.Layers
               }
 
               _addData = null;
-              await PostEntryStepAsync();
+              Project project = Project.Current;
+              await project.SaveEditsAsync();
+              await PostEntryStepAsync(thisEnvelope);
+              await QueuedTask.Run(() => Layer.ClearDisplayCache());
             }
           }
         }
@@ -745,6 +795,14 @@ namespace GlobeSpotterArcGISPro.Layers
       {
         _addData = null;
         YearMonth.Clear();
+      }
+
+      if (InsideScale)
+      {
+        FrameworkApplication.State.Activate("globeSpotterArcGISPro_InsideScaleState");
+      }
+      else
+      {
         FrameworkApplication.State.Deactivate("globeSpotterArcGISPro_InsideScaleState");
       }
     }
@@ -763,6 +821,12 @@ namespace GlobeSpotterArcGISPro.Layers
       if (contains)
       {
         await _cycloMediaGroupLayer.RemoveLayerAsync(Name, false);
+
+        if (_cycloMediaGroupLayer.Layers.Count == 1)
+        {
+          await _cycloMediaGroupLayer.Layers[0].SetVisibleAsync(true);
+          await _cycloMediaGroupLayer.Layers[0].RefreshAsync();
+        }
       }
     }
 

@@ -23,7 +23,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://schemas.esri.com/DADF/Registry file:///C:/Program%20Files/ArcGIS/Pro/bin/ArcGIS.Desktop.Framework.xsd">
   <AddInInfo id="{914cc234-6eac-401d-a7a8-96baa1782909}"
-             version="0.1.6"
+             version="0.1.7"
              desktopVersion="1.1.3308">
     <Name>GlobeSpotter for ArcGIS Pro</Name>
     <Description>
@@ -33,7 +33,7 @@
     <Image>Images\GlobeSpotterArcGISPro32.png</Image>
     <Author>CycloMedia</Author>
     <Company>CycloMedia</Company>
-    <Date>01/11/2016 17:30:00 AM, 2016</Date>
+    <Date>01/15/2016 15:23:00 AM, 2016</Date>
     <Subject>Content</Subject>
   </AddInInfo>
   <modules>
@@ -60,6 +60,8 @@
                caption="Layer"
                appearsOnAddInTab="false">
           <button refID="globeSpotterArcGISPro_recentRecordingLayerButton"
+                  size="large" />
+          <button refID="globeSpotterArcGISPro_historicalRecordingLayerButton"
                   size="large" />
         </group>
         <group id="globeSpotterArcGISPro_navigateGroup"
@@ -95,6 +97,14 @@
                 largeImage="Images\RecentRecordingLayer32.png"
                 condition="globeSpotterArcGISPro_recordingsReadyCondition">
           <tooltip heading="Recent Recording Layer">Add recent cyclorama layer to the map<disabledText /></tooltip>
+        </button>
+        <button id="globeSpotterArcGISPro_historicalRecordingLayerButton"
+                caption="Historical Recording Layer"
+                className="AddIns.Buttons.HistoricalRecordingLayer"
+                loadOnClick="false"
+                largeImage="Images\HistoricalRecordingLayer32.png"
+                condition="globeSpotterArcGISPro_recordingsReadyCondition">
+          <tooltip heading="Historical Recording Layer">Add historical cyclorama layer to the map<disabledText /></tooltip>
         </button>
       </controls>
       <panes>

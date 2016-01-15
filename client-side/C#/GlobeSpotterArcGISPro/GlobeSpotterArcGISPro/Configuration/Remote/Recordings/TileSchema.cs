@@ -22,8 +22,9 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.Recordings
 
   public enum TileSchema
   {
-    Dcr9Tiling = 1,
-    Dcr10Tiling = 2,
+    NoTiling = 1,
+    Dcr9Tiling = 2,
+    Dcr10Tiling = 3
   }
 
   #endregion

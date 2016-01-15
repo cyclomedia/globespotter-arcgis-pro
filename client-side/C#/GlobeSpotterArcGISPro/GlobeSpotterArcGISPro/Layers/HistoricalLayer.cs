@@ -18,9 +18,19 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
+using ArcGIS.Core.CIM;
+using ArcGIS.Core.Data;
+using ArcGIS.Core.Geometry;
+using ArcGIS.Desktop.Framework.Threading.Tasks;
+using ArcGIS.Desktop.Mapping;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
+
+using FileConstants = GlobeSpotterArcGISPro.Configuration.File.Constants;
 
 namespace GlobeSpotterArcGISPro.Layers
 {
@@ -33,12 +43,14 @@ namespace GlobeSpotterArcGISPro.Layers
     private static List<int> _years;
     private static double _minimumScale;
 
+    private static readonly FileConstants Constants;
+
     #endregion
 
     #region Properties
 
-    public override string Name => "Historical Recordings";
-    public override string FcName => "FCHistoricalRecordings";
+    public override string Name => Constants.HistoricalRecordingLayerName;
+    public override string FcName => Constants.HistoricalRecordingLayerFeatureClassName;
     public override bool UseDateRange => true;
 
     public override string WfsRequest
@@ -97,15 +109,286 @@ namespace GlobeSpotterArcGISPro.Layers
       return result;
     }
 
-    protected override Task PostEntryStepAsync()
+    protected override async Task PostEntryStepAsync(Envelope envelope)
     {
-      return null;
-      // todo: Add this function
+      await QueuedTask.Run(() =>
+      {
+        var added = new List<int>();
+        var pipAdded = new List<int>();
+        var forbiddenAdded = new List<int>();
+
+        using (FeatureClass featureClass = Layer?.GetFeatureClass())
+        {
+          if (featureClass != null)
+          {
+            SpatialQueryFilter spatialFilter = new SpatialQueryFilter
+            {
+              FilterGeometry = envelope,
+              SpatialRelationship = SpatialRelationship.Contains,
+              SubFields = $"{Recording.FieldRecordedAt},{Recording.FieldPip},{Recording.FieldIsAuthorized}"
+            };
+
+            using (RowCursor existsResult = featureClass.Search(spatialFilter, false))
+            {
+              int imId = existsResult.FindField(Recording.FieldRecordedAt);
+              int pipId = existsResult.FindField(Recording.FieldPip);
+              int forbiddenId = existsResult.FindField(Recording.FieldIsAuthorized);
+
+              while (existsResult.MoveNext())
+              {
+                using (Row row = existsResult.Current)
+                {
+                  object value = row?.GetOriginalValue(imId);
+
+                  if (value != null)
+                  {
+                    var dateTime = (DateTime) value;
+                    int year = dateTime.Year;
+                    int month = dateTime.Month;
+                    int calcYear = (year*4) + (int) Math.Floor(((double) (month - 1))/3);
+
+                    if (!Years.Contains(calcYear))
+                    {
+                      Years.Add(calcYear);
+                      added.Add(calcYear);
+                    }
+
+                    object pipValue = row?.GetOriginalValue(pipId);
+
+                    if (pipValue != null)
+                    {
+                      bool pip = bool.Parse((string) pipValue);
+
+                      if (pip && (!YearPip.Contains(calcYear)))
+                      {
+                        YearPip.Add(calcYear);
+                        pipAdded.Add(calcYear);
+                      }
+                    }
+
+                    object forbiddenValue = row?.GetOriginalValue(forbiddenId);
+
+                    if (forbiddenValue != null)
+                    {
+                      bool forbidden = !bool.Parse((string) forbiddenValue);
+
+                      if (forbidden && (!YearForbidden.Contains(calcYear)))
+                      {
+                        YearForbidden.Add(calcYear);
+                        forbiddenAdded.Add(calcYear);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        CIMRenderer featureRenderer = Layer?.GetRenderer();
+        var uniqueValueRenderer = featureRenderer as CIMUniqueValueRenderer;
+
+        if (uniqueValueRenderer != null)
+        {
+          foreach (var value in added)
+          {
+            bool realAdd = true;
+            var newValue = (int) Math.Floor(((double) value)/4);
+
+            for (int i = newValue; i < (newValue + 4); i++)
+            {
+              realAdd = (!Years.Contains(i)) && realAdd;
+            }
+
+            if (realAdd)
+            {
+              Color color = GetCol(newValue);
+              CIMColor cimColor = ColorFactory.CreateColor(color);
+              var pointSymbol = SymbolFactory.ConstructPointSymbol(cimColor, Constants.SizeLayer, SimpleMarkerStyle.Circle);
+              var pointSymbolReference = pointSymbol.MakeSymbolReference();
+
+              CIMUniqueValue uniqueValue = new CIMUniqueValue
+              {
+                FieldValues = new[] {newValue.ToString(), false.ToString(), true.ToString()}
+              };
+
+              var uniqueValueClass = new CIMUniqueValueClass
+              {
+                Values = new[] {uniqueValue},
+                Symbol = pointSymbolReference,
+                Label = newValue.ToString(CultureInfo.InvariantCulture)
+              };
+
+              CIMUniqueValueGroup uniqueValueGroup = new CIMUniqueValueGroup
+              {
+                Classes = new[] {uniqueValueClass},
+                Heading = string.Empty
+              };
+
+              var groups = uniqueValueRenderer.Groups?.ToList() ?? new List<CIMUniqueValueGroup>();
+              groups.Add(uniqueValueGroup);
+              uniqueValueRenderer.Groups = groups.ToArray();
+              Layer.SetRenderer(uniqueValueRenderer);
+            }
+          }
+
+          foreach (var value in pipAdded)
+          {
+            bool realAdd = true;
+            var newValue = (int) Math.Floor(((double) value)/4);
+
+            for (int i = newValue; i < (newValue + 4); i++)
+            {
+              realAdd = (!Years.Contains(i)) && realAdd;
+            }
+
+            if (realAdd)
+            {
+              // ToDo: Add a rotation to the PIP symbols
+              Color color = GetCol(newValue);
+              CIMMarker marker = GetPipSymbol(color).Result;
+              var pointSymbol = SymbolFactory.ConstructPointSymbol(marker);
+              var pointSymbolReference = pointSymbol.MakeSymbolReference();
+
+              CIMUniqueValue uniqueValue = new CIMUniqueValue
+              {
+                FieldValues = new[] {newValue.ToString(), true.ToString(), true.ToString()}
+              };
+
+              var uniqueValueClass = new CIMUniqueValueClass
+              {
+                Values = new[] {uniqueValue},
+                Symbol = pointSymbolReference,
+                Label = $"{newValue} (Detail images)"
+              };
+
+              CIMUniqueValueGroup uniqueValueGroup = new CIMUniqueValueGroup
+              {
+                Classes = new[] { uniqueValueClass },
+                Heading = string.Empty
+              };
+
+              var groups = uniqueValueRenderer.Groups?.ToList() ?? new List<CIMUniqueValueGroup>();
+              groups.Add(uniqueValueGroup);
+              uniqueValueRenderer.Groups = groups.ToArray();
+              Layer.SetRenderer(uniqueValueRenderer);
+            }
+          }
+
+          foreach (var value in forbiddenAdded)
+          {
+            bool realAdd = true;
+            var newValue = (int) Math.Floor(((double) value)/4);
+
+            for (int i = newValue; i < (newValue + 4); i++)
+            {
+              realAdd = (!Years.Contains(i)) && realAdd;
+            }
+
+            if (realAdd)
+            {
+              Color color = GetCol(newValue);
+              CIMMarker marker = GetForbiddenSymbol(color).Result;
+              var pointSymbol = SymbolFactory.ConstructPointSymbol(marker);
+              var pointSymbolReference = pointSymbol.MakeSymbolReference();
+
+              CIMUniqueValue uniqueValue = new CIMUniqueValue
+              {
+                FieldValues = new[] {newValue.ToString(), false.ToString(), false.ToString()}
+              };
+
+              CIMUniqueValue uniqueValuePip = new CIMUniqueValue
+              {
+                FieldValues = new[] {newValue.ToString(), true.ToString(), false.ToString()}
+              };
+
+              var uniqueValueClass = new CIMUniqueValueClass
+              {
+                Values = new[] {uniqueValue, uniqueValuePip},
+                Symbol = pointSymbolReference,
+                Label = $"{newValue} (No Authorization)"
+              };
+
+              CIMUniqueValueGroup uniqueValueGroup = new CIMUniqueValueGroup
+              {
+                Classes = new[] {uniqueValueClass},
+                Heading = string.Empty
+              };
+
+              var groups = uniqueValueRenderer.Groups?.ToList() ?? new List<CIMUniqueValueGroup>();
+              groups.Add(uniqueValueGroup);
+              uniqueValueRenderer.Groups = groups.ToArray();
+              Layer.SetRenderer(uniqueValueRenderer);
+            }
+          }
+
+          var removed = (from yearColor in Years
+                         select yearColor
+                         into year
+                         where ((!YearInsideRange((int) Math.Floor(((double) year)/4), (((year%4)*3) + 1))) && (!added.Contains(year)))
+                         select year).ToList();
+
+          foreach (var year in removed)
+          {
+            var newYear = (int) Math.Floor(((double) year)/4);
+
+            if (YearPip.Contains(year))
+            {
+              string classValuePip = $"{newYear}, {true}, {true}";
+              CIMUniqueValueGroup foundGroupPip =
+                uniqueValueRenderer.Groups.Aggregate<CIMUniqueValueGroup, CIMUniqueValueGroup>(null,
+                  (current3, @group) =>
+                    @group.Classes.Aggregate(current3,
+                      (current2, valueClass) =>
+                        valueClass.Values.Aggregate(current2,
+                          (current1, uniqueValue) =>
+                            uniqueValue.FieldValues.Aggregate(current1,
+                              (current, fieldValue) => (fieldValue == classValuePip) ? @group : current))));
+
+              if (foundGroupPip != null)
+              {
+                var groups = uniqueValueRenderer.Groups.ToList();
+                groups.Remove(foundGroupPip);
+                uniqueValueRenderer.Groups = groups.ToArray();
+                Layer.SetRenderer(uniqueValueRenderer);
+              }
+
+              YearPip.Remove(year);
+            }
+
+            string classValue = $"{newYear}, {false}, {true}";
+            CIMUniqueValueGroup foundGroup =
+              uniqueValueRenderer.Groups.Aggregate<CIMUniqueValueGroup, CIMUniqueValueGroup>(null,
+                (current3, @group) =>
+                  @group.Classes.Aggregate(current3,
+                    (current2, valueClass) =>
+                      valueClass.Values.Aggregate(current2,
+                        (current1, uniqueValue) =>
+                          uniqueValue.FieldValues.Aggregate(current1,
+                            (current, fieldValue) => (fieldValue == classValue) ? @group : current))));
+
+            if (foundGroup != null)
+            {
+              var groups = uniqueValueRenderer.Groups.ToList();
+              groups.Remove(foundGroup);
+              uniqueValueRenderer.Groups = groups.ToArray();
+              Layer.SetRenderer(uniqueValueRenderer);
+            }
+
+            Years.Remove(year);
+          }
+        }
+      });
     }
 
     protected override void Remove()
     {
       base.Remove();
+      ClearYears();
+    }
+
+    protected override void ClearYears()
+    {
       Years.Clear();
       YearPip.Clear();
       YearForbidden.Clear();
@@ -126,7 +409,8 @@ namespace GlobeSpotterArcGISPro.Layers
 
     static HistoricalLayer()
     {
-      _minimumScale = 2000.0;
+      Constants = FileConstants.Instance;
+      _minimumScale = Constants.MinimumScale;
     }
 
     public HistoricalLayer(CycloMediaGroupLayer layer)

@@ -17,7 +17,9 @@
  */
 
 using System;
+using System.ComponentModel;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Serialization;
@@ -31,8 +33,14 @@ using SystemIOFile = System.IO.File;
 namespace GlobeSpotterArcGISPro.Configuration.File
 {
   [XmlRoot("Login")]
-  public class Login
+  public class Login: INotifyPropertyChanged
   {
+    #region Events
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    #endregion
+
     #region Constants
 
     private const string CheckWord = "1234567890!";
@@ -81,6 +89,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
       set
       {
         _credentials = value;
+        OnPropertyChanged();
 
         if (value)
         {
@@ -164,6 +173,11 @@ namespace GlobeSpotterArcGISPro.Configuration.File
         (Credentials =
           (((!string.IsNullOrEmpty(Username)) && (!string.IsNullOrEmpty(Password))) &&
            GlobeSpotterConfiguration.CheckCredentials()));
+    }
+
+    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    {
+      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     /// <summary>

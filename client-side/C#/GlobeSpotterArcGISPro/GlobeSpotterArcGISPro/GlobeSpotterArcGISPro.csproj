@@ -82,6 +82,7 @@
     <AddInContent Include="Images\GlobeSpotterArcGISPro32.png" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddIns\Buttons\HistoricalRecordingLayer.cs" />
     <Compile Include="AddIns\Buttons\RecentRecordingLayer.cs" />
     <Compile Include="AddIns\Pages\Agreement.cs" />
     <Compile Include="AddIns\Pages\Configuration.cs" />
@@ -206,6 +207,7 @@
     <Content Include="..\..\Doc\ToDo.txt">
       <Link>ToDo.txt</Link>
     </Content>
+    <AddInContent Include="Images\HistoricalRecordingLayer32.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Recordings\FCRecordings.dbf" />
