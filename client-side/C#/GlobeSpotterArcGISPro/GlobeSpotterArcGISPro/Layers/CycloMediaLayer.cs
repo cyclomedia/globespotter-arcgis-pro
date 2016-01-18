@@ -129,7 +129,7 @@ namespace GlobeSpotterArcGISPro.Layers
       get
       {
         Camera camera = MapView.Active?.Camera;
-        return (camera != null) && (Math.Floor(camera.Scale) <= (MinimumScale = Layer.MinScale));
+        return (camera != null) && (Layer != null) && (Math.Floor(camera.Scale) <= (MinimumScale = Layer.MinScale));
       }
     }
 
@@ -784,8 +784,8 @@ namespace GlobeSpotterArcGISPro.Layers
 
               _addData = null;
               Project project = Project.Current;
-              await project.SaveEditsAsync();
               await PostEntryStepAsync(thisEnvelope);
+              await project.SaveEditsAsync();
               await QueuedTask.Run(() => Layer.ClearDisplayCache());
             }
           }

@@ -147,9 +147,8 @@ namespace GlobeSpotterArcGISPro.Layers
                     int month = dateTime.Month;
                     int calcYear = (year*4) + (int) Math.Floor(((double) (month - 1))/3);
 
-                    if (!Years.Contains(calcYear))
+                    if ((!Years.Contains(calcYear)) && (!added.Contains(calcYear)))
                     {
-                      Years.Add(calcYear);
                       added.Add(calcYear);
                     }
 
@@ -159,9 +158,8 @@ namespace GlobeSpotterArcGISPro.Layers
                     {
                       bool pip = bool.Parse((string) pipValue);
 
-                      if (pip && (!YearPip.Contains(calcYear)))
+                      if (pip && (!YearPip.Contains(calcYear)) && (!pipAdded.Contains(calcYear)))
                       {
-                        YearPip.Add(calcYear);
                         pipAdded.Add(calcYear);
                       }
                     }
@@ -172,9 +170,8 @@ namespace GlobeSpotterArcGISPro.Layers
                     {
                       bool forbidden = !bool.Parse((string) forbiddenValue);
 
-                      if (forbidden && (!YearForbidden.Contains(calcYear)))
+                      if (forbidden && (!YearForbidden.Contains(calcYear)) && (!forbiddenAdded.Contains(calcYear)))
                       {
-                        YearForbidden.Add(calcYear);
                         forbiddenAdded.Add(calcYear);
                       }
                     }
@@ -195,10 +192,12 @@ namespace GlobeSpotterArcGISPro.Layers
             bool realAdd = true;
             var newValue = (int) Math.Floor(((double) value)/4);
 
-            for (int i = newValue; i < (newValue + 4); i++)
+            for (int i = (newValue * 4); i < ((newValue * 4) + 4); i++)
             {
               realAdd = (!Years.Contains(i)) && realAdd;
             }
+
+            Years.Add(value);
 
             if (realAdd)
             {
@@ -237,10 +236,12 @@ namespace GlobeSpotterArcGISPro.Layers
             bool realAdd = true;
             var newValue = (int) Math.Floor(((double) value)/4);
 
-            for (int i = newValue; i < (newValue + 4); i++)
+            for (int i = (newValue * 4); i < ((newValue * 4) + 4); i++)
             {
-              realAdd = (!Years.Contains(i)) && realAdd;
+              realAdd = (!YearPip.Contains(i)) && realAdd;
             }
+
+            YearPip.Add(value);
 
             if (realAdd)
             {
@@ -280,10 +281,12 @@ namespace GlobeSpotterArcGISPro.Layers
             bool realAdd = true;
             var newValue = (int) Math.Floor(((double) value)/4);
 
-            for (int i = newValue; i < (newValue + 4); i++)
+            for (int i = (newValue * 4); i < ((newValue * 4) + 4); i++)
             {
-              realAdd = (!Years.Contains(i)) && realAdd;
+              realAdd = (!YearForbidden.Contains(i)) && realAdd;
             }
+
+            YearForbidden.Add(value);
 
             if (realAdd)
             {

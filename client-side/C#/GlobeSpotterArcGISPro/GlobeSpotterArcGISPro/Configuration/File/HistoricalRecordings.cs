@@ -100,8 +100,8 @@ namespace GlobeSpotterArcGISPro.Configuration.File
 
       var result = new HistoricalRecordings
       {
-        DateFrom = now.AddYears(-3),
-        DateTo = now
+        DateFrom = new DateTime(now.Year - 3, 1, 1),
+        DateTo = new DateTime(now.Year, 10, 1)
       };
 
       result.Save();
