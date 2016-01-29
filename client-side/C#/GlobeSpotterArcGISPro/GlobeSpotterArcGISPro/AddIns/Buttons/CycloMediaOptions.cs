@@ -27,7 +27,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Buttons
 
     protected override void OnClick()
     {
-      PropertySheet.ShowDialog("globeSpotterArcGISPro_optionsPropertyScreen");
+      PropertySheet.ShowDialog("globeSpotterArcGISPro_optionsPropertySheet");
     }
 
     #endregion

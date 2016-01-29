@@ -24,7 +24,7 @@ using GlobeSpotterArcGISPro.AddIns.Modules;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 using GlobeSpotterArcGISPro.Layers;
 
-using PaneGlobeSpotter = GlobeSpotterArcGISPro.AddIns.Panes.GlobeSpotter;
+using DockPaneGlobeSpotter = GlobeSpotterArcGISPro.AddIns.DockPanes.GlobeSpotter;
 
 namespace GlobeSpotterArcGISPro.AddIns.Tools
 {
@@ -52,7 +52,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Tools
     {
       if (!string.IsNullOrEmpty(_imageId))
       {
-        PaneGlobeSpotter.ShowLocation(_imageId);
+        DockPaneGlobeSpotter.ShowLocation(_imageId);
         _imageId = string.Empty;
       }
     }

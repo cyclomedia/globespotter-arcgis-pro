@@ -23,7 +23,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://schemas.esri.com/DADF/Registry file:///C:/Program%20Files/ArcGIS/Pro/bin/ArcGIS.Desktop.Framework.xsd">
   <AddInInfo id="{914cc234-6eac-401d-a7a8-96baa1782909}"
-             version="0.1.8"
+             version="0.2.0"
              desktopVersion="1.1.3308">
     <Name>GlobeSpotter for ArcGIS Pro</Name>
     <Description>
@@ -33,7 +33,7 @@
     <Image>Images\GlobeSpotterArcGISPro32.png</Image>
     <Author>CycloMedia</Author>
     <Company>CycloMedia</Company>
-    <Date>01/18/2016 15:40:00 AM, 2016</Date>
+    <Date>01/29/2016 14:00:00 AM, 2016</Date>
     <Subject>Content</Subject>
   </AddInInfo>
   <modules>
@@ -80,7 +80,10 @@
               loadOnClick="false"
               largeImage="Images\OpenLocation32.png"
               condition="globeSpotterArcGISPro_openImageToolReadyCondition">
-          <tooltip heading="Open Location">Open the location in a cyclorama<disabledText /></tooltip>
+          <tooltip heading="Open Location">
+            Open the location in a cyclorama
+            <disabledText />
+          </tooltip>
         </tool>
         <button id="globeSpotterArcGISPro_cycloMediaOptionsButton"
                 caption="Settings"
@@ -88,7 +91,9 @@
                 loadOnClick="false"
                 largeImage="Images\CycloMediaOptions32.png"
                 condition="globeSpotterArcGISPro_agreementAcceptedCondition">
-          <tooltip heading="Settings">Settings for GlobeSpotter for ArcGIS Desktop<disabledText /></tooltip>
+          <tooltip heading="Settings">
+            Settings for GlobeSpotter for ArcGIS Desktop<disabledText />
+          </tooltip>
         </button>
         <button id="globeSpotterArcGISPro_recentRecordingLayerButton"
                 caption="Recent Recording Layer"
@@ -96,7 +101,10 @@
                 loadOnClick="false"
                 largeImage="Images\RecentRecordingLayer32.png"
                 condition="globeSpotterArcGISPro_recordingsReadyCondition">
-          <tooltip heading="Recent Recording Layer">Add recent cyclorama layer to the map<disabledText /></tooltip>
+          <tooltip heading="Recent Recording Layer">
+            Add recent cyclorama layer to the map
+            <disabledText />
+          </tooltip>
         </button>
         <button id="globeSpotterArcGISPro_historicalRecordingLayerButton"
                 caption="Historical Recording Layer"
@@ -104,19 +112,22 @@
                 loadOnClick="false"
                 largeImage="Images\HistoricalRecordingLayer32.png"
                 condition="globeSpotterArcGISPro_recordingsReadyCondition">
-          <tooltip heading="Historical Recording Layer">Add historical cyclorama layer to the map<disabledText /></tooltip>
+          <tooltip heading="Historical Recording Layer">
+            Add historical cyclorama layer to the map
+            <disabledText />
+          </tooltip>
         </button>
       </controls>
-      <panes>
-        <pane id="globeSpotterArcGISPro_globeSpotter"
-              caption="Cyclorama Viewer"
-              className="AddIns.Panes.GlobeSpotter"
-              smallImage="Images\GlobeSpotter32.png"
-              defaultTab="esri_mapping_homeTab"
-              defaultTool="esri_mapping_navigateTool">
+      <dockPanes>
+        <dockPane id="globeSpotterArcGISPro_globeSpotterDockPane"
+                  caption="Cyclorama Viewer"
+                  className="AddIns.DockPanes.GlobeSpotter"
+                  dock="bottom"
+                  smallImage="Images\GlobeSpotter32.png"
+                  dockWith="esri_mapping_mapPane">
           <content className="AddIns.Views.GlobeSpotter" />
-        </pane>
-      </panes>
+        </dockPane>
+      </dockPanes>
     </insertModule>
     <updateModule refID="esri_mapping">
       <groups>
@@ -127,7 +138,7 @@
     </updateModule>
   </modules>
   <propertySheets>
-    <insertSheet id="globeSpotterArcGISPro_optionsPropertyScreen"
+    <insertSheet id="globeSpotterArcGISPro_optionsPropertySheet"
                  caption="GlobeSpotter for ArcGIS Pro">
       <page id="globeSpotterArcGISPro_loginPage"
             caption="Login"

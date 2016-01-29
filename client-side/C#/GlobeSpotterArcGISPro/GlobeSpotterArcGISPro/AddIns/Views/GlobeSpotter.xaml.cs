@@ -19,16 +19,21 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Threading.Tasks;
+using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Framework.Dialogs;
+using ArcGIS.Desktop.Framework.Threading.Tasks;
+using ArcGIS.Desktop.Mapping;
 using GlobeSpotterAPI;
-using GlobeSpotterArcGISPro.Configuration.File;
-using GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference;
 using GlobeSpotterArcGISPro.Configuration.Resource;
+using GlobeSpotterArcGISPro.Overlays;
 
+using Constants = GlobeSpotterArcGISPro.Configuration.File.Constants;
 using FileSettings = GlobeSpotterArcGISPro.Configuration.File.Settings;
 using FileLogin = GlobeSpotterArcGISPro.Configuration.File.Login;
 using ThisResources = GlobeSpotterArcGISPro.Properties.Resources;
-using PaneGlobeSpotter = GlobeSpotterArcGISPro.AddIns.Panes.GlobeSpotter;
+using DockPaneGlobeSpotter = GlobeSpotterArcGISPro.AddIns.DockPanes.GlobeSpotter;
+using MySpatialReference = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReference;
 
 namespace GlobeSpotterArcGISPro.AddIns.Views
 {
@@ -67,7 +72,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
     public void OnComponentReady()
     {
-      SpatialReference spatialReference = _settings.CycloramaViewerCoordinateSystem;
+      MySpatialReference spatialReference = _settings.CycloramaViewerCoordinateSystem;
       _api.SetAPIKey(_apiKey.Value);
       _api.SetUserNamePassword(_login.Username, _login.Password);
       _api.SetSrsNameViewer(spatialReference.SRSName);
@@ -77,12 +82,21 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
     public void OnAPIReady()
     {
+      DockPaneGlobeSpotter globeSpotter = ((dynamic) DataContext);
+      string imageId = globeSpotter.ImageId;
+
       _api.SetViewerToolBarVisible(false);
       _api.SetViewerWindowBorderVisible(false);
-      PaneGlobeSpotter globeSpotter = ((dynamic) DataContext);
-      globeSpotter.PropertyChanged += GlobeSpotterPropertyChanged;
-      string imageId = globeSpotter.ImageId;
-      _api.OpenImage(imageId);
+      globeSpotter.PropertyChanged += OnGlobeSpotterPropertyChanged;
+
+      if (string.IsNullOrEmpty(imageId))
+      {
+        globeSpotter.Hide();
+      }
+      else
+      {
+        _api.OpenImage(imageId);
+      }
     }
 
     public void OnAPIFailed()
@@ -106,8 +120,20 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     {
     }
 
-    public void OnImagePreviewCompleted(uint viewerId)
+    public async void OnImagePreviewCompleted(uint viewerId)
     {
+      Viewer viewer = Viewer.Get(viewerId);
+
+      if ((viewer != null) && (_api != null))
+      {
+        RecordingLocation location = _api.GetRecordingLocation(viewerId);
+        double angle = _api.GetYaw(viewerId);
+        double hFov = _api.GetHFov(viewerId);
+        Color color = _api.GetViewerBorderColor(viewerId);
+        await viewer.SetAsync(location, angle, hFov, color);
+      }
+
+      await MoveToLocation(viewerId);
     }
 
     public void OnImageSegmentLoaded(uint viewerId)
@@ -126,8 +152,14 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     {
     }
 
-    public void OnViewChanged(uint viewerId, double yaw, double pitch, double hFov)
+    public async void OnViewChanged(uint viewerId, double yaw, double pitch, double hFov)
     {
+      Viewer viewer = Viewer.Get(viewerId);
+
+      if (viewer != null)
+      {
+        await viewer.UpdateAsync(yaw, hFov);
+      }
     }
 
     public void OnViewClicked(uint viewerId, double[] mouseCoords)
@@ -156,10 +188,21 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
     public void OnViewerAdded(uint viewerId)
     {
+      if (_api != null)
+      {
+        string imageId = _api.GetImageID(viewerId);
+        Viewer.Add(viewerId, imageId);
+        _api.SetActiveViewerReplaceMode(true);
+        int nrImages = Viewer.ImageIds.Count;
+        _api.SetViewerWindowBorderVisible(nrImages >= 2);
+      }
     }
 
     public void OnViewerRemoved(uint viewerId)
     {
+      Viewer.Delete(viewerId);
+      int nrImages = Viewer.ImageIds.Count;
+      _api.SetViewerWindowBorderVisible(nrImages >= 2);
     }
 
     public void OnViewerActive(uint viewerId)
@@ -278,13 +321,99 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
     #region Events GlobeSpotter
 
-    private void GlobeSpotterPropertyChanged(object sender, PropertyChangedEventArgs args)
+    private void OnGlobeSpotterPropertyChanged(object sender, PropertyChangedEventArgs args)
     {
-      if (args.PropertyName == "ImageId")
+      switch (args.PropertyName)
       {
-        string imageId = ((dynamic) DataContext).ImageId;
-        _api.OpenImage(imageId);
+        case "ImageId":
+          string imageId = ((dynamic)DataContext).ImageId;
+          _api.OpenImage(imageId);
+          break;
+        case "IsActive":
+          bool isActive = ((dynamic) DataContext).IsActive;
+
+          if (!isActive)
+          {
+            int[] viewerIds = _api.GetViewerIDs();
+
+            foreach (var viewerId in viewerIds)
+            {
+              _api.CloseImage((uint) viewerId);
+            }
+          }
+
+          break;
       }
+    }
+
+    #endregion
+
+    #region Functions
+
+    private async Task MoveToLocation(uint viewerId)
+    {
+      RecordingLocation location = _api?.GetRecordingLocation(viewerId);
+
+      if (location != null)
+      {
+        MapPoint point = await GsToMapPoint(location.X, location.Y, location.Z);
+        MapView thisView = MapView.Active;
+        Envelope envelope = thisView?.Extent;
+
+        if ((point != null) && (envelope != null))
+        {
+          const double percent = 10.0;
+          double xBorder = ((envelope.XMax - envelope.XMin) * percent) / 100;
+          double yBorder = ((envelope.YMax - envelope.YMin) * percent) / 100;
+          bool inside = (point.X > (envelope.XMin + xBorder)) && (point.X < (envelope.XMax - xBorder)) &&
+                        (point.Y > (envelope.YMin + yBorder)) && (point.Y < (envelope.YMax - yBorder));
+
+          if (!inside)
+          {
+            Camera camera = new Camera
+            {
+              X = point.X,
+              Y = point.Y,
+              Z = point.Z,
+              SpatialReference = point.SpatialReference
+            };
+
+            await QueuedTask.Run(() =>
+            {
+              thisView.PanTo(camera);
+            });
+          }
+        }
+      }
+    }
+
+    private static async Task<MapPoint> GsToMapPoint(double x, double y, double z)
+    {
+      FileSettings settings = FileSettings.Instance;
+      MySpatialReference spatRel = settings.CycloramaViewerCoordinateSystem;
+      SpatialReference mapSpatialReference = MapView.Active?.Map.SpatialReference;
+      SpatialReference gsSpatialReference = (spatRel == null)
+        ? mapSpatialReference
+        : (spatRel.ArcGisSpatialReference ?? (await spatRel.CreateArcGisSpatialReferenceAsync()));
+      MapPoint point = null;
+
+      await QueuedTask.Run(() =>
+      {
+        MapPoint mapPoint = MapPointBuilder.CreateMapPoint(x, y, z, gsSpatialReference);
+
+        if ((mapSpatialReference != null) && (gsSpatialReference != null) &&
+            (gsSpatialReference.Wkid != mapSpatialReference.Wkid))
+        {
+          ProjectionTransformation projection = ProjectionTransformation.Create(gsSpatialReference, mapSpatialReference);
+          point = GeometryEngine.ProjectEx(mapPoint, projection) as MapPoint;
+        }
+        else
+        {
+          point = (MapPoint) mapPoint.Clone();
+        }
+      });
+
+      return point;
     }
 
     #endregion

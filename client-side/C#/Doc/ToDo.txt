@@ -1,6 +1,6 @@
-GlobeSpotter Window:
-====================
-  - Als je een GlobeSpotter window wordt geopend, dan moet deze initieel onderaan het scherm worden getoond i.p.v. naast de kaart.
+ArcGIS Pro AddIn:
+=================
+- De icons in de Add-In moeten een ArcGIS Pro style krijgen
 
 
 Recent Recording Layer:
