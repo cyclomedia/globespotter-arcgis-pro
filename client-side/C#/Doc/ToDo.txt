@@ -1,13 +1,13 @@
 ArcGIS Pro AddIn:
 =================
-- De icons in de Add-In moeten een ArcGIS Pro style krijgen
+- De icons in de Add-In moeten een ArcGIS Pro style krijgen (Deze icons zijn niet gereleased, we moeten nog even kijken hoe dit opgelost gaat worden)
 
 
 Recent Recording Layer:
 =======================
   - De limiet van 10 karakters per item in de database moet eruit.
   - De recent recording layer button ook in de layer tab van de map group plaatsen.
-  - Bij PIP images moet ook nog de rotation toevoegen
+  - Bij PIP images moet ook nog de rotation worden toegevoegd.
 
 
 Open Location Tool:
@@ -26,6 +26,7 @@ Bugs in ArcGIS Pro / SDK:
         var uniqueValueRendererDefinition = new UniqueValueRendererDefinition(FieldNames, pointSymbolTemplate);
         var uniqueValueRenderer = (CIMUniqueValueRenderer)Layer.CreateRenderer(uniqueValueRendererDefinition);
         FeatureLayer.SetRenderer(uniqueValueRenderer);
+  - Er zit een bug in ArcGIS Pro, als een cursor van een tool wordt gewijzigd, dan wijzigd deze cursor niet op de kaart, dit is opgelost in ArcGIS Pro 1.2
 
 
 Bugs in ArcGIS Pro:

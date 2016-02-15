@@ -41,10 +41,9 @@ namespace GlobeSpotterArcGISPro.Overlays
 
     private const double BorderSizeArrow = 1.5;
     private const double BorderSizeBlinkingArrow = 2.5;
-    private const double ArrowSize = 48.0;
+    private const double ArrowSize = 64.0;
     private const byte BlinkAlpha = 0;
-    private const byte NormalAlpha = 255;
-    private const int MaxTimeUpdate = 100;
+    private const byte NormalAlpha = 192;
     private const int BlinkTime = 200;
 
     #endregion
@@ -102,7 +101,7 @@ namespace GlobeSpotterArcGISPro.Overlays
       await RedrawConeAsync();
     }
 
-    protected virtual void Dispose()
+    protected void Dispose()
     {
       _disposePolygon?.Dispose();
       _disposePolyLine?.Dispose();
@@ -151,8 +150,6 @@ namespace GlobeSpotterArcGISPro.Overlays
     {
       await QueuedTask.Run(() =>
       {
-        _disposePolygon?.Dispose();
-        _disposePolyLine?.Dispose();
         GlobeSpotter globeSpotter = GlobeSpotter.Current;
 
         if ((globeSpotter.InsideScale()) && (!_mapPoint.IsEmpty))
@@ -186,7 +183,7 @@ namespace GlobeSpotterArcGISPro.Overlays
           polygonSymbol.SetColor(cimColorPolygon);
           polygonSymbol.SetOutlineColor(null);
           CIMSymbolReference polygonSymbolReference = polygonSymbol.MakeSymbolReference();
-          _disposePolygon = thisView.AddOverlay(polygon, polygonSymbolReference);
+          IDisposable disposePolygon = thisView.AddOverlay(polygon, polygonSymbolReference);
 
           IList<MapPoint> linePointList = new List<MapPoint>();
           linePointList.Add(point1);
@@ -200,7 +197,12 @@ namespace GlobeSpotterArcGISPro.Overlays
           cimLineSymbol.SetColor(cimColorLine);
           cimLineSymbol.SetSize(_blinking ? BorderSizeBlinkingArrow : BorderSizeArrow);
           CIMSymbolReference lineSymbolReference = cimLineSymbol.MakeSymbolReference();
-          _disposePolyLine = thisView.AddOverlay(polyline, lineSymbolReference);
+          IDisposable disposePolyLine = thisView.AddOverlay(polyline, lineSymbolReference);
+
+          _disposePolygon?.Dispose();
+          _disposePolygon = disposePolygon;
+          _disposePolyLine?.Dispose();
+          _disposePolyLine = disposePolyLine;
 
           if (_blinking)
           {

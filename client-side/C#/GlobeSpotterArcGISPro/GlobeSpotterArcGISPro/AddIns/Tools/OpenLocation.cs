@@ -56,7 +56,32 @@ namespace GlobeSpotterArcGISPro.AddIns.Tools
         _imageId = string.Empty;
       }
     }
+/*
+    protected override async void OnToolMouseMove(MapViewMouseEventArgs e)
+    {
+      await QueuedTask.Run(() =>
+      {
+        CycloMediaLayer layer;
+        //string imageId = GetImageIdFromPoint(arg, out layer);
+        //Cursor = (string.IsNullOrEmpty(imageId) || (layer == null)) ? _thisCursor : Cursors.Arrow;
+        WinPoint point = e.ClientPoint;
+        WinPoint minPoint = new WinPoint(point.X - 7, point.Y - 7);
+        WinPoint maxPoint = new WinPoint(point.X + 7, point.Y + 7);
+        MapPoint minPoint2 = ActiveMapView.ClientToMap(minPoint);
+        MapPoint maxPoint2 = ActiveMapView.ClientToMap(maxPoint);
+        Envelope envelope = EnvelopeBuilder.CreateEnvelope(minPoint2, maxPoint2);
+        var features = MapView.Active?.GetFeatures(envelope, true, true);
 
+        Cursor = Cursors.Arrow;
+        if (features != null)
+        {
+          Cursor = (features.Count == 0) ? _thisCursor : Cursors.Arrow;
+        }
+      });
+
+      base.OnToolMouseMove(e);
+    }
+*/
     protected override Task<bool> OnSketchCompleteAsync(Geometry geometry)
     {
       return QueuedTask.Run(() =>

@@ -74,20 +74,18 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
 
     #endregion
 
-    #region Constructor
-
-    protected GlobeSpotter()
-    {
-    }
-
-    #endregion
-
     #region Overrides
 
     protected override void OnActivate(bool isActive)
     {
-      IsActive = isActive;
+      IsActive = isActive || _isActive;
       base.OnActivate(isActive);
+    }
+
+    protected override void OnHidden()
+    {
+      IsActive = false;
+      base.OnHidden();
     }
 
     #endregion
