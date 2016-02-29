@@ -42,6 +42,10 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     private static Settings _settings;
     private SpatialReference _recordingLayerCoordinateSystem;
     private SpatialReference _cycloramaViewerCoordinateSystem;
+    private int _ctrlClickHashTag;
+    private int _ctrlClickDelta;
+    private bool _showDetailImages;
+    private bool _enableSmartClickMeasurement;
 
     #endregion
 
@@ -111,22 +115,69 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     /// <summary>
     /// CTRL-CLICK #
     /// </summary>
-    public int CtrlClickHashTag { get; set; }
+    public int CtrlClickHashTag
+    {
+      get { return _ctrlClickHashTag; }
+      set
+      {
+        if (_ctrlClickHashTag != value)
+        {
+          _ctrlClickHashTag = value;
+          OnPropertyChanged();
+        }
+      }
+    }
 
     /// <summary>
     /// CTRL-CLICK Δ
     /// </summary>
-    public int CtrlClickDelta { get; set; }
+    public int CtrlClickDelta
+    {
+      get { return _ctrlClickDelta; }
+      set
+      {
+        if (_ctrlClickDelta != value)
+        {
+          _ctrlClickDelta = value;
+          OnPropertyChanged();
+        }
+      }
+    }
 
     /// <summary>
     /// Show detail images
     /// </summary>
-    public bool ShowDetailImages { get; set; }
+    public bool ShowDetailImages
+    {
+      get { return _showDetailImages; }
+      set
+      {
+        if (_showDetailImages != value)
+        {
+          _showDetailImages = value;
+          OnPropertyChanged();
+        }
+      }
+    }
 
     /// <summary>
     /// Enable smart click measurement
     /// </summary>
-    public bool EnableSmartClickMeasurement { get; set; }
+    public bool EnableSmartClickMeasurement
+    {
+      get
+      {
+        return _enableSmartClickMeasurement;
+      }
+      set
+      {
+        if (_enableSmartClickMeasurement != value)
+        {
+          _enableSmartClickMeasurement = value;
+          OnPropertyChanged();
+        }
+      }
+    }
 
     public static Settings Instance
     {

@@ -16,15 +16,22 @@
  * License along with this library.
  */
 
+using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using GlobeSpotterArcGISPro.AddIns.Modules;
+using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 using GlobeSpotterArcGISPro.Layers;
 
 using DockPaneGlobeSpotter = GlobeSpotterArcGISPro.AddIns.DockPanes.GlobeSpotter;
+using MySpatialReference = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReference;
+using MySpatialReferences = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReferences;
+using WinPoint = System.Windows.Point;
 
 namespace GlobeSpotterArcGISPro.AddIns.Tools
 {
@@ -32,7 +39,8 @@ namespace GlobeSpotterArcGISPro.AddIns.Tools
   {
     #region Members
 
-    private string _imageId;
+    private string _location;
+    private bool _nearest;
 
     #endregion
 
@@ -42,6 +50,8 @@ namespace GlobeSpotterArcGISPro.AddIns.Tools
     {
       IsSketchTool = true;
       SketchType = SketchGeometryType.Point;
+      _location = string.Empty;
+      _nearest = false;
     }
 
     #endregion
@@ -50,10 +60,12 @@ namespace GlobeSpotterArcGISPro.AddIns.Tools
 
     protected override void OnToolMouseUp(MapViewMouseButtonEventArgs e)
     {
-      if (!string.IsNullOrEmpty(_imageId))
+      if (!string.IsNullOrEmpty(_location))
       {
-        DockPaneGlobeSpotter.ShowLocation(_imageId);
-        _imageId = string.Empty;
+        bool replace = (!(Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)));
+        DockPaneGlobeSpotter.OpenLocation(_location, replace, _nearest);
+        _location = string.Empty;
+        _nearest = false;
       }
     }
 /*
@@ -86,24 +98,105 @@ namespace GlobeSpotterArcGISPro.AddIns.Tools
     {
       return QueuedTask.Run(() =>
       {
-        var features = MapView.Active?.GetFeatures(geometry);
-        GlobeSpotter globeSpotter = GlobeSpotter.Current;
-        CycloMediaGroupLayer groupLayer = globeSpotter?.CycloMediaGroupLayer;
+        MapPoint point = geometry as MapPoint;
+        MapView activeView = MapView.Active;
 
-        if ((features != null) && (groupLayer != null))
+        if ((point != null) && (activeView != null))
         {
-          foreach (var feature in  features)
+          var constants = ConstantsRecordingLayer.Instance;
+          double size = constants.SizeLayer;
+          double halfSize = size/2;
+
+          SpatialReference pointSpatialReference = point.SpatialReference;
+          var pointScreen = activeView.MapToScreen(point);
+          double x = pointScreen.X;
+          double y = pointScreen.Y;
+          WinPoint pointScreenMin = new WinPoint(x - halfSize, y - halfSize);
+          WinPoint pointScreenMax = new WinPoint(x + halfSize, y + halfSize);
+          var pointMapMin = activeView.ScreenToMap(pointScreenMin);
+          var pointMapMax = activeView.ScreenToMap(pointScreenMax);
+
+          Envelope envelope = EnvelopeBuilder.CreateEnvelope(pointMapMin, pointMapMax, pointSpatialReference);
+          var features = activeView.GetFeatures(envelope);
+
+          GlobeSpotter globeSpotter = GlobeSpotter.Current;
+          CycloMediaGroupLayer groupLayer = globeSpotter?.CycloMediaGroupLayer;
+
+          if ((features != null) && (groupLayer != null))
           {
-            Layer layer = feature.Key;
-            CycloMediaLayer cycloMediaLayer = groupLayer.GetLayer(layer);
+            _nearest = (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl));
 
-            foreach (long uid in feature.Value)
+            if (_nearest)
             {
-              Recording recording = cycloMediaLayer.GetRecordingAsync(uid).Result;
+              Settings settings = Settings.Instance;
+              MySpatialReference cycloCoordSystem = settings.CycloramaViewerCoordinateSystem;
 
-              if ((recording.IsAuthorized == null) || ((bool) recording.IsAuthorized))
+              if (cycloCoordSystem?.ArcGisSpatialReference == null)
               {
-                _imageId = recording.ImageId;
+                string epsgCode = (cycloCoordSystem == null)
+                  ? $"EPSG:{MapView.Active?.Map?.SpatialReference.Wkid ?? 0}"
+                  : cycloCoordSystem.SRSName;
+
+                MySpatialReferences spatialReferences = MySpatialReferences.Instance;
+                cycloCoordSystem = spatialReferences.GetItem(epsgCode);
+
+                if (cycloCoordSystem == null)
+                {
+                  cycloCoordSystem = spatialReferences.Aggregate<MySpatialReference, MySpatialReference>(null,
+                    (current, spatialReferenceComp) =>
+                      (spatialReferenceComp.ArcGisSpatialReference != null) ? spatialReferenceComp : current);
+                }
+
+                if (cycloCoordSystem != null)
+                {
+                  settings.CycloramaViewerCoordinateSystem = cycloCoordSystem;
+                  settings.Save();
+                }
+              }
+
+              if (cycloCoordSystem != null)
+              {
+                SpatialReference cycloSpatialReference = cycloCoordSystem.ArcGisSpatialReference ??
+                                                         cycloCoordSystem.CreateArcGisSpatialReferenceAsync().Result;
+
+                if (pointSpatialReference.Wkid != cycloSpatialReference.Wkid)
+                {
+                  ProjectionTransformation projection = ProjectionTransformation.Create(pointSpatialReference,
+                    cycloSpatialReference);
+                  point = GeometryEngine.ProjectEx(point, projection) as MapPoint;
+                }
+
+                if (point != null)
+                {
+                  CultureInfo ci = CultureInfo.InvariantCulture;
+                  _location = string.Format(ci, "{0},{1}", point.X, point.Y);
+
+                  if (!globeSpotter.InsideScale())
+                  {
+                    double minimumScale = ConstantsRecordingLayer.Instance.MinimumScale;
+                    double scale = minimumScale/2;
+                    Camera camera = new Camera(point.X, point.Y, scale, 0.0);
+                    MapView.Active?.ZoomTo(camera);
+                  }
+                }
+              }
+            }
+            else
+            {
+              foreach (var feature in  features)
+              {
+                Layer layer = feature.Key;
+                CycloMediaLayer cycloMediaLayer = groupLayer.GetLayer(layer);
+
+                foreach (long uid in feature.Value)
+                {
+                  Recording recording = cycloMediaLayer.GetRecordingAsync(uid).Result;
+
+                  if ((recording.IsAuthorized == null) || ((bool) recording.IsAuthorized))
+                  {
+                    _location = recording.ImageId;
+                  }
+                }
               }
             }
           }

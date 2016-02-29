@@ -70,6 +70,15 @@ namespace GlobeSpotterArcGISPro.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to open the new Cyclorama viewer. Max number of Cyclorama viewers reached..
+        /// </summary>
+        internal static string Globespotter_OnMaxViewers_Failed {
+            get {
+                return ResourceManager.GetString("Globespotter_OnMaxViewers_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Password must be at least 8 characters..
         /// </summary>
         internal static string Login_CreateAes_Password_must_be_at_least_8_characters_ {

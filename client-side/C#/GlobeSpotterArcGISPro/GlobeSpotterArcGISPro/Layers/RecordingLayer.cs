@@ -27,9 +27,8 @@ using ArcGIS.Core.Data;
 using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
+using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
-
-using FileConstants = GlobeSpotterArcGISPro.Configuration.File.Constants;
 
 namespace GlobeSpotterArcGISPro.Layers
 {
@@ -42,7 +41,7 @@ namespace GlobeSpotterArcGISPro.Layers
     private static List<int> _years;
     private static double _minimumScale;
 
-    private static readonly FileConstants Constants;
+    private static readonly ConstantsRecordingLayer Constants;
 
     #endregion
 
@@ -318,7 +317,7 @@ namespace GlobeSpotterArcGISPro.Layers
 
     static RecordingLayer()
     {
-      Constants = FileConstants.Instance;
+      Constants = ConstantsRecordingLayer.Instance;
       _minimumScale = Constants.MinimumScale;
     }
 

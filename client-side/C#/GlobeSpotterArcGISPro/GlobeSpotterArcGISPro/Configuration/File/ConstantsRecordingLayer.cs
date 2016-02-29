@@ -24,41 +24,26 @@ using SystemIOFile = System.IO.File;
 
 namespace GlobeSpotterArcGISPro.Configuration.File
 {
-  [XmlRoot("Constants")]
-  public class Constants
+  [XmlRoot("ConstantsRecordingLayer")]
+  public class ConstantsRecordingLayer
   {
     #region Members
 
-    private static readonly XmlSerializer XmlConstants;
-    private static Constants _constants;
+    private static readonly XmlSerializer XmlConstantsRecordingLayer;
+    private static ConstantsRecordingLayer _constantsRecordingLayer;
 
     #endregion
 
     #region Constructors
 
-    static Constants()
+    static ConstantsRecordingLayer()
     {
-      XmlConstants = new XmlSerializer(typeof(Constants));
+      XmlConstantsRecordingLayer = new XmlSerializer(typeof(ConstantsRecordingLayer));
     }
 
     #endregion
 
     #region Properties
-
-    /// <summary>
-    /// Max viewers
-    /// </summary>
-    public int MaxViewers { get; set; }
-
-    /// <summary>
-    /// Overlay draw distance
-    /// </summary>
-    public int OverlayDrawDistance { get; set; }
-
-    /// <summary>
-    /// Address language code
-    /// </summary>
-    public string AddressLanguageCode { get; set; }
 
     /// <summary>
     /// CycloMedia layer name
@@ -95,20 +80,20 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     /// </summary>
     public string HistoricalRecordingLayerFeatureClassName { get; set; }
 
-    public static Constants Instance
+    public static ConstantsRecordingLayer Instance
     {
       get
       {
-        if (_constants == null)
+        if (_constantsRecordingLayer == null)
         {
           Load();
         }
 
-        return _constants ?? (_constants = Create());
+        return _constantsRecordingLayer ?? (_constantsRecordingLayer = Create());
       }
     }
 
-    private static string FileName => Path.Combine(FileUtils.FileDir, "Constants.xml");
+    private static string FileName => Path.Combine(FileUtils.FileDir, "ConstantsRecordingLayer.xml");
 
     #endregion
 
@@ -117,29 +102,26 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     public void Save()
     {
       FileStream streamFile = SystemIOFile.Open(FileName, FileMode.Create);
-      XmlConstants.Serialize(streamFile, this);
+      XmlConstantsRecordingLayer.Serialize(streamFile, this);
       streamFile.Close();
     }
 
-    private static Constants Load()
+    private static ConstantsRecordingLayer Load()
     {
       if (SystemIOFile.Exists(FileName))
       {
         var streamFile = new FileStream(FileName, FileMode.OpenOrCreate);
-        _constants = (Constants) XmlConstants.Deserialize(streamFile);
+        _constantsRecordingLayer = (ConstantsRecordingLayer) XmlConstantsRecordingLayer.Deserialize(streamFile);
         streamFile.Close();
       }
 
-      return _constants;
+      return _constantsRecordingLayer;
     }
 
-    private static Constants Create()
+    private static ConstantsRecordingLayer Create()
     {
-      var result = new Constants
+      var result = new ConstantsRecordingLayer
       {
-        MaxViewers = 4,
-        OverlayDrawDistance = 30,
-        AddressLanguageCode = "nl",
         CycloMediaLayerName = "CycloMedia",
         SizeLayer = 7.0,
         MinimumScale = 2000.0,

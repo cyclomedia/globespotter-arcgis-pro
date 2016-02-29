@@ -120,6 +120,9 @@
   <data name="Globespotter_OnAPIFailed_Initialize_" xml:space="preserve">
     <value>Initialize API failed</value>
   </data>
+  <data name="Globespotter_OnMaxViewers_Failed" xml:space="preserve">
+    <value>Unable to open the new Cyclorama viewer. Max number of Cyclorama viewers reached.</value>
+  </data>
   <data name="Login_CreateAes_Password_must_be_at_least_8_characters_" xml:space="preserve">
     <value>Password must be at least 8 characters.</value>
   </data>

@@ -16,7 +16,9 @@
  * License along with this library.
  */
 
+using System.ComponentModel;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Xml.Serialization;
 using GlobeSpotterArcGISPro.Utilities;
 
@@ -25,12 +27,24 @@ using SystemIOFile = System.IO.File;
 namespace GlobeSpotterArcGISPro.Configuration.File
 {
   [XmlRoot("Configuration")]
-  public class Configuration
+  public class Configuration : INotifyPropertyChanged
   {
+    #region Events
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    #endregion
+
     #region Members
 
     private static readonly XmlSerializer XmlConfiguration;
     private static Configuration _configuration;
+
+    private bool _useDefaultSwfUrl;
+    private string _swfLocation;
+
+    private bool _useDefaultBaseUrl;
+    private string _baseUrlLocation;
 
     #endregion
 
@@ -48,16 +62,63 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     /// <summary>
     /// Base url
     /// </summary>
-    public bool UseDefaultBaseUrl { get; set; }
+    public bool UseDefaultBaseUrl
+    {
+      get { return _useDefaultBaseUrl; }
+      set
+      {
+        if (_useDefaultBaseUrl != value)
+        {
+          _useDefaultBaseUrl = value;
+          OnPropertyChanged();
+        }
+      }
+    }
 
-    public string BaseUrlLocation { get; set; }
+    public string BaseUrlLocation
+    {
+      get
+      {
+        return _baseUrlLocation;
+      }
+      set
+      {
+        if (_baseUrlLocation != value)
+        {
+          _baseUrlLocation = value;
+          OnPropertyChanged();
+        }
+      }
+    }
 
     /// <summary>
     /// Swf url
     /// </summary>
-    public bool UseDefaultSwfUrl { get; set; }
+    public bool UseDefaultSwfUrl
+    {
+      get { return _useDefaultSwfUrl; }
+      set
+      {
+        if (_useDefaultSwfUrl != value)
+        {
+          _useDefaultSwfUrl = value;
+          OnPropertyChanged();
+        }
+      }
+    }
 
-    public string SwfLocation { get; set; }
+    public string SwfLocation
+    {
+      get { return _swfLocation; }
+      set
+      {
+        if (_swfLocation != value)
+        {
+          _swfLocation = value;
+          OnPropertyChanged();
+        }
+      }
+    }
 
     /// <summary>
     /// Proxy service
@@ -116,14 +177,19 @@ namespace GlobeSpotterArcGISPro.Configuration.File
       return _configuration;
     }
 
+    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    {
+      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
     private static Configuration Create()
     {
       var result = new Configuration
       {
-        UseDefaultBaseUrl = true,
-        BaseUrlLocation = string.Empty,
-        UseDefaultSwfUrl = true,
-        SwfLocation = string.Empty,
+        _useDefaultBaseUrl = true,
+        _baseUrlLocation = string.Empty,
+        _useDefaultSwfUrl = true,
+        _swfLocation = string.Empty,
         UseProxyServer = false,
         ProxyAddress = string.Empty,
         ProxyPort = 80,

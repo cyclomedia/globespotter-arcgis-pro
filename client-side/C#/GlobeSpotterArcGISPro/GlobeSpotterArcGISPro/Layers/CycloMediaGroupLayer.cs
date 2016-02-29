@@ -23,9 +23,8 @@ using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
+using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
-
-using FileConstants = GlobeSpotterArcGISPro.Configuration.File.Constants;
 
 namespace GlobeSpotterArcGISPro.Layers
 {
@@ -33,7 +32,7 @@ namespace GlobeSpotterArcGISPro.Layers
   {
     #region Members
 
-    private readonly FileConstants _constants;
+    private readonly ConstantsRecordingLayer _constants;
     private IList<CycloMediaLayer> _allLayers;
     private bool _updateVisibility;
 
@@ -64,7 +63,7 @@ namespace GlobeSpotterArcGISPro.Layers
 
     public CycloMediaGroupLayer()
     {
-      _constants = FileConstants.Instance;
+      _constants = ConstantsRecordingLayer.Instance;
     }
 
     #endregion

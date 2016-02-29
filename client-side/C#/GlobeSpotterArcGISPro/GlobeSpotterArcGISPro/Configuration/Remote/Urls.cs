@@ -29,7 +29,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote
 
     // ReSharper disable InconsistentNaming
     private const string baseUrl = "https://atlas.cyclomedia.com";
-    private const string apiUrl = "https://globespotter.cyclomedia.com/v285/api";
+    private const string apiUrl = "https://globespotter.cyclomedia.com/v31/api";
     private const string configurationRequest = "{0}/configuration/configuration/API";
     private const string apiSwf = "/viewer_api.swf";
     private const string spatialReferencesXml = "/config/srs/globespotterspatialreferences.xml";

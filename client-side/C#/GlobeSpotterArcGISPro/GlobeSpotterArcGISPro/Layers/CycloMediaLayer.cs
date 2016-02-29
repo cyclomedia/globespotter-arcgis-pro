@@ -41,7 +41,6 @@ using GlobeSpotterArcGISPro.Utilities;
 using MySpatialReference = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReference;
 using MySpatialReferences = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReferences;
 using RecordingPoint = GlobeSpotterArcGISPro.Configuration.Remote.Recordings.Point;
-using FileConstants = GlobeSpotterArcGISPro.Configuration.File.Constants;
 
 namespace GlobeSpotterArcGISPro.Layers
 {
@@ -66,7 +65,7 @@ namespace GlobeSpotterArcGISPro.Layers
     private static SortedDictionary<int, int> _yearMonth;
 
     private readonly CycloMediaGroupLayer _cycloMediaGroupLayer;
-    private readonly FileConstants _constants;
+    private readonly ConstantsRecordingLayer _constants;
 
     private Envelope _lastextent;
     private FeatureCollection _addData;
@@ -141,7 +140,7 @@ namespace GlobeSpotterArcGISPro.Layers
 
     protected CycloMediaLayer(CycloMediaGroupLayer layer)
     {
-      _constants = FileConstants.Instance;
+      _constants = ConstantsRecordingLayer.Instance;
       _cycloMediaGroupLayer = layer;
       _isVisibleInGlobespotter = true;
       Visible = false;

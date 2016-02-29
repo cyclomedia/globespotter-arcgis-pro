@@ -39,13 +39,22 @@ namespace GlobeSpotterArcGISPro.Overlays
   {
     #region Constants
 
-    private const double BorderSizeArrow = 1.5;
-    private const double BorderSizeBlinkingArrow = 2.5;
-    private const double ArrowSize = 64.0;
-    private const byte BlinkAlpha = 0;
-    private const byte NormalAlpha = 192;
-    private const int BlinkTime = 200;
+    private const double BorderSize = 1.5;
+    private const double BorderSizeBlinking = 2.5;
+    private const double Size = 96.0;
+    private const byte BlinkAlpha = 255;
+    private const byte NormalAlpha = 128;
+    private const int BlinkTime = 300;
 
+    #endregion
+
+    #region Constructor
+
+    protected ViewingCone()
+    {
+      _active = false;
+      _blinking = false;
+    }
     #endregion
 
     #region Members
@@ -70,8 +79,6 @@ namespace GlobeSpotterArcGISPro.Overlays
       _angle = angle;
       _hFov = hFov;
       _color = color;
-      _blinking = false;
-      _active = true;
       _isInitialized = true;
 
       double x = location.X;
@@ -129,19 +136,13 @@ namespace GlobeSpotterArcGISPro.Overlays
       }
     }
 
-    protected async Task SetActiveAsync(bool active)
+    public async Task SetActiveAsync(bool active)
     {
+      _blinking = active;
+      _active = active;
+
       if (_isInitialized)
       {
-        _blinking = active;
-        _active = active;
-
-        if (active)
-        {
-          MapViewCameraChangedEvent.Unsubscribe(OnMapViewCameraChanged);
-          MapViewCameraChangedEvent.Subscribe(OnMapViewCameraChanged);
-        }
-
         await RedrawConeAsync();
       }
     }
@@ -155,18 +156,27 @@ namespace GlobeSpotterArcGISPro.Overlays
         if ((globeSpotter.InsideScale()) && (!_mapPoint.IsEmpty))
         {
           MapView thisView = MapView.Active;
-          WinPoint point = thisView.MapToScreen(_mapPoint);
+          Map map = thisView.Map;
+          SpatialReference mapSpat = map.SpatialReference;
+          SpatialReference mapPointSpat = _mapPoint.SpatialReference;
 
-          double angleh = (_hFov * Math.PI) / 360;
-          double angle = (((270 + _angle) % 360) * Math.PI) / 180;
+          if (mapPointSpat.Wkid != mapSpat.Wkid)
+          {
+            ProjectionTransformation projection = ProjectionTransformation.Create(mapPointSpat, mapSpat);
+            _mapPoint = GeometryEngine.ProjectEx(_mapPoint, projection) as MapPoint;
+          }
+
+          WinPoint point = thisView.MapToScreen(_mapPoint);
+          double angleh = (_hFov*Math.PI)/360;
+          double angle = (((270 + _angle)%360)*Math.PI)/180;
           double angle1 = angle - angleh;
           double angle2 = angle + angleh;
           double x = point.X;
           double y = point.Y;
-          double size = ArrowSize / 2;
+          double size = Size/2;
 
-          WinPoint screenPoint1 = new WinPoint((x + (size * Math.Cos(angle1))), (y + (size * Math.Sin(angle1))));
-          WinPoint screenPoint2 = new WinPoint((x + (size * Math.Cos(angle2))), (y + (size * Math.Sin(angle2))));
+          WinPoint screenPoint1 = new WinPoint((x + (size*Math.Cos(angle1))), (y + (size*Math.Sin(angle1))));
+          WinPoint screenPoint2 = new WinPoint((x + (size*Math.Cos(angle2))), (y + (size*Math.Sin(angle2))));
           MapPoint point1 = thisView.ScreenToMap(screenPoint1);
           MapPoint point2 = thisView.ScreenToMap(screenPoint2);
 
@@ -195,7 +205,7 @@ namespace GlobeSpotterArcGISPro.Overlays
           CIMColor cimColorLine = ColorFactory.CreateColor(colorLine);
           CIMLineSymbol cimLineSymbol = SymbolFactory.DefaultLineSymbol;
           cimLineSymbol.SetColor(cimColorLine);
-          cimLineSymbol.SetSize(_blinking ? BorderSizeBlinkingArrow : BorderSizeArrow);
+          cimLineSymbol.SetSize(_blinking ? BorderSizeBlinking : BorderSize);
           CIMSymbolReference lineSymbolReference = cimLineSymbol.MakeSymbolReference();
           IDisposable disposePolyLine = thisView.AddOverlay(polyline, lineSymbolReference);
 
@@ -210,6 +220,11 @@ namespace GlobeSpotterArcGISPro.Overlays
             var blinkTimerCallBack = new TimerCallback(ResetBlinking);
             _blinkTimer = new Timer(blinkTimerCallBack, blinkEvent, BlinkTime, -1);
           }
+        }
+        else
+        {
+          _disposePolygon?.Dispose();
+          _disposePolyLine?.Dispose();
         }
       });
     }

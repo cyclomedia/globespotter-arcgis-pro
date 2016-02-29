@@ -40,9 +40,14 @@ namespace GlobeSpotterArcGISPro.Overlays
 
     public uint ViewerId { get; private set; }
 
+    public bool HasMarker { get; set; }
+
     public static List<string> ImageIds => Viewers.Select(viewer => viewer.Value.ImageId).ToList();
 
     public static List<RecordingLocation> Locations => Viewers.Select(viewer => viewer.Value._location).ToList();
+
+    public static List<Viewer> MarkerViewers
+      => (from viewer in Viewers where viewer.Value.HasMarker select viewer.Value).ToList();
 
     #endregion
 
@@ -53,11 +58,12 @@ namespace GlobeSpotterArcGISPro.Overlays
       Viewers = new Dictionary<uint, Viewer>();
     }
 
-    private Viewer(uint viewerId, string imageId)
+    protected Viewer(uint viewerId, string imageId)
     {
       _location = null;
       ViewerId = viewerId;
       ImageId = imageId;
+      HasMarker = false;
     }
 
     #endregion
@@ -69,14 +75,6 @@ namespace GlobeSpotterArcGISPro.Overlays
       Dispose();
       _location = location;
       await InitializeAsync(location, angle, hFov, color);
-
-      foreach (var viewer in Viewers.Values)
-      {
-        if (viewer != this)
-        {
-          await viewer.SetActiveAsync(false);
-        }
-      }
     }
 
     public void Update(string imageId)
@@ -84,15 +82,15 @@ namespace GlobeSpotterArcGISPro.Overlays
       ImageId = imageId;
     }
 
-    public async Task SetActiveAsync()
+    public static void Clear()
     {
-      foreach (var viewer in Viewers.Values)
+      foreach (var viewer in Viewers)
       {
-        if (viewer != null)
-        {
-          await viewer.SetActiveAsync(viewer == this);
-        }
+        Viewer myViewer = viewer.Value;
+        myViewer.Dispose();
       }
+
+      Viewers.Clear();
     }
 
     public static Viewer Get(uint viewerId)

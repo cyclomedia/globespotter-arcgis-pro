@@ -39,21 +39,23 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
 
     #region Members
 
-    private string _imageId;
+    private string _location;
     private bool _isActive;
+    private bool _replace;
+    private bool _nearest;
 
     #endregion
 
     #region Properties
 
-    public string ImageId
+    public string Location
     {
-      get { return _imageId; }
+      get { return _location; }
       set
       {
-        if (_imageId != value)
+        if (_location != value)
         {
-          _imageId = value;
+          _location = value;
           NotifyPropertyChanged();
         }
       }
@@ -67,6 +69,32 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
         if (_isActive != value)
         {
           _isActive = value;
+          NotifyPropertyChanged();
+        }
+      }
+    }
+
+    public bool Replace
+    {
+      get { return _replace; }
+      set
+      {
+        if (_replace != value)
+        {
+          _replace = value;
+          NotifyPropertyChanged();
+        }
+      }
+    }
+
+    public bool Nearest
+    {
+      get { return _nearest; }
+      set
+      {
+        if (_nearest != value)
+        {
+          _nearest = value;
           NotifyPropertyChanged();
         }
       }
@@ -104,7 +132,7 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
       return pane as GlobeSpotter;
     }
 
-    public static void ShowLocation(string imageId)
+    public static void OpenLocation(string location, bool replace, bool nearest)
     {
       bool globeSpotterDockPane = false;
 
@@ -113,7 +141,9 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
         if ((dockPane is GlobeSpotter) && (dockPane.IsVisible))
         {
           globeSpotterDockPane = true;
-          (dockPane as GlobeSpotter).ImageId = imageId;
+          (dockPane as GlobeSpotter).Replace = replace;
+          (dockPane as GlobeSpotter).Nearest = nearest;
+          (dockPane as GlobeSpotter).Location = location;
         }
       }
 
@@ -123,7 +153,9 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
 
         if (globeSpotter != null)
         {
-          globeSpotter.ImageId = imageId;
+          globeSpotter.Replace = replace;
+          globeSpotter.Nearest = nearest;
+          globeSpotter.Location = location;
         }
       }
     }
