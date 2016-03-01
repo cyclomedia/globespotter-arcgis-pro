@@ -113,6 +113,9 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
     protected override void OnHidden()
     {
       IsActive = false;
+      _location = string.Empty;
+      _replace = false;
+      _nearest = false;
       base.OnHidden();
     }
 

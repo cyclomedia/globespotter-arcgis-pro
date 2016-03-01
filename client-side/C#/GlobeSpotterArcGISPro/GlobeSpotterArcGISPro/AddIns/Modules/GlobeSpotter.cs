@@ -26,6 +26,7 @@ using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Layers;
+using GlobeSpotterArcGISPro.Utilities;
 
 namespace GlobeSpotterArcGISPro.AddIns.Modules
 {
@@ -189,6 +190,11 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
       CycloMediaLayer.LayerRemoveEvent += OnLayerRemoved;
       settings.PropertyChanged += OnSettingsPropertyChanged;
       login.PropertyChanged += OnLoginPropertyChanged;
+
+      if (settings.CycloramaViewerCoordinateSystem != null)
+      {
+        await CoordSystemUtils.CheckInAreaCycloramaSpatialReferenceAsync();
+      }
     }
 
     private async void OnSettingsPropertyChanged(object sender, PropertyChangedEventArgs args)

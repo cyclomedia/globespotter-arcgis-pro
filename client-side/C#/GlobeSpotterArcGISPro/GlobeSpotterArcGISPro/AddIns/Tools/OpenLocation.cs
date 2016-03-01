@@ -17,7 +17,6 @@
  */
 
 using System.Globalization;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ArcGIS.Core.Geometry;
@@ -30,7 +29,6 @@ using GlobeSpotterArcGISPro.Layers;
 
 using DockPaneGlobeSpotter = GlobeSpotterArcGISPro.AddIns.DockPanes.GlobeSpotter;
 using MySpatialReference = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReference;
-using MySpatialReferences = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReferences;
 using WinPoint = System.Windows.Point;
 
 namespace GlobeSpotterArcGISPro.AddIns.Tools
@@ -130,29 +128,6 @@ namespace GlobeSpotterArcGISPro.AddIns.Tools
             {
               Settings settings = Settings.Instance;
               MySpatialReference cycloCoordSystem = settings.CycloramaViewerCoordinateSystem;
-
-              if (cycloCoordSystem?.ArcGisSpatialReference == null)
-              {
-                string epsgCode = (cycloCoordSystem == null)
-                  ? $"EPSG:{MapView.Active?.Map?.SpatialReference.Wkid ?? 0}"
-                  : cycloCoordSystem.SRSName;
-
-                MySpatialReferences spatialReferences = MySpatialReferences.Instance;
-                cycloCoordSystem = spatialReferences.GetItem(epsgCode);
-
-                if (cycloCoordSystem == null)
-                {
-                  cycloCoordSystem = spatialReferences.Aggregate<MySpatialReference, MySpatialReference>(null,
-                    (current, spatialReferenceComp) =>
-                      (spatialReferenceComp.ArcGisSpatialReference != null) ? spatialReferenceComp : current);
-                }
-
-                if (cycloCoordSystem != null)
-                {
-                  settings.CycloramaViewerCoordinateSystem = cycloCoordSystem;
-                  settings.Save();
-                }
-              }
 
               if (cycloCoordSystem != null)
               {

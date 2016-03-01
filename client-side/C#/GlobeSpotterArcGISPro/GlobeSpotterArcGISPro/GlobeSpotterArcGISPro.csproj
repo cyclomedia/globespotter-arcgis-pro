@@ -156,6 +156,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Utilities\CoordSystemUtils.cs" />
     <Compile Include="Utilities\CurrentCult.cs" />
     <Compile Include="Utilities\FileUtils.cs" />
   </ItemGroup>

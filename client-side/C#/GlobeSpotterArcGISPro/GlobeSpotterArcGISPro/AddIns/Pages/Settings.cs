@@ -21,6 +21,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using ArcGIS.Desktop.Framework.Contracts;
+using ArcGIS.Desktop.Mapping.Events;
 using GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference;
 
 using FileSettings = GlobeSpotterArcGISPro.Configuration.File.Settings;
@@ -47,11 +48,16 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
     private readonly bool _showDetailImages;
     private readonly bool _enableSmartClickMeasurement;
 
-    private List<SpatialReference> _existsInAreaSpatialReferences;
+    private static List<SpatialReference> _existsInAreaSpatialReferences;
 
     #endregion
 
     #region Constructors
+
+    static Settings()
+    {
+      MapViewInitializedEvent.Subscribe(OnMapViewInitialized);
+    }
 
     protected Settings()
     {
@@ -259,6 +265,15 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
           NotifyPropertyChanged("CycloramaViewerCoordinateSystem");
         }
       }
+    }
+
+    #endregion
+
+    #region Events
+
+    private static void OnMapViewInitialized(MapViewEventArgs args)
+    {
+      _existsInAreaSpatialReferences = null;
     }
 
     #endregion

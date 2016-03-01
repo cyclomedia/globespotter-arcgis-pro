@@ -70,6 +70,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
       {
         if (value != null)
         {
+          bool changed = (value != _recordingLayerCoordinateSystem);
           SpatialReferences spatialReferences = SpatialReferences.Instance;
           _recordingLayerCoordinateSystem = value;
 
@@ -81,7 +82,10 @@ namespace GlobeSpotterArcGISPro.Configuration.File
             }
           }
 
-          OnPropertyChanged();
+          if (changed)
+          {
+            OnPropertyChanged();
+          }
         }
       }
     }
@@ -96,6 +100,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
       {
         if (value != null)
         {
+          bool changed = (value != _cycloramaViewerCoordinateSystem);
           SpatialReferences spatialReferences = SpatialReferences.Instance;
           _cycloramaViewerCoordinateSystem = value;
 
@@ -107,7 +112,10 @@ namespace GlobeSpotterArcGISPro.Configuration.File
             }
           }
 
-          OnPropertyChanged();
+          if (changed)
+          {
+            OnPropertyChanged();
+          }
         }
       }
     }
