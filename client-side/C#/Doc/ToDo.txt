@@ -1,8 +1,3 @@
-ArcGIS Pro AddIn:
-=================
-- De icons in de Add-In moeten een ArcGIS Pro style krijgen (Deze icons zijn niet gereleased, we moeten nog even kijken hoe dit opgelost gaat worden)
-
-
 Recent Recording Layer:
 =======================
   - De limiet van 10 karakters per item in de database moet eruit.
@@ -17,16 +12,10 @@ Open Location Tool:
 
 Bugs in ArcGIS Pro / SDK:
 =========================
-  - Het is niet mogelijk om een laag te editen als deze initieel in een grouplayer geplaatst wordt.
+  - Als er ArcGIS Pro icons beschikbaar gesteld worden, dan moeten de icons in de ArcGIS Pro style gemaakt worden
   - Je kunt geen coordinaat transformatie uitvoeren naar 2 dezelfde coordinaat systemen, bijvoorbeeld van RD naar RD.
   - Als ik 2 keer een geoprocessing tool aanroep vanuit de code, dan gaat de 2e aanroep niet goed, terwijl ik wel netjes wacht tot de eerste is afgerond.
-  - Dit voorbeeld om een default point symbol te maken werkt niet, elke keer krijgt deze een andere kleur:
-		var pointSymbol = SymbolFactory.ConstructPointSymbol(ColorFactory.Blue, 7.0, SimpleMarkerStyle.Circle);
-        var pointSymbolTemplate = pointSymbol.MakeSymbolReference();
-        var uniqueValueRendererDefinition = new UniqueValueRendererDefinition(FieldNames, pointSymbolTemplate);
-        var uniqueValueRenderer = (CIMUniqueValueRenderer)Layer.CreateRenderer(uniqueValueRendererDefinition);
-        FeatureLayer.SetRenderer(uniqueValueRenderer);
-  - Er zit een bug in ArcGIS Pro, als een cursor van een tool wordt gewijzigd, dan wijzigd deze cursor niet op de kaart, dit is opgelost in ArcGIS Pro 1.2
+  - Er zit een bug in ArcGIS Pro, als een cursor van een tool wordt gewijzigd, dan wijzigd deze cursor niet op de kaart
   - Als de kaart van coordinaat systeem veranderd, dan moet de 'open locatie tool' eerst gewisselt worden en weer terug gewisselt worden, voordat de 'open locatie' tool weer werkt.
 
 

@@ -16,7 +16,8 @@
  * License along with this library.
  */
 
-using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using ArcGIS.Desktop.Framework.Contracts;
 using GlobeSpotterArcGISPro.AddIns.Modules;
 using GlobeSpotterArcGISPro.Layers;
@@ -41,23 +42,20 @@ namespace GlobeSpotterArcGISPro.AddIns.Buttons
 
       if (groupLayer != null)
       {
-        IList<CycloMediaLayer> layers = groupLayer.Layers;
-
-        foreach (var layer in layers)
+        foreach (var layer in groupLayer)
         {
           if (layer.IsRemoved)
           {
-            CycloMediaLayerRemoved(layer);
+            IsChecked = (layer.Name != LayerName) && IsChecked;
           }
           else
           {
-            CycloMediaLayerAdded(layer);
+            IsChecked = (layer.Name == LayerName) || IsChecked;
           }
         }
-      }
 
-      CycloMediaLayer.LayerAddedEvent += CycloMediaLayerAdded;
-      CycloMediaLayer.LayerRemoveEvent += CycloMediaLayerRemoved;
+        groupLayer.PropertyChanged += OnLayerPropertyChanged;
+      }
     }
 
     #endregion
@@ -83,19 +81,13 @@ namespace GlobeSpotterArcGISPro.AddIns.Buttons
 
     #region Event handlers
 
-    private void CycloMediaLayerAdded(CycloMediaLayer layer)
+    private void OnLayerPropertyChanged(object sender, PropertyChangedEventArgs args)
     {
-      if (layer != null)
-      {
-        IsChecked = (layer.Name == LayerName) || IsChecked;
-      }
-    }
+      CycloMediaGroupLayer groupLayer = sender as CycloMediaGroupLayer;
 
-    private void CycloMediaLayerRemoved(CycloMediaLayer layer)
-    {
-      if (layer != null)
+      if ((groupLayer != null) && (args.PropertyName == "Count"))
       {
-        IsChecked = (layer.Name != LayerName) && IsChecked;
+        IsChecked = groupLayer.Aggregate(false, (current, layer) => (layer.Name == LayerName) || current);
       }
     }
 

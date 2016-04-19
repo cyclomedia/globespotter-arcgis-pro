@@ -18,11 +18,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using ArcGIS.Core.CIM;
 using ArcGIS.Core.Data;
@@ -44,19 +46,11 @@ using RecordingPoint = GlobeSpotterArcGISPro.Configuration.Remote.Recordings.Poi
 
 namespace GlobeSpotterArcGISPro.Layers
 {
-  public delegate void CycloMediaLayerAddedDelegate(CycloMediaLayer cycloMediaLayer);
-  public delegate void CycloMediaLayerChangedDelegate(CycloMediaLayer cycloMediaLayer);
-  public delegate void CycloMediaLayerRemoveDelegate(CycloMediaLayer cycloMediaLayer);
-  public delegate void HistoricalDateDelegate(SortedDictionary<int, int> yearMonth);
-
-  public abstract class CycloMediaLayer
+  public abstract class CycloMediaLayer: INotifyPropertyChanged
   {
     #region Events
 
-    public static event CycloMediaLayerAddedDelegate LayerAddedEvent;
-    public static event CycloMediaLayerChangedDelegate LayerChangedEvent;
-    public static event CycloMediaLayerRemoveDelegate LayerRemoveEvent;
-    public static event HistoricalDateDelegate HistoricalDateChanged;
+    public event PropertyChangedEventHandler PropertyChanged;
 
     #endregion
 
@@ -70,6 +64,7 @@ namespace GlobeSpotterArcGISPro.Layers
     private Envelope _lastextent;
     private FeatureCollection _addData;
     private bool _isVisibleInGlobespotter;
+    private bool _visible;
 
     private readonly IList<Color> _colors = new List<Color>
     {
@@ -105,7 +100,16 @@ namespace GlobeSpotterArcGISPro.Layers
     public abstract string WfsRequest { get; }
     public abstract double MinimumScale { get; set; }
 
-    public bool Visible { get; set; }
+    public bool Visible
+    {
+      get { return _visible; }
+      set
+      {
+        _visible = value;
+        NotifyPropertyChanged();
+      }
+    }
+
     public bool IsRemoved { get; set; }
     public bool IsInitialized { get; private set; }
 
@@ -119,7 +123,7 @@ namespace GlobeSpotterArcGISPro.Layers
       set
       {
         _isVisibleInGlobespotter = value;
-        OnContentChanged(null);
+        NotifyPropertyChanged();
       }
     }
 
@@ -163,7 +167,7 @@ namespace GlobeSpotterArcGISPro.Layers
     {
       await QueuedTask.Run(() =>
       {
-        if (_cycloMediaGroupLayer.Layers.Contains(this))
+        if (_cycloMediaGroupLayer.Contains(this))
         {
           Layer?.SetVisibility(value);
         }
@@ -253,9 +257,7 @@ namespace GlobeSpotterArcGISPro.Layers
       string fcNameWkid = string.Concat(FcName, wkid);
       Project project = Project.Current;
       await CreateFeatureClassAsync(project, fcNameWkid, spatialReference);
-      FeatureLayer tempLayer = await CreateLayerAsync(project, fcNameWkid, map);
       Layer = await CreateLayerAsync(project, fcNameWkid, _cycloMediaGroupLayer.GroupLayer);
-      await RemoveLayerAsync(map, tempLayer);
       await MakeEmptyAsync();
       await CreateUniqueValueRendererAsync();
       await project.SaveEditsAsync();
@@ -301,10 +303,9 @@ namespace GlobeSpotterArcGISPro.Layers
         await project.SaveEditsAsync();
       }
 
-      LayerAddedEvent?.Invoke(this);
       IsRemoved = false;
       MapViewCameraChangedEvent.Subscribe(OnMapViewCameraChanged);
-      TOCSelectionChangedEvent.Subscribe(OnContentChanged);
+      TOCSelectionChangedEvent.Subscribe(OnTocSelectionChanged);
       LayersRemovedEvent.Subscribe(OnLayersRemoved);
       await RefreshAsync();
       IsInitialized = true;
@@ -355,12 +356,6 @@ namespace GlobeSpotterArcGISPro.Layers
 
       Remove();
       IsInitialized = false;
-    }
-
-    public string GetFeatureFromPoint(int x, int y)
-    {
-      // toDo: later
-      return string.Empty;
     }
 
     public async Task<Recording> GetRecordingAsync(long uid)
@@ -443,11 +438,6 @@ namespace GlobeSpotterArcGISPro.Layers
       // toDo: kijken of deze nog nodig is
     }
 
-    public virtual DateTime? GetDate()
-    {
-      return null;
-    }
-
     public virtual double GetHeight(double x, double y)
     {
       return 0.0;
@@ -457,9 +447,8 @@ namespace GlobeSpotterArcGISPro.Layers
     {
       Layer = null;
       IsRemoved = true;
-      LayerRemoveEvent?.Invoke(this);
       MapViewCameraChangedEvent.Unsubscribe(OnMapViewCameraChanged);
-      TOCSelectionChangedEvent.Unsubscribe(OnContentChanged);
+      TOCSelectionChangedEvent.Unsubscribe(OnTocSelectionChanged);
       LayersRemovedEvent.Unsubscribe(OnLayersRemoved);
     }
 
@@ -547,7 +536,11 @@ namespace GlobeSpotterArcGISPro.Layers
     {
       return await QueuedTask.Run(() =>
       {
-        var editOperation = new EditOperation {Name = Name};
+        var editOperation = new EditOperation
+        {
+          Name = Name,
+          ShowModalMessageAfterFailure = false
+        };
 
         using (FeatureClass featureClass = Layer?.GetFeatureClass())
         {
@@ -665,11 +658,6 @@ namespace GlobeSpotterArcGISPro.Layers
 
         return editOperation.IsEmpty ? Task.FromResult(true) : editOperation.ExecuteAsync();
       });
-    }
-
-    protected static void ChangeHistoricalDate()
-    {
-      HistoricalDateChanged?.Invoke(YearMonth);
     }
 
     public static void ResetYears()
@@ -806,10 +794,10 @@ namespace GlobeSpotterArcGISPro.Layers
       }
     }
 
-    private void OnContentChanged(MapViewEventArgs mapViewEventArgs)
+    private void OnTocSelectionChanged(MapViewEventArgs mapViewEventArgs)
     {
       // todo: get color from layer
-      LayerChangedEvent?.Invoke(this);
+      // todo: Layer changed event
     }
 
     private async void OnLayersRemoved(LayerEventsArgs args)
@@ -821,12 +809,17 @@ namespace GlobeSpotterArcGISPro.Layers
       {
         await _cycloMediaGroupLayer.RemoveLayerAsync(Name, false);
 
-        if (_cycloMediaGroupLayer.Layers.Count == 1)
+        if (_cycloMediaGroupLayer.Count == 1)
         {
-          await _cycloMediaGroupLayer.Layers[0].SetVisibleAsync(true);
-          await _cycloMediaGroupLayer.Layers[0].RefreshAsync();
+          await _cycloMediaGroupLayer[0].SetVisibleAsync(true);
+          await _cycloMediaGroupLayer[0].RefreshAsync();
         }
       }
+    }
+
+    protected void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
+    {
+      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     #endregion

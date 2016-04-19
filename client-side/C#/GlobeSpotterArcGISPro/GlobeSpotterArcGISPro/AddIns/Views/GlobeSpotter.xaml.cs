@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Framework.Dialogs;
@@ -30,6 +31,7 @@ using GlobeSpotterAPI;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter;
 using GlobeSpotterArcGISPro.Configuration.Resource;
+using GlobeSpotterArcGISPro.Layers;
 using GlobeSpotterArcGISPro.Overlays;
 using GlobeSpotterArcGISPro.Utilities;
 
@@ -38,6 +40,7 @@ using FileLogin = GlobeSpotterArcGISPro.Configuration.File.Login;
 using FileConfiguration = GlobeSpotterArcGISPro.Configuration.File.Configuration;
 using ThisResources = GlobeSpotterArcGISPro.Properties.Resources;
 using DockPaneGlobeSpotter = GlobeSpotterArcGISPro.AddIns.DockPanes.GlobeSpotter;
+using ModuleGlobeSpotter = GlobeSpotterArcGISPro.AddIns.Modules.GlobeSpotter;
 using MySpatialReference = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReference;
 
 namespace GlobeSpotterArcGISPro.AddIns.Views
@@ -54,7 +57,9 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     private readonly FileConfiguration _configuration;
     private readonly ConstantsViewer _constants;
     private readonly FileLogin _login;
+    private readonly HistoricalRecordings _historicalRecordings;
     private readonly List<string> _openNearest;
+    private readonly List<CycloMediaLayer> _layers;
 
     private API _api;
     private CrossCheck _crossCheck;
@@ -72,10 +77,12 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
       _constants = ConstantsViewer.Instance;
       _login = FileLogin.Instance;
       _configuration = FileConfiguration.Instance;
+      _historicalRecordings = HistoricalRecordings.Instance;
       _configuration.PropertyChanged += OnConfigurationPropertyChanged;
       _openNearest = new List<string>();
       _crossCheck = null;
       _lastSpatialReference = null;
+      _layers = new List<CycloMediaLayer>();
       Initialize();
     }
 
@@ -123,6 +130,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
         _api.SetContextMenuEnabled(true);
         _api.SetKeyboardEnabled(true);
         _api.SetViewerRotationEnabled(true);
+        _api.SetWindowingMode(MDIWindowingMode.VERTICAL);
 
         _api.SetMultiWindowCount((uint) _settings.CtrlClickHashTag);
         _api.SetWindowSpread((uint) _settings.CtrlClickDelta);
@@ -142,6 +150,20 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
         globeSpotter.PropertyChanged += OnGlobeSpotterPropertyChanged;
         _settings.PropertyChanged += OnSettingsPropertyChanged;
+
+        ModuleGlobeSpotter moduleGlobeSpotter = ModuleGlobeSpotter.Current;
+        CycloMediaGroupLayer groupLayer = moduleGlobeSpotter.CycloMediaGroupLayer;
+        groupLayer.PropertyChanged += OnGroupLayerPropertyChanged;
+
+        foreach (CycloMediaLayer layer in groupLayer)
+        {
+          if (!_layers.Contains(layer))
+          {
+            _layers.Add(layer);
+            UpdateRecordingLayer(layer);
+            layer.PropertyChanged += OnLayerPropertyChanged;
+          }
+        }
 
         if (string.IsNullOrEmpty(location))
         {
@@ -518,6 +540,39 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
     #region Events Properties
 
+    private void OnGroupLayerPropertyChanged(object sender, PropertyChangedEventArgs args)
+    {
+      CycloMediaGroupLayer groupLayer = sender as CycloMediaGroupLayer;
+
+      if ((groupLayer != null) && (args.PropertyName == "Count"))
+      {
+        foreach (CycloMediaLayer layer in groupLayer)
+        {
+          if (!_layers.Contains(layer))
+          {
+            _layers.Add(layer);
+            layer.PropertyChanged += OnLayerPropertyChanged;
+          }
+        }
+      }
+    }
+
+    private void OnLayerPropertyChanged(object sender, PropertyChangedEventArgs args)
+    {
+      CycloMediaLayer layer = sender as CycloMediaLayer;
+
+      if ((_api != null) && (layer != null))
+      {
+        switch (args.PropertyName)
+        {
+          case "Visible":
+          case "IsVisibleInGlobespotter":
+            UpdateRecordingLayer(layer);
+            break;
+        }
+      }
+    }
+
     private void OnConfigurationPropertyChanged(object sender, PropertyChangedEventArgs args)
     {
       switch (args.PropertyName)
@@ -589,6 +644,27 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
     #region Functions
 
+    private void UpdateRecordingLayer(CycloMediaLayer layer)
+    {
+      if (layer.IsVisible)
+      {
+        _api.SetRecordingLocationsVisible(layer.IsVisibleInGlobespotter);
+        _api.SetUseDateRange(layer.UseDateRange);
+
+        if (layer.UseDateRange)
+        {
+          DateTime dateFrom = _historicalRecordings.DateFrom;
+          DateTime dateTo = _historicalRecordings.DateTo;
+          _api.SetDateFrom($"{dateFrom.Year}-{dateFrom.Month}-{dateFrom.Day}");
+          _api.SetDateTo($"{dateTo.Year}-{dateTo.Month}-{dateTo.Day}");
+        }
+      }
+      else if (!_layers.Aggregate(false, (current, cyclLayer) => (cyclLayer.IsVisible || current)))
+      {
+        _api.SetRecordingLocationsVisible(false);
+      }
+    }
+
     private void Initialize()
     {
       if (_login.Credentials)
@@ -614,7 +690,6 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
         string location = ((dynamic) DataContext).Location;
         bool nearest = ((dynamic) DataContext).Nearest;
         _api.SetActiveViewerReplaceMode(replace);
-        // _api.SetRecordingLocationsVisible();
 
         if (nearest)
         {
@@ -648,7 +723,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
             }
           }
 
-          _api.OpenNearestImage(location, (_settings.CtrlClickHashTag*_settings.CtrlClickDelta));
+          _api.OpenNearestImage(location, (_settings.CtrlClickHashTag * _settings.CtrlClickDelta));
         }
         else
         {
@@ -668,6 +743,11 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
         DockPaneGlobeSpotter globeSpotter = ((dynamic) DataContext);
         globeSpotter.PropertyChanged -= OnGlobeSpotterPropertyChanged;
         _settings.PropertyChanged -= OnSettingsPropertyChanged;
+
+        ModuleGlobeSpotter moduleGlobeSpotter = ModuleGlobeSpotter.Current;
+        CycloMediaGroupLayer groupLayer = moduleGlobeSpotter.CycloMediaGroupLayer;
+        groupLayer.PropertyChanged -= OnGroupLayerPropertyChanged;
+
         Viewer.Clear();
 
         int[] viewerIds = _api.GetViewerIDs();

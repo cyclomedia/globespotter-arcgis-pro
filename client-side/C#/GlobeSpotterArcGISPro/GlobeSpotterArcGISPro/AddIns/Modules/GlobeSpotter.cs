@@ -36,6 +36,8 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
 
     private static GlobeSpotter _globeSpotter;
 
+    private CycloMediaGroupLayer _cycloMediaGroupLayer;
+
     #endregion
 
     #region Properties
@@ -48,7 +50,19 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
         _globeSpotter ??
         (_globeSpotter = (GlobeSpotter) FrameworkApplication.FindModule("globeSpotterArcGISPro_module"));
 
-    public CycloMediaGroupLayer CycloMediaGroupLayer { get; private set; }
+    public CycloMediaGroupLayer CycloMediaGroupLayer
+    {
+      get
+      {
+        if (_cycloMediaGroupLayer == null)
+        {
+          _cycloMediaGroupLayer = new CycloMediaGroupLayer();
+          _cycloMediaGroupLayer.PropertyChanged += OnLayerPropertyChanged;
+        }
+
+        return _cycloMediaGroupLayer;
+      }
+    }
 
     #endregion
 
@@ -100,7 +114,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
 
     internal bool InsideScale()
     {
-      return (CycloMediaGroupLayer != null) && CycloMediaGroupLayer.InsideScale;
+      return CycloMediaGroupLayer.InsideScale;
     }
 
     private bool ContainsCycloMediaLayer()
@@ -113,12 +127,9 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
 
     private async Task CloseCycloMediaLayerAsync(bool closeMap)
     {
-      if (CycloMediaGroupLayer != null)
+      if ((!ContainsCycloMediaLayer()) || closeMap)
       {
-        if ((!ContainsCycloMediaLayer()) || closeMap)
-        {
-          await RemoveLayersAsync(false);
-        }
+        await RemoveLayersAsync(false);
       }
 
       if (closeMap)
@@ -127,7 +138,6 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
         Login login = Login.Instance;
         LayersRemovedEvent.Unsubscribe(OnLayerRemoved);
         DrawCompleteEvent.Unsubscribe(OnDrawComplete);
-        CycloMediaLayer.LayerRemoveEvent -= OnLayerRemoved;
         settings.PropertyChanged -= OnSettingsPropertyChanged;
         login.PropertyChanged -= OnLoginPropertyChanged;
       }
@@ -140,9 +150,8 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
 
     public async Task AddLayersAsync(string name)
     {
-      if (CycloMediaGroupLayer == null)
+      if (CycloMediaGroupLayer.Count == 0)
       {
-        CycloMediaGroupLayer = new CycloMediaGroupLayer();
         await CycloMediaGroupLayer.InitializeAsync();
       }
 
@@ -154,20 +163,12 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
 
     public async Task RemoveLayerAsync(string name)
     {
-      if (CycloMediaGroupLayer != null)
-      {
-        await CycloMediaGroupLayer.RemoveLayerAsync(name, true);
-      }
+      await CycloMediaGroupLayer.RemoveLayerAsync(name, true);
     }
 
     public async Task RemoveLayersAsync(bool fromMap)
     {
-      if (CycloMediaGroupLayer != null)
-      {
-        CycloMediaGroupLayer cycloLayer = CycloMediaGroupLayer;
-        CycloMediaGroupLayer = null;
-        await cycloLayer.DisposeAsync(fromMap);
-      }
+      await CycloMediaGroupLayer.DisposeAsync(fromMap);
     }
 
     #endregion
@@ -187,7 +188,6 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
 
       Settings settings = Settings.Instance;
       Login login = Login.Instance;
-      CycloMediaLayer.LayerRemoveEvent += OnLayerRemoved;
       settings.PropertyChanged += OnSettingsPropertyChanged;
       login.PropertyChanged += OnLoginPropertyChanged;
 
@@ -199,9 +199,9 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
 
     private async void OnSettingsPropertyChanged(object sender, PropertyChangedEventArgs args)
     {
-      if ((CycloMediaGroupLayer != null) && (args.PropertyName == "RecordingLayerCoordinateSystem"))
+      if (args.PropertyName == "RecordingLayerCoordinateSystem")
       {
-        foreach (var layer in CycloMediaGroupLayer.Layers)
+        foreach (var layer in CycloMediaGroupLayer)
         {
           await layer.UpdateLayerAsync();
         }
@@ -210,11 +210,11 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
 
     private async void OnLoginPropertyChanged(object sender, PropertyChangedEventArgs args)
     {
-      if ((CycloMediaGroupLayer != null) && (args.PropertyName == "Credentials"))
+      if (args.PropertyName == "Credentials")
       {
         Login login = Login.Instance;
 
-        foreach (var layer in CycloMediaGroupLayer.Layers)
+        foreach (var layer in CycloMediaGroupLayer)
         {
           if (login.Credentials)
           {
@@ -245,9 +245,9 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
       // toDo: is this function necessary?
     }
 
-    private async void OnLayerRemoved(CycloMediaLayer cycloMediaLayer)
+    private async void OnLayerPropertyChanged(object sender, PropertyChangedEventArgs args)
     {
-      if (CycloMediaGroupLayer != null)
+      if (args.PropertyName == "Count")
       {
         if (!CycloMediaGroupLayer.ContainsLayers)
         {

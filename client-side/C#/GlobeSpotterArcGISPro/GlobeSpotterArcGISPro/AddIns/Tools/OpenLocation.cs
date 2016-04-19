@@ -16,7 +16,10 @@
  * License along with this library.
  */
 
+using System;
 using System.Globalization;
+using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ArcGIS.Core.Geometry;
@@ -37,8 +40,11 @@ namespace GlobeSpotterArcGISPro.AddIns.Tools
   {
     #region Members
 
+    private readonly Cursor _thisCursor;
+
     private string _location;
     private bool _nearest;
+//    private bool _containsFeatures;
 
     #endregion
 
@@ -46,10 +52,22 @@ namespace GlobeSpotterArcGISPro.AddIns.Tools
 
     public OpenLocation()
     {
+      Type thisType = GetType();
+      string cursorPath = $@"GlobeSpotterArcGISPro.Images.{thisType.Name}.cur";
+      Assembly thisAssembly = Assembly.GetAssembly(thisType);
+      Stream cursorStream = thisAssembly.GetManifestResourceStream(cursorPath);
+
+      if (cursorStream != null)
+      {
+        _thisCursor = new Cursor(cursorStream);
+      }
+
+      Cursor = _thisCursor;
       IsSketchTool = true;
       SketchType = SketchGeometryType.Point;
       _location = string.Empty;
       _nearest = false;
+//      _containsFeatures = false;
     }
 
     #endregion
@@ -67,26 +85,40 @@ namespace GlobeSpotterArcGISPro.AddIns.Tools
       }
     }
 /*
+    protected async override void OnUpdate()
+    {
+      Cursor nowCursor = Cursor;
+      Cursor = _containsFeatures ? Cursors.Arrow : _thisCursor;
+
+      if (nowCursor != Cursor)
+      {
+        await FrameworkApplication.SetCurrentToolAsync("esri_mapping_exploreTool");
+        await FrameworkApplication.SetCurrentToolAsync("globeSpotterArcGISPro_openImageTool");
+      }
+
+      base.OnUpdate();
+    }
+
     protected override async void OnToolMouseMove(MapViewMouseEventArgs e)
     {
       await QueuedTask.Run(() =>
       {
-        CycloMediaLayer layer;
-        //string imageId = GetImageIdFromPoint(arg, out layer);
-        //Cursor = (string.IsNullOrEmpty(imageId) || (layer == null)) ? _thisCursor : Cursors.Arrow;
-        WinPoint point = e.ClientPoint;
-        WinPoint minPoint = new WinPoint(point.X - 7, point.Y - 7);
-        WinPoint maxPoint = new WinPoint(point.X + 7, point.Y + 7);
-        MapPoint minPoint2 = ActiveMapView.ClientToMap(minPoint);
-        MapPoint maxPoint2 = ActiveMapView.ClientToMap(maxPoint);
-        Envelope envelope = EnvelopeBuilder.CreateEnvelope(minPoint2, maxPoint2);
-        var features = MapView.Active?.GetFeatures(envelope, true, true);
+        var constants = ConstantsRecordingLayer.Instance;
+        double size = constants.SizeLayer;
+        double halfSize = size / 2;
+        MapView activeView = MapView.Active;
 
-        Cursor = Cursors.Arrow;
-        if (features != null)
-        {
-          Cursor = (features.Count == 0) ? _thisCursor : Cursors.Arrow;
-        }
+        WinPoint clientPoint = e.ClientPoint;
+        WinPoint pointScreen = activeView.ClientToScreen(clientPoint);
+        double x = pointScreen.X;
+        double y = pointScreen.Y;
+        WinPoint minPoint = new WinPoint(x - halfSize, y - halfSize);
+        WinPoint maxPoint = new WinPoint(x + halfSize, y + halfSize);
+        MapPoint minPoint1 = activeView.ScreenToMap(minPoint);
+        MapPoint maxPoint1 = activeView.ScreenToMap(maxPoint);
+        Envelope envelope = EnvelopeBuilder.CreateEnvelope(minPoint1, maxPoint1, minPoint1.SpatialReference);
+        var features = MapView.Active?.GetFeatures(envelope);
+        _containsFeatures = (features != null) && (features.Count >= 1);
       });
 
       base.OnToolMouseMove(e);

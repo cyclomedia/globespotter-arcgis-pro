@@ -93,7 +93,8 @@ namespace GlobeSpotterArcGISPro.Layers
           if (!YearMonth.ContainsKey(year))
           {
             YearMonth.Add(year, month);
-            ChangeHistoricalDate();
+            // ReSharper disable once ExplicitCallerInfoArgument
+            NotifyPropertyChanged(nameof(YearMonth));
           }
           else
           {
@@ -198,6 +199,8 @@ namespace GlobeSpotterArcGISPro.Layers
 
             var uniqueValueClass = new CIMUniqueValueClass
             {
+              Editable = true,
+              Visible = true,
               Values = new[] {uniqueValue},
               Symbol = pointSymbolReference,
               Label = value.ToString(CultureInfo.InvariantCulture)
@@ -230,6 +233,8 @@ namespace GlobeSpotterArcGISPro.Layers
 
             var uniqueValueClass = new CIMUniqueValueClass
             {
+              Editable = true,
+              Visible = true,
               Values = new[] { uniqueValue },
               Symbol = pointSymbolReference,
               Label = $"{value} (Detail images)"
@@ -266,6 +271,8 @@ namespace GlobeSpotterArcGISPro.Layers
 
             var uniqueValueClass = new CIMUniqueValueClass
             {
+              Editable = true,
+              Visible = true,
               Values = new[] { uniqueValue, uniqueValuePip },
               Symbol = pointSymbolReference,
               Label = $"{value} (No Authorization)"
@@ -297,12 +304,6 @@ namespace GlobeSpotterArcGISPro.Layers
       Years.Clear();
       YearPip.Clear();
       YearForbidden.Clear();
-    }
-
-    public override DateTime? GetDate()
-    {
-      // toDo: Add this function
-      return null;
     }
 
     public override double GetHeight(double x, double y)

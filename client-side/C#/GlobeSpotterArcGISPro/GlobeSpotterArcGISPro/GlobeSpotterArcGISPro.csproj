@@ -84,6 +84,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AddIns\Buttons\HistoricalRecordingLayer.cs" />
+    <Compile Include="AddIns\Buttons\ShowInCyclorama.cs" />
     <Compile Include="AddIns\Buttons\RecentRecordingLayer.cs" />
     <Compile Include="AddIns\Pages\Agreement.cs" />
     <Compile Include="AddIns\Pages\Configuration.cs" />
@@ -215,6 +216,7 @@
       <Link>ToDo.txt</Link>
     </Content>
     <AddInContent Include="Images\HistoricalRecordingLayer32.png" />
+    <EmbeddedResource Include="Images\OpenLocation.cur" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Recordings\FCRecordings.dbf" />

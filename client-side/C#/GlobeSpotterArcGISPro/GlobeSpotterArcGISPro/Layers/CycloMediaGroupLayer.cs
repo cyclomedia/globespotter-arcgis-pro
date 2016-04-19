@@ -17,7 +17,9 @@
  */
 
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
@@ -28,13 +30,19 @@ using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 
 namespace GlobeSpotterArcGISPro.Layers
 {
-  public class CycloMediaGroupLayer
+  public class CycloMediaGroupLayer: List<CycloMediaLayer>, INotifyPropertyChanged
   {
     #region Members
 
     private readonly ConstantsRecordingLayer _constants;
     private IList<CycloMediaLayer> _allLayers;
     private bool _updateVisibility;
+
+    #endregion
+
+    #region Events
+
+    public event PropertyChangedEventHandler PropertyChanged;
 
     #endregion
 
@@ -48,13 +56,11 @@ namespace GlobeSpotterArcGISPro.Layers
       new HistoricalLayer(this)
     });
 
-    public IList<CycloMediaLayer> Layers { get; private set; }
-
-    public bool ContainsLayers => (Layers.Count != 0);
+    public bool ContainsLayers => (Count != 0);
 
     public bool InsideScale
     {
-      get { return Layers.Aggregate(false, (current, layer) => layer.InsideScale || current); }
+      get { return this.Aggregate(false, (current, layer) => layer.InsideScale || current); }
     }
 
     #endregion
@@ -74,7 +80,7 @@ namespace GlobeSpotterArcGISPro.Layers
     {
       _updateVisibility = false;
       GroupLayer = null;
-      Layers = new List<CycloMediaLayer>();
+      Clear();
       Map map = MapView.Active?.Map;
       string name = _constants.CycloMediaLayerName;
 
@@ -119,11 +125,12 @@ namespace GlobeSpotterArcGISPro.Layers
       }
 
       MapMemberPropertiesChangedEvent.Subscribe(OnMapMemberPropertiesChanged);
+      OnMapMemberPropertiesChanged(null);
     }
 
     public CycloMediaLayer GetLayer(Layer layer)
     {
-      return Layers.Aggregate<CycloMediaLayer, CycloMediaLayer>(null,
+      return this.Aggregate<CycloMediaLayer, CycloMediaLayer>(null,
         (current, layerCheck) => (layerCheck.Layer == layer) ? layerCheck : current);
     }
 
@@ -131,15 +138,17 @@ namespace GlobeSpotterArcGISPro.Layers
     {
       CycloMediaLayer thisLayer = null;
 
-      if (!Layers.Aggregate(false, (current, cycloLayer) => (cycloLayer.Name == name) || current))
+      if (!this.Aggregate(false, (current, cycloLayer) => (cycloLayer.Name == name) || current))
       {
         thisLayer = AllLayers.Aggregate<CycloMediaLayer, CycloMediaLayer>
           (null, (current, checkLayer) => (checkLayer.Name == name) ? checkLayer : current);
 
         if (thisLayer != null)
         {
-          Layers.Add(thisLayer);
+          Add(thisLayer);
           await thisLayer.AddToLayersAsync();
+          // ReSharper disable once ExplicitCallerInfoArgument
+          NotifyPropertyChanged(nameof(Count));
           FrameworkApplication.State.Activate("globeSpotterArcGISPro_recordingLayerEnabledState");
 
           if (thisLayer.UseDateRange)
@@ -154,15 +163,17 @@ namespace GlobeSpotterArcGISPro.Layers
 
     public async Task RemoveLayerAsync(string name, bool fromGroup)
     {
-      CycloMediaLayer layer = Layers.Aggregate<CycloMediaLayer, CycloMediaLayer>
+      CycloMediaLayer layer = this.Aggregate<CycloMediaLayer, CycloMediaLayer>
         (null, (current, checkLayer) => (checkLayer.Name == name) ? checkLayer : current);
 
       if (layer != null)
       {
-        Layers.Remove(layer);
+        Remove(layer);
         await layer.DisposeAsync(fromGroup);
+        // ReSharper disable once ExplicitCallerInfoArgument
+        NotifyPropertyChanged(nameof(Count));
 
-        if (Layers.Count == 0)
+        if (Count == 0)
         {
           FrameworkApplication.State.Deactivate("globeSpotterArcGISPro_recordingLayerEnabledState");
         }
@@ -176,14 +187,14 @@ namespace GlobeSpotterArcGISPro.Layers
 
     public bool IsKnownName(string name)
     {
-      return Layers.Aggregate((name == _constants.CycloMediaLayerName), (current, layer) => (layer.Name == name) || current);
+      return this.Aggregate((name == _constants.CycloMediaLayerName), (current, layer) => (layer.Name == name) || current);
     }
 
     public async Task DisposeAsync(bool fromMap)
     {
-      while (Layers.Count > 0)
+      while (Count > 0)
       {
-        await RemoveLayerAsync(Layers[0].Name, false);
+        await RemoveLayerAsync(this[0].Name, false);
       }
 
       if (fromMap)
@@ -202,29 +213,9 @@ namespace GlobeSpotterArcGISPro.Layers
       MapMemberPropertiesChangedEvent.Unsubscribe(OnMapMemberPropertiesChanged);
     }
 
-    public string GetFeatureFromPoint(int x, int y, out CycloMediaLayer layer)
-    {
-      string result = string.Empty;
-      layer = null;
-
-      foreach (var layert in Layers)
-      {
-        if (string.IsNullOrEmpty(result))
-        {
-          if (layert.IsVisible)
-          {
-            layer = layert;
-            result = layer.GetFeatureFromPoint(x, y);
-          }
-        }
-      }
-
-      return result;
-    }
-
     public Recording GetRecording(string imageId)
     {
-      return Layers.Select(layer => layer.GetRecording(imageId)).Aggregate<Recording, Recording>
+      return this.Select(layer => layer.GetRecording(imageId)).Aggregate<Recording, Recording>
         (null, (current, featureCollection) => featureCollection ?? current);
     }
 
@@ -252,18 +243,18 @@ namespace GlobeSpotterArcGISPro.Layers
 
         foreach (var layer in AllLayers)
         {
-          if (!Layers.Aggregate(false, (current, visLayer) => current || (visLayer == layer)))
+          if (!this.Aggregate(false, (current, visLayer) => current || (visLayer == layer)))
           {
             await layer.SetVisibleAsync(true);
             layer.Visible = false;
           }
         }
 
-        CycloMediaLayer changedLayer = Layers.Aggregate<CycloMediaLayer, CycloMediaLayer>
+        CycloMediaLayer changedLayer = this.Aggregate<CycloMediaLayer, CycloMediaLayer>
           (null, (current, layer) => (layer.IsVisible && (!layer.Visible)) ? layer : current);
         CycloMediaLayer refreshLayer = null;
 
-        foreach (var layer in Layers)
+        foreach (var layer in this)
         {
           if (layer.IsInitialized)
           {
@@ -276,6 +267,11 @@ namespace GlobeSpotterArcGISPro.Layers
 
         _updateVisibility = false;
       }
+    }
+
+    private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
+    {
+      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     #endregion

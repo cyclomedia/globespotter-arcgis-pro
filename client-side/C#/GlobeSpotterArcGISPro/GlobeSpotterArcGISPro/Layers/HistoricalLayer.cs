@@ -95,7 +95,8 @@ namespace GlobeSpotterArcGISPro.Layers
           if (!YearMonth.ContainsKey(year))
           {
             YearMonth.Add(year, month);
-            ChangeHistoricalDate();
+            // ReSharper disable once ExplicitCallerInfoArgument
+            NotifyPropertyChanged(nameof(YearMonth));
           }
           else
           {
@@ -211,6 +212,8 @@ namespace GlobeSpotterArcGISPro.Layers
 
               var uniqueValueClass = new CIMUniqueValueClass
               {
+                Editable = true,
+                Visible = true,
                 Values = new[] {uniqueValue},
                 Symbol = pointSymbolReference,
                 Label = newValue.ToString(CultureInfo.InvariantCulture)
@@ -256,6 +259,8 @@ namespace GlobeSpotterArcGISPro.Layers
 
               var uniqueValueClass = new CIMUniqueValueClass
               {
+                Editable = true,
+                Visible = true,
                 Values = new[] {uniqueValue},
                 Symbol = pointSymbolReference,
                 Label = $"{newValue} (Detail images)"
@@ -305,6 +310,8 @@ namespace GlobeSpotterArcGISPro.Layers
 
               var uniqueValueClass = new CIMUniqueValueClass
               {
+                Editable = true,
+                Visible = true,
                 Values = new[] {uniqueValue, uniqueValuePip},
                 Symbol = pointSymbolReference,
                 Label = $"{newValue} (No Authorization)"
