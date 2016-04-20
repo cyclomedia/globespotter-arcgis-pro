@@ -76,6 +76,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
       _settings = FileSettings.Instance;
       _constants = ConstantsViewer.Instance;
       _login = FileLogin.Instance;
+      _login.PropertyChanged += OnLoginPropertyChanged;
       _configuration = FileConfiguration.Instance;
       _historicalRecordings = HistoricalRecordings.Instance;
       _configuration.PropertyChanged += OnConfigurationPropertyChanged;
@@ -179,6 +180,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     public void OnAPIFailed()
     {
       MessageBox.Show(ThisResources.Globespotter_OnAPIFailed_Initialize_);
+      RemoveApi();
     }
 
     public void OnOpenImageFailed(string input)
@@ -581,7 +583,35 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
         case "SwfLocation":
         case "UseDefaultBaseUrl":
         case "BaseUrlLocation":
+        case "UseProxyServer":
+        case "ProxyAddress":
+        case "ProxyPort":
+        case "ProxyBypassLocalAddresses":
+        case "ProxyUseDefaultCredentials":
+        case "ProxyUsername":
+        case "ProxyPassword":
+        case "ProxyDomain":
           RestartGlobeSpotter();
+          break;
+      }
+    }
+
+    private void OnLoginPropertyChanged(object sender, PropertyChangedEventArgs args)
+    {
+      switch (args.PropertyName)
+      {
+        case "Credentials":
+          if ((!_login.Credentials) && (_api != null) && (_api.GetAPIReadyState()))
+          {
+            DockPaneGlobeSpotter globeSpotter = ((dynamic)DataContext);
+            globeSpotter.Hide();
+          }
+
+          if (_login.Credentials)
+          {
+            RestartGlobeSpotter();
+          }
+
           break;
       }
     }
@@ -681,6 +711,11 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
           _api.Initialize(this);
         }
       }
+      else
+      {
+        DockPaneGlobeSpotter globeSpotter = ((dynamic) DataContext);
+        globeSpotter.Hide();
+      }
     }
 
     private async Task OpenImageAsync(bool replace)
@@ -738,7 +773,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
     private void RestartGlobeSpotter()
     {
-      if ((_api != null) && (_api.GetAPIReadyState()))
+      if ((_api == null) || (_api.GetAPIReadyState()))
       {
         DockPaneGlobeSpotter globeSpotter = ((dynamic) DataContext);
         globeSpotter.PropertyChanged -= OnGlobeSpotterPropertyChanged;
@@ -750,25 +785,34 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
         Viewer.Clear();
 
-        int[] viewerIds = _api.GetViewerIDs();
-
-        foreach (int viewerId in viewerIds)
+        if ((_api != null) && (_api.GetAPIReadyState()))
         {
-          _api.CloseImage((uint) viewerId);
-        }
+          int[] viewerIds = _api.GetViewerIDs();
 
-        if (_api?.gui != null)
-        {
-          if (GlobeSpotterForm.Child.Controls.Contains(_api.gui))
+          foreach (int viewerId in viewerIds)
           {
-            GlobeSpotterForm.Child.Controls.Remove(_api.gui);
-            _api.gui.Dispose();
+            _api.CloseImage((uint) viewerId);
           }
+
+          RemoveApi();
         }
 
-        _api = null;
         Initialize();
       }
+    }
+
+    private void RemoveApi()
+    {
+      if (_api?.gui != null)
+      {
+        if (GlobeSpotterForm.Child.Controls.Contains(_api.gui))
+        {
+          GlobeSpotterForm.Child.Controls.Remove(_api.gui);
+          _api.gui.Dispose();
+        }
+      }
+
+      _api = null;
     }
 
     private async Task MoveToLocationAsync(uint viewerId)
