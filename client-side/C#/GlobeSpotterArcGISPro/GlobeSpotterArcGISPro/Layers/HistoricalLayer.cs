@@ -27,6 +27,7 @@ using ArcGIS.Core.Data;
 using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
+using ArcGIS.Desktop.Mapping.Events;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 
@@ -40,6 +41,7 @@ namespace GlobeSpotterArcGISPro.Layers
     private static List<int> _yearForbidden;
     private static List<int> _years;
     private static double _minimumScale;
+    private readonly HistoricalRecordings _historicalRecordings;
 
     private static readonly ConstantsRecordingLayer Constants;
 
@@ -90,7 +92,6 @@ namespace GlobeSpotterArcGISPro.Layers
           var dateTime = (DateTime) recordedAt;
           int year = dateTime.Year;
           int month = dateTime.Month;
-          result = YearInsideRange(year, month);
 
           if (!YearMonth.ContainsKey(year))
           {
@@ -115,6 +116,49 @@ namespace GlobeSpotterArcGISPro.Layers
         var added = new List<int>();
         var pipAdded = new List<int>();
         var forbiddenAdded = new List<int>();
+
+        CIMBaseLayer cimBaseLayer = Layer?.GetDefinition();
+        CIMBasicFeatureLayer cimBasicFeatureLayer = cimBaseLayer as CIMBasicFeatureLayer;
+        CIMFeatureTable cimFeatureTable = cimBasicFeatureLayer?.FeatureTable;
+
+        if ((cimFeatureTable != null) && (cimFeatureTable.TimeFields == null))
+        {
+          cimFeatureTable.TimeFields = new CIMTimeTableDefinition
+          {
+            StartTimeField = Recording.FieldRecordedAt
+          };
+
+          cimFeatureTable.TimeDefinition = new CIMTimeDataDefinition
+          {
+            UseTime = true,
+            HasLiveData = false,
+            CustomTimeExtent = new TimeExtent
+            {
+              StartTime = _historicalRecordings.DateFrom,
+              EndTime = _historicalRecordings.DateTo,
+              Empty = false
+            }
+          };
+
+          cimFeatureTable.TimeDisplayDefinition = new CIMTimeDisplayDefinition
+          {
+            Cumulative = false,
+            TimeInterval = 0,
+            TimeIntervalUnits = esriTimeUnits.esriTimeUnitsUnknown,
+            TimeOffset = 0,
+            TimeOffsetUnits = esriTimeUnits.esriTimeUnitsDays
+          };
+
+          cimFeatureTable.TimeDimensionFields = new CIMTimeDimensionDefinition();
+          Layer.SetDefinition(cimBaseLayer);
+          var mapView = MapView.Active;
+
+          mapView.Time = new TimeRange
+          {
+            Start = _historicalRecordings.DateFrom,
+            End = _historicalRecordings.DateTo
+          };
+        }
 
         using (FeatureClass featureClass = Layer?.GetFeatureClass())
         {
@@ -146,7 +190,7 @@ namespace GlobeSpotterArcGISPro.Layers
                     int month = dateTime.Month;
                     int calcYear = (year*4) + (int) Math.Floor(((double) (month - 1))/3);
 
-                    if ((!Years.Contains(calcYear)) && (!added.Contains(calcYear)))
+                    if ((!Years.Contains(calcYear)) && (!added.Contains(calcYear)) && YearInsideRange(year, month))
                     {
                       added.Add(calcYear);
                     }
@@ -342,16 +386,26 @@ namespace GlobeSpotterArcGISPro.Layers
 
             if (YearPip.Contains(year))
             {
-              string classValuePip = $"{newYear}, {true}, {true}";
-              CIMUniqueValueGroup foundGroupPip =
-                uniqueValueRenderer.Groups.Aggregate<CIMUniqueValueGroup, CIMUniqueValueGroup>(null,
-                  (current3, @group) =>
-                    @group.Classes.Aggregate(current3,
-                      (current2, valueClass) =>
-                        valueClass.Values.Aggregate(current2,
-                          (current1, uniqueValue) =>
-                            uniqueValue.FieldValues.Aggregate(current1,
-                              (current, fieldValue) => (fieldValue == classValuePip) ? @group : current))));
+              string[] classValuesPip = {$"{newYear}", $"{true}", $"{true}"};
+              CIMUniqueValueGroup foundGroupPip = null;
+
+              foreach (var group in uniqueValueRenderer.Groups)
+              {
+                foreach (var thisClass in group.Classes)
+                {
+                  foreach (var value in thisClass.Values)
+                  {
+                    bool found = (value.FieldValues.Length >= classValuesPip.Length);
+
+                    for (int i = 0; i < classValuesPip.Length; i++)
+                    {
+                      found = found && (classValuesPip[i] == value.FieldValues[i]);
+                    }
+
+                    foundGroupPip = found ? group : foundGroupPip;
+                  }
+                }
+              }
 
               if (foundGroupPip != null)
               {
@@ -364,16 +418,26 @@ namespace GlobeSpotterArcGISPro.Layers
               YearPip.Remove(year);
             }
 
-            string classValue = $"{newYear}, {false}, {true}";
-            CIMUniqueValueGroup foundGroup =
-              uniqueValueRenderer.Groups.Aggregate<CIMUniqueValueGroup, CIMUniqueValueGroup>(null,
-                (current3, @group) =>
-                  @group.Classes.Aggregate(current3,
-                    (current2, valueClass) =>
-                      valueClass.Values.Aggregate(current2,
-                        (current1, uniqueValue) =>
-                          uniqueValue.FieldValues.Aggregate(current1,
-                            (current, fieldValue) => (fieldValue == classValue) ? @group : current))));
+            string[] classValues = {$"{newYear}", $"{false}", $"{true}"};
+            CIMUniqueValueGroup foundGroup = null;
+
+            foreach (var group in uniqueValueRenderer.Groups)
+            {
+              foreach (var thisClass in group.Classes)
+              {
+                foreach (var value in thisClass.Values)
+                {
+                  bool found = (value.FieldValues.Length >= classValues.Length);
+
+                  for (int i = 0; i < classValues.Length; i++)
+                  {
+                    found = found && (classValues[i] == value.FieldValues[i]);
+                  }
+
+                  foundGroup = found ? group : foundGroup;
+                }
+              }
+            }
 
             if (foundGroup != null)
             {
@@ -404,9 +468,8 @@ namespace GlobeSpotterArcGISPro.Layers
 
     private bool YearInsideRange(int year, int month)
     {
-      HistoricalRecordings historicalRecordings = HistoricalRecordings.Instance;
-      var fromDateTime = historicalRecordings.DateFrom;
-      var toDateTime = historicalRecordings.DateTo;
+      DateTime fromDateTime = _historicalRecordings.DateFrom;
+      DateTime toDateTime = _historicalRecordings.DateTo;
       var checkDateTime = new DateTime(year, month, 1);
       return (checkDateTime.CompareTo(fromDateTime) >= 0) && (checkDateTime.CompareTo(toDateTime) < 0);
     }
@@ -424,6 +487,44 @@ namespace GlobeSpotterArcGISPro.Layers
     public HistoricalLayer(CycloMediaGroupLayer layer)
       : base(layer)
     {
+      _historicalRecordings = HistoricalRecordings.Instance;
+      MapViewTimeChangedEvent.Subscribe(OnTimeChanged);
+      ActiveMapViewChangedEvent.Subscribe(OnActiveMapViewChanged);
+    }
+
+    ~HistoricalLayer()
+    {
+      MapViewTimeChangedEvent.Unsubscribe(OnTimeChanged);
+      ActiveMapViewChangedEvent.Unsubscribe(OnActiveMapViewChanged);
+    }
+
+    private async void OnTimeChanged(MapViewTimeChangedEventArgs args)
+    {
+      SetTimeProperties(args.CurrentTime);
+      MapView view = args.MapView;
+
+      if (view != null)
+      {
+        await PostEntryStepAsync(view.Extent);
+      }
+    }
+
+    private async void OnActiveMapViewChanged(ActiveMapViewChangedEventArgs args)
+    {
+      MapView view = args.IncomingView;
+
+      if (view?.Time != null)
+      {
+        SetTimeProperties(view.Time);
+        await PostEntryStepAsync(view.Extent);
+      }
+    }
+
+    private void SetTimeProperties(TimeRange time)
+    {
+      DateTime dateFrom = time?.Start ?? _historicalRecordings.DateFrom;
+      DateTime dateTo = time?.End ?? _historicalRecordings.DateTo;
+      _historicalRecordings.Update(dateFrom, dateTo);
     }
 
     #endregion

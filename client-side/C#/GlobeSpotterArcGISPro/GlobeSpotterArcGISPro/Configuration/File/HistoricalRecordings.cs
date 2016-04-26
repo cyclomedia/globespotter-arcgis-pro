@@ -82,6 +82,13 @@ namespace GlobeSpotterArcGISPro.Configuration.File
       streamFile.Close();
     }
 
+    public void Update(DateTime dateFrom, DateTime dateTo)
+    {
+      DateFrom = dateFrom;
+      DateTo = dateTo;
+      Save();
+    }
+
     private static HistoricalRecordings Load()
     {
       if (SystemIOFile.Exists(FileName))
