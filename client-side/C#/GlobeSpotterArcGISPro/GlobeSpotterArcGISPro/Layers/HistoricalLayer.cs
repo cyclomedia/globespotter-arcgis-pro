@@ -201,7 +201,7 @@ namespace GlobeSpotterArcGISPro.Layers
                     {
                       bool pip = bool.Parse((string) pipValue);
 
-                      if (pip && (!YearPip.Contains(calcYear)) && (!pipAdded.Contains(calcYear)))
+                      if (pip && (!YearPip.Contains(calcYear)) && (!pipAdded.Contains(calcYear)) && YearInsideRange(year, month))
                       {
                         pipAdded.Add(calcYear);
                       }
@@ -213,7 +213,7 @@ namespace GlobeSpotterArcGISPro.Layers
                     {
                       bool forbidden = !bool.Parse((string) forbiddenValue);
 
-                      if (forbidden && (!YearForbidden.Contains(calcYear)) && (!forbiddenAdded.Contains(calcYear)))
+                      if (forbidden && (!YearForbidden.Contains(calcYear)) && (!forbiddenAdded.Contains(calcYear)) && YearInsideRange(year, month))
                       {
                         forbiddenAdded.Add(calcYear);
                       }
@@ -271,6 +271,7 @@ namespace GlobeSpotterArcGISPro.Layers
 
               var groups = uniqueValueRenderer.Groups?.ToList() ?? new List<CIMUniqueValueGroup>();
               groups.Add(uniqueValueGroup);
+              groups.Sort(SortGroups);
               uniqueValueRenderer.Groups = groups.ToArray();
               Layer.SetRenderer(uniqueValueRenderer);
             }
@@ -318,6 +319,7 @@ namespace GlobeSpotterArcGISPro.Layers
 
               var groups = uniqueValueRenderer.Groups?.ToList() ?? new List<CIMUniqueValueGroup>();
               groups.Add(uniqueValueGroup);
+              groups.Sort(SortGroups);
               uniqueValueRenderer.Groups = groups.ToArray();
               Layer.SetRenderer(uniqueValueRenderer);
             }
@@ -369,6 +371,7 @@ namespace GlobeSpotterArcGISPro.Layers
 
               var groups = uniqueValueRenderer.Groups?.ToList() ?? new List<CIMUniqueValueGroup>();
               groups.Add(uniqueValueGroup);
+              groups.Sort(SortGroups);
               uniqueValueRenderer.Groups = groups.ToArray();
               Layer.SetRenderer(uniqueValueRenderer);
             }
@@ -380,77 +383,94 @@ namespace GlobeSpotterArcGISPro.Layers
                          where ((!YearInsideRange((int) Math.Floor(((double) year)/4), (((year%4)*3) + 1))) && (!added.Contains(year)))
                          select year).ToList();
 
-          foreach (var year in removed)
+          foreach (int year in removed)
           {
-            var newYear = (int) Math.Floor(((double) year)/4);
+            int newYear = (int) Math.Floor(((double) year)/4);
 
             if (YearPip.Contains(year))
             {
               string[] classValuesPip = {$"{newYear}", $"{true}", $"{true}"};
-              CIMUniqueValueGroup foundGroupPip = null;
-
-              foreach (var group in uniqueValueRenderer.Groups)
-              {
-                foreach (var thisClass in group.Classes)
-                {
-                  foreach (var value in thisClass.Values)
-                  {
-                    bool found = (value.FieldValues.Length >= classValuesPip.Length);
-
-                    for (int i = 0; i < classValuesPip.Length; i++)
-                    {
-                      found = found && (classValuesPip[i] == value.FieldValues[i]);
-                    }
-
-                    foundGroupPip = found ? group : foundGroupPip;
-                  }
-                }
-              }
-
-              if (foundGroupPip != null)
-              {
-                var groups = uniqueValueRenderer.Groups.ToList();
-                groups.Remove(foundGroupPip);
-                uniqueValueRenderer.Groups = groups.ToArray();
-                Layer.SetRenderer(uniqueValueRenderer);
-              }
-
-              YearPip.Remove(year);
+              RemoveValues(YearPip, classValuesPip, year, uniqueValueRenderer);
             }
 
             string[] classValues = {$"{newYear}", $"{false}", $"{true}"};
-            CIMUniqueValueGroup foundGroup = null;
-
-            foreach (var group in uniqueValueRenderer.Groups)
-            {
-              foreach (var thisClass in group.Classes)
-              {
-                foreach (var value in thisClass.Values)
-                {
-                  bool found = (value.FieldValues.Length >= classValues.Length);
-
-                  for (int i = 0; i < classValues.Length; i++)
-                  {
-                    found = found && (classValues[i] == value.FieldValues[i]);
-                  }
-
-                  foundGroup = found ? group : foundGroup;
-                }
-              }
-            }
-
-            if (foundGroup != null)
-            {
-              var groups = uniqueValueRenderer.Groups.ToList();
-              groups.Remove(foundGroup);
-              uniqueValueRenderer.Groups = groups.ToArray();
-              Layer.SetRenderer(uniqueValueRenderer);
-            }
-
-            Years.Remove(year);
+            RemoveValues(Years, classValues, year, uniqueValueRenderer);
           }
         }
       });
+    }
+
+    private void RemoveValues(List<int> years, string[] classValues, int year, CIMUniqueValueRenderer uniqueValueRenderer)
+    {
+      CIMUniqueValueGroup foundGroup = null;
+
+      if (uniqueValueRenderer.Groups != null)
+      {
+        foreach (var group in uniqueValueRenderer.Groups)
+        {
+          foreach (var thisClass in group.Classes)
+          {
+            foreach (var value in thisClass.Values)
+            {
+              bool found = (value.FieldValues.Length >= classValues.Length);
+
+              for (int i = 0; i < classValues.Length; i++)
+              {
+                found = found && (classValues[i] == value.FieldValues[i]);
+              }
+
+              foundGroup = found ? group : foundGroup;
+            }
+          }
+        }
+      }
+
+      if (foundGroup != null)
+      {
+        var groups = uniqueValueRenderer.Groups.ToList();
+        groups.Remove(foundGroup);
+        uniqueValueRenderer.Groups = groups.ToArray();
+        Layer.SetRenderer(uniqueValueRenderer);
+      }
+
+      years.Remove(year);
+    }
+
+    private int SortGroups(CIMUniqueValueGroup group1, CIMUniqueValueGroup group2)
+    {
+      int year1 = 0, year2 = 0;
+      bool pip1 = false, pip2 = false;
+      bool forbidden1 = false, forbidden2 = false;
+
+      foreach (var thisClass in group1.Classes)
+      {
+        foreach (var value in thisClass.Values)
+        {
+          string[] fieldValues = value.FieldValues;
+          year1 = (fieldValues.Length >= 1) ? int.Parse(fieldValues[0]) : 0;
+          pip1 = (fieldValues.Length >= 2) && bool.Parse(fieldValues[1]);
+          forbidden1 = (fieldValues.Length >= 3) && bool.Parse(fieldValues[2]);
+        }
+      }
+
+      foreach (var thisClass in group2.Classes)
+      {
+        foreach (var value in thisClass.Values)
+        {
+          string[] fieldValues = value.FieldValues;
+          year2 = (fieldValues.Length >= 1) ? int.Parse(fieldValues[0]) : 0;
+          pip2 = (fieldValues.Length >= 2) && bool.Parse(fieldValues[1]);
+          forbidden2 = (fieldValues.Length >= 3) && bool.Parse(fieldValues[2]);
+        }
+      }
+
+      return (year1 > year2) ? -1
+        : ((year2 > year1) ? 1
+        : (((pip1 == false) && pip2) ? -1
+        : ((pip1 && (pip2 == false)) ? 1
+        : (((forbidden1 == false) && forbidden2) ? -1
+        : ((forbidden1 && (forbidden2 == false)) ? 1
+        : 0)))));
     }
 
     protected override void Remove()
