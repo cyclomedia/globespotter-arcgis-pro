@@ -22,6 +22,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
 
 using FileAgreement = GlobeSpotterArcGISPro.Configuration.File.Agreement;
@@ -99,6 +100,12 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
     {
       _agreement.Value = _value;
       _agreement.Save();
+
+      if (_value)
+      {
+        FrameworkApplication.State.Activate("globeSpotterArcGISPro_agreementAcceptedState");
+      }
+
       return base.CommitAsync();
     }
 

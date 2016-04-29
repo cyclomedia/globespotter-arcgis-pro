@@ -16,29 +16,24 @@
  * License along with this library.
  */
 
-using ArcGIS.Desktop.Framework;
-using ArcGIS.Desktop.Framework.Contracts;
-using GlobeSpotterArcGISPro.Configuration.File;
+using System;
+using System.Globalization;
+using System.Windows.Data;
 
-namespace GlobeSpotterArcGISPro.AddIns.Buttons
+namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
 {
-  internal class CycloMediaOptions : Button
+  class AgreementAccepted : IValueConverter
   {
-    #region Overrides
+    #region IValueConverter Members
 
-    protected override void OnClick()
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-      Agreement agreement = Agreement.Instance;
-      Login login = Login.Instance;
+      return ((bool) value) ? 0 : parameter;
+    }
 
-      if (agreement.Value && (!login.Credentials))
-      {
-        PropertySheet.ShowDialog("globeSpotterArcGISPro_optionsPropertySheet", "globeSpotterArcGISPro_loginPage");
-      }
-      else
-      {
-        PropertySheet.ShowDialog("globeSpotterArcGISPro_optionsPropertySheet");
-      }
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+      throw new NotSupportedException();
     }
 
     #endregion

@@ -23,7 +23,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://schemas.esri.com/DADF/Registry file:///C:/Program%20Files/ArcGIS/Pro/bin/ArcGIS.Desktop.Framework.xsd">
   <AddInInfo id="{914cc234-6eac-401d-a7a8-96baa1782909}"
-             version="0.4.1"
+             version="0.5.0"
              desktopVersion="1.1.3308">
     <Name>GlobeSpotter for ArcGIS Pro</Name>
     <Description>
@@ -33,7 +33,7 @@
     <Image>Images\GlobeSpotterArcGISPro32.png</Image>
     <Author>CycloMedia</Author>
     <Company>CycloMedia</Company>
-    <Date>04/26/2016 15:50:00 PM, 2016</Date>
+    <Date>04/29/2016 13:00:00 PM, 2016</Date>
     <Subject>Content</Subject>
   </AddInInfo>
   <modules>
@@ -95,7 +95,6 @@
                 className="AddIns.Buttons.CycloMediaOptions"
                 loadOnClick="false"
                 largeImage="Images\CycloMediaOptions32.png"
-                condition="globeSpotterArcGISPro_agreementAcceptedCondition"
                 keytip="GS">
           <tooltip heading="Settings">
             Settings for GlobeSpotter for ArcGIS Desktop<disabledText />
@@ -166,22 +165,26 @@
                  caption="GlobeSpotter for ArcGIS Pro">
       <page id="globeSpotterArcGISPro_loginPage"
             caption="Login"
-            className="AddIns.Pages.Login">
+            className="AddIns.Pages.Login"
+            condition="globeSpotterArcGISPro_agreementAcceptedCondition">
         <content className="AddIns.Views.Login" />
       </page>
       <page id="globeSpotterArcGISPro_settingsPage"
             caption="Settings"
-            className="AddIns.Pages.Settings">
+            className="AddIns.Pages.Settings"
+            condition="globeSpotterArcGISPro_agreementAcceptedCondition">
         <content className="AddIns.Views.Settings" />
       </page>
       <page id="globeSpotterArcGISPro_configurationPage"
             caption="Configuration"
-            className="AddIns.Pages.Configuration">
+            className="AddIns.Pages.Configuration"
+            condition="globeSpotterArcGISPro_agreementAcceptedCondition">
         <content className="AddIns.Views.Configuration" />
       </page>
       <page id="globeSpotterArcGISPro_aboutPage"
             caption="About"
-            className="AddIns.Pages.About">
+            className="AddIns.Pages.About"
+            condition="globeSpotterArcGISPro_agreementAcceptedCondition">
         <content className="AddIns.Views.About" />
       </page>
       <page id="globeSpotterArcGISPro_agreementPage"

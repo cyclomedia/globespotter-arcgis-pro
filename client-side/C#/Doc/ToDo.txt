@@ -10,6 +10,11 @@ Open Location Tool:
   - De open locatie tool moet de focus verliezen als deze niet meer gebruikt kan worden.
 
 
+Historische data:
+=================
+  - Het zou mogelijk moeten zijn om bij de slider ook de kleurstippen aan te geven, zodat te zien is welk jaar welke kleur heeft.
+
+
 Bugs in ArcGIS Pro / SDK:
 =========================
   - Als er ArcGIS Pro icons beschikbaar gesteld worden, dan moeten de icons in de ArcGIS Pro style gemaakt worden

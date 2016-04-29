@@ -90,7 +90,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
 
     private static Agreement Create()
     {
-      var result = new Agreement {Value = true};
+      var result = new Agreement {Value = false};
       result.Save();
       return result;
     }

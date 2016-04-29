@@ -37,6 +37,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
     private static GlobeSpotter _globeSpotter;
 
     private CycloMediaGroupLayer _cycloMediaGroupLayer;
+    private readonly Agreement _agreement;
 
     #endregion
 
@@ -70,15 +71,11 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
 
     public GlobeSpotter()
     {
-      Agreement agreement = Agreement.Instance;
+      _agreement = Agreement.Instance;
 
-      if (agreement.Value)
+      if (_agreement.Value)
       {
         FrameworkApplication.State.Activate("globeSpotterArcGISPro_agreementAcceptedState");
-      }
-      else
-      {
-        // ToDo: open agreement form
       }
 
       Login login = Login.Instance;
@@ -194,6 +191,11 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
       if (settings.CycloramaViewerCoordinateSystem != null)
       {
         await CoordSystemUtils.CheckInAreaCycloramaSpatialReferenceAsync();
+      }
+
+      if (!_agreement.Value)
+      {
+        PropertySheet.ShowDialog("globeSpotterArcGISPro_optionsPropertySheet", "globeSpotterArcGISPro_agreementPage");
       }
     }
 
