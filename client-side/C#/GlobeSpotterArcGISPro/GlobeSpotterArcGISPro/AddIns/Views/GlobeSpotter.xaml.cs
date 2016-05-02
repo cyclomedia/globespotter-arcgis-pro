@@ -31,7 +31,7 @@ using GlobeSpotterAPI;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter;
 using GlobeSpotterArcGISPro.Configuration.Resource;
-using GlobeSpotterArcGISPro.Layers;
+using GlobeSpotterArcGISPro.CycloMediaLayers;
 using GlobeSpotterArcGISPro.Overlays;
 using GlobeSpotterArcGISPro.Utilities;
 

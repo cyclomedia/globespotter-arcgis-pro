@@ -28,7 +28,7 @@ using ArcGIS.Desktop.Mapping.Events;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 
-namespace GlobeSpotterArcGISPro.Layers
+namespace GlobeSpotterArcGISPro.CycloMediaLayers
 {
   public class CycloMediaGroupLayer: List<CycloMediaLayer>, INotifyPropertyChanged
   {

@@ -25,7 +25,7 @@ using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
 using GlobeSpotterArcGISPro.Configuration.File;
-using GlobeSpotterArcGISPro.Layers;
+using GlobeSpotterArcGISPro.CycloMediaLayers;
 using GlobeSpotterArcGISPro.Utilities;
 
 namespace GlobeSpotterArcGISPro.AddIns.Modules

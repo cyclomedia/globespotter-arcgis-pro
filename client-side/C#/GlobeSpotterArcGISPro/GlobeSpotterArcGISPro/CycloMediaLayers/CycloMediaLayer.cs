@@ -39,12 +39,11 @@ using ArcGIS.Desktop.Mapping.Events;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 using GlobeSpotterArcGISPro.Utilities;
-
 using MySpatialReference = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReference;
 using MySpatialReferences = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReferences;
 using RecordingPoint = GlobeSpotterArcGISPro.Configuration.Remote.Recordings.Point;
 
-namespace GlobeSpotterArcGISPro.Layers
+namespace GlobeSpotterArcGISPro.CycloMediaLayers
 {
   public abstract class CycloMediaLayer: INotifyPropertyChanged
   {

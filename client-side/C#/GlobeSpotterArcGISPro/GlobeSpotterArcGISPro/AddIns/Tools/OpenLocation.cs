@@ -28,7 +28,7 @@ using ArcGIS.Desktop.Mapping;
 using GlobeSpotterArcGISPro.AddIns.Modules;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
-using GlobeSpotterArcGISPro.Layers;
+using GlobeSpotterArcGISPro.CycloMediaLayers;
 
 using DockPaneGlobeSpotter = GlobeSpotterArcGISPro.AddIns.DockPanes.GlobeSpotter;
 using MySpatialReference = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReference;

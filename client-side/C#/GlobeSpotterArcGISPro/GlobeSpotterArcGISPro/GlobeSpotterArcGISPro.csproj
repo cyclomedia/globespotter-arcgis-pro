@@ -150,10 +150,11 @@
       <DependentUpon>ImageIdSearch.xaml</DependentUpon>
     </Compile>
     <Compile Include="AddIns\DockPanes\ImageIdSearch.cs" />
-    <Compile Include="Layers\CycloMediaGroupLayer.cs" />
-    <Compile Include="Layers\CycloMediaLayer.cs" />
-    <Compile Include="Layers\HistoricalLayer.cs" />
-    <Compile Include="Layers\RecordingLayer.cs" />
+    <Compile Include="VectorLayers\VectorLayer.cs" />
+    <Compile Include="CycloMediaLayers\CycloMediaGroupLayer.cs" />
+    <Compile Include="CycloMediaLayers\CycloMediaLayer.cs" />
+    <Compile Include="CycloMediaLayers\HistoricalLayer.cs" />
+    <Compile Include="CycloMediaLayers\RecordingLayer.cs" />
     <Compile Include="Overlays\Viewer.cs" />
     <Compile Include="Overlays\CrossCheck.cs" />
     <Compile Include="Overlays\ViewingCone.cs" />
@@ -234,6 +235,7 @@
     <EmbeddedResource Include="Resources\Recordings\FCRecordings.shp" />
     <EmbeddedResource Include="Resources\Recordings\FCRecordings.shx" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <UsingTask AssemblyFile="C:\Program Files\ArcGIS\Pro\bin\proapp-sdk-MSBuild.dll" TaskName="proapp_sdk_MSBuild.PackageAddIn" />
   <UsingTask AssemblyFile="C:\Program Files\ArcGIS\Pro\bin\proapp-sdk-MSBuild.dll" TaskName="proapp_sdk_MSBuild.CleanAddIn" />

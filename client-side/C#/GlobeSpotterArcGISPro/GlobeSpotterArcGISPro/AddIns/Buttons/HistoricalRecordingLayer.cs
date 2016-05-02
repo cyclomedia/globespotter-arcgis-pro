@@ -20,7 +20,7 @@ using System.ComponentModel;
 using System.Linq;
 using ArcGIS.Desktop.Framework.Contracts;
 using GlobeSpotterArcGISPro.AddIns.Modules;
-using GlobeSpotterArcGISPro.Layers;
+using GlobeSpotterArcGISPro.CycloMediaLayers;
 
 namespace GlobeSpotterArcGISPro.AddIns.Buttons
 {

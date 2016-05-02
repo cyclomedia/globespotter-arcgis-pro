@@ -30,7 +30,7 @@ using ArcGIS.Desktop.Mapping;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 
-namespace GlobeSpotterArcGISPro.Layers
+namespace GlobeSpotterArcGISPro.CycloMediaLayers
 {
   public class RecordingLayer : CycloMediaLayer
   {
