@@ -16,21 +16,33 @@
  * License along with this library.
  */
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using ArcGIS.Desktop.Framework;
+using ArcGIS.Desktop.Framework.Contracts;
 
-[assembly: AssemblyTitle("GlobeSpotter for ArcGIS Pro")]
-[assembly: AssemblyDescription("GlobeSpotter Integration for ArcGIS Pro")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("CycloMedia")]
-[assembly: AssemblyProduct("GlobeSpotter for ArcGIS Pro")]
-[assembly: AssemblyCopyright("Copyright © CycloMedia 2015 - 2016")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
+namespace GlobeSpotterArcGISPro.AddIns.DockPanes
+{
+  internal class ImageIdSearch : DockPane
+  {
+    #region Constants
 
-[assembly: ComVisible(false)]
+    private const string DockPaneId = "GlobeSpotterArcGISPro_ImageIdSearch";
 
-[assembly: Guid("914cc234-6eac-401d-a7a8-96baa1782909")]
+    #endregion
 
-[assembly: AssemblyVersion("0.6.0.*")]
-[assembly: AssemblyFileVersion("0.6.0")]
+    #region Constructor
+
+    protected ImageIdSearch() { }
+
+    #endregion
+
+    #region Functions
+
+    internal static void Show()
+    {
+      DockPane pane = FrameworkApplication.DockPaneManager.Find(DockPaneId);
+      pane?.Activate();
+    }
+
+    #endregion
+  }
+}

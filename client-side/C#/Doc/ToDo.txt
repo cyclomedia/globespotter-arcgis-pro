@@ -15,6 +15,11 @@ Historische data:
   - Het zou mogelijk moeten zijn om bij de slider ook de kleurstippen aan te geven, zodat te zien is welk jaar welke kleur heeft.
 
 
+ImageId zoek functionaliteit:
+=============================
+  - Het zou mogelijk moeten zijn om de zoekfuctionaliteit op een goede manier te integreren in ArcGIS Pro
+
+
 Bugs in ArcGIS Pro / SDK:
 =========================
   - Als er ArcGIS Pro icons beschikbaar gesteld worden, dan moeten de icons in de ArcGIS Pro style gemaakt worden

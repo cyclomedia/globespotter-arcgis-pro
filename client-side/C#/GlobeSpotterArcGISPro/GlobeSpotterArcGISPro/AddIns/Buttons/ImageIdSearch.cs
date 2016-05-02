@@ -16,21 +16,21 @@
  * License along with this library.
  */
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using ArcGIS.Desktop.Framework.Contracts;
 
-[assembly: AssemblyTitle("GlobeSpotter for ArcGIS Pro")]
-[assembly: AssemblyDescription("GlobeSpotter Integration for ArcGIS Pro")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("CycloMedia")]
-[assembly: AssemblyProduct("GlobeSpotter for ArcGIS Pro")]
-[assembly: AssemblyCopyright("Copyright © CycloMedia 2015 - 2016")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
+using ImageIdSearchPane = GlobeSpotterArcGISPro.AddIns.DockPanes.ImageIdSearch;
 
-[assembly: ComVisible(false)]
+namespace GlobeSpotterArcGISPro.AddIns.Buttons
+{
+  internal class ImageIdSearch : Button
+  {
+    #region Overrides
 
-[assembly: Guid("914cc234-6eac-401d-a7a8-96baa1782909")]
+    protected override void OnClick()
+    {
+      ImageIdSearchPane.Show();
+    }
 
-[assembly: AssemblyVersion("0.6.0.*")]
-[assembly: AssemblyFileVersion("0.6.0")]
+    #endregion
+  }
+}

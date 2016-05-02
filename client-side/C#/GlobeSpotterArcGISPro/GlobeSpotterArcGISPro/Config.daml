@@ -23,7 +23,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://schemas.esri.com/DADF/Registry file:///C:/Program%20Files/ArcGIS/Pro/bin/ArcGIS.Desktop.Framework.xsd">
   <AddInInfo id="{914cc234-6eac-401d-a7a8-96baa1782909}"
-             version="0.5.0"
+             version="0.6.0"
              desktopVersion="1.1.3308">
     <Name>GlobeSpotter for ArcGIS Pro</Name>
     <Description>
@@ -33,7 +33,7 @@
     <Image>Images\GlobeSpotterArcGISPro32.png</Image>
     <Author>CycloMedia</Author>
     <Company>CycloMedia</Company>
-    <Date>04/29/2016 13:00:00 PM, 2016</Date>
+    <Date>05/02/2016 15:00:00 PM, 2016</Date>
     <Subject>Content</Subject>
   </AddInInfo>
   <modules>
@@ -45,19 +45,12 @@
         <tab id="globeSpotterArcGISPro_tab"
              caption="GlobeSpotter"
              keytip="G">
-          <group refID="globeSpotterArcGISPro_optionsGroup" />
           <group refID="globeSpotterArcGISPro_layerGroup" />
+          <group refID="globeSpotterArcGISPro_inquiryGroup" />
           <group refID="globeSpotterArcGISPro_navigateGroup" />
         </tab>
       </tabs>
       <groups>
-        <group id="globeSpotterArcGISPro_optionsGroup"
-               caption="Options"
-               appearsOnAddInTab="false"
-               keytip="GO">
-          <button refID="globeSpotterArcGISPro_cycloMediaOptionsButton"
-                  size="large" />
-        </group>
         <group id="globeSpotterArcGISPro_layerGroup"
                caption="Layer"
                appearsOnAddInTab="false"
@@ -65,6 +58,13 @@
           <button refID="globeSpotterArcGISPro_recentRecordingLayerButton"
                   size="large" />
           <button refID="globeSpotterArcGISPro_historicalRecordingLayerButton"
+                  size="large" />
+        </group>
+        <group id="globeSpotterArcGISPro_inquiryGroup"
+               caption="Inquiry"
+               appearsOnAddInTab="false"
+               keytip="GI">
+          <button refID="GlobeSpotterArcGISPro_ImageIdSearchButton"
                   size="large" />
         </group>
         <group id="globeSpotterArcGISPro_navigateGroup"
@@ -91,13 +91,14 @@
           </tooltip>
         </tool>
         <button id="globeSpotterArcGISPro_cycloMediaOptionsButton"
-                caption="Settings"
+                caption="GlobeSpotter"
                 className="AddIns.Buttons.CycloMediaOptions"
                 loadOnClick="false"
                 largeImage="Images\CycloMediaOptions32.png"
                 keytip="GS">
           <tooltip heading="Settings">
-            Settings for GlobeSpotter for ArcGIS Desktop<disabledText />
+            Settings for GlobeSpotter for ArcGIS Desktop
+            <disabledText />
           </tooltip>
         </button>
         <button id="globeSpotterArcGISPro_recentRecordingLayerButton"
@@ -135,6 +136,18 @@
             <disabledText />
           </tooltip>
         </button>
+        <button id="GlobeSpotterArcGISPro_ImageIdSearchButton"
+                caption="ImageId Search "
+                className="AddIns.Buttons.ImageIdSearch"
+                loadOnClick="false"
+                largeImage="Images\ImageIdSearch.png"
+                condition="globeSpotterArcGISPro_recordingsReadyCondition"
+                keytip="GIS">
+          <tooltip heading="ImageId Search">
+            Search for the imageId
+            <disabledText />
+          </tooltip>
+        </button>
       </controls>
       <dockPanes>
         <dockPane id="globeSpotterArcGISPro_globeSpotterDockPane"
@@ -145,17 +158,30 @@
                   dockWith="esri_mapping_mapPane">
           <content className="AddIns.Views.GlobeSpotter" />
         </dockPane>
+        <dockPane id="GlobeSpotterArcGISPro_ImageIdSearch"
+                  caption="ImageId Search"
+                  className="AddIns.DockPanes.ImageIdSearch"
+                  dock="group"
+                  dockWith="esri_mapping_locateDockPane">
+          <content className="AddIns.Views.ImageIdSearch" />
+        </dockPane>
       </dockPanes>
     </insertModule>
     <updateModule refID="esri_mapping">
       <menus>
         <updateMenu refID="esri_mapping_layerContextMenu">
-          <insertButton refID="globeSpotterArcGISPro_showInCycloramaButton" insert="before"/>
+          <insertButton refID="globeSpotterArcGISPro_showInCycloramaButton"
+                        insert="before" />
         </updateMenu>
       </menus>
       <groups>
         <updateGroup refID="esri_mapping_navigateGroup">
-          <insertButton refID="globeSpotterArcGISPro_openImageTool" />
+          <insertButton refID="globeSpotterArcGISPro_openImageTool"
+                        size="large"/>
+        </updateGroup>
+        <updateGroup refID="esri_mapping_inquiryGroup">
+          <insertButton refID="GlobeSpotterArcGISPro_ImageIdSearchButton"
+                        size="large"/>
         </updateGroup>
       </groups>
     </updateModule>
@@ -197,33 +223,39 @@
   <conditions>
     <insertCondition id="globeSpotterArcGISPro_agreementAcceptedCondition"
                      caption="The agreement is accepted.">
-      <state id="globeSpotterArcGISPro_agreementAcceptedState"/>
+      <state id="globeSpotterArcGISPro_agreementAcceptedState" />
     </insertCondition>
     <insertCondition id="globeSpotterArcGISPro_recordingsReadyCondition"
                      caption="The recordings are ready.">
       <and>
-        <state id="globeSpotterArcGISPro_agreementAcceptedState"/>
-        <state id="globeSpotterArcGISPro_loginSuccessfullyState"/>
-        <state id="esri_mapping_mapPane"/>
+        <state id="globeSpotterArcGISPro_agreementAcceptedState" />
+        <state id="globeSpotterArcGISPro_loginSuccessfullyState" />
+        <state id="esri_mapping_mapPane" />
       </and>
     </insertCondition>
     <insertCondition id="globeSpotterArcGISPro_openImageToolReadyCondition"
                      caption="The image tool is ready.">
       <and>
-        <state id="globeSpotterArcGISPro_agreementAcceptedState"/>
-        <state id="globeSpotterArcGISPro_loginSuccessfullyState"/>
-        <state id="globeSpotterArcGISPro_recordingLayerEnabledState"/>
-        <state id="esri_mapping_mapPane"/>
+        <state id="globeSpotterArcGISPro_agreementAcceptedState" />
+        <state id="globeSpotterArcGISPro_loginSuccessfullyState" />
+        <state id="globeSpotterArcGISPro_recordingLayerEnabledState" />
+        <state id="esri_mapping_mapPane" />
       </and>
     </insertCondition>
     <insertCondition id="globeSpotterArcGISPro_historicalLayerReadyCondition"
                      caption="The historical layer is ready.">
       <and>
-        <state id="globeSpotterArcGISPro_agreementAcceptedState"/>
-        <state id="globeSpotterArcGISPro_historicalLayerEnabledState"/>
-        <state id="globeSpotterArcGISPro_loginSuccessfullyState"/>
-        <state id="esri_mapping_mapPane"/>
+        <state id="globeSpotterArcGISPro_agreementAcceptedState" />
+        <state id="globeSpotterArcGISPro_historicalLayerEnabledState" />
+        <state id="globeSpotterArcGISPro_loginSuccessfullyState" />
+        <state id="esri_mapping_mapPane" />
       </and>
     </insertCondition>
   </conditions>
+  <backstage>
+    <insertButton refID="globeSpotterArcGISPro_cycloMediaOptionsButton"
+                  insert="after"
+                  placeWith="esri_core_showOptionsSheetButton"
+                  separator="false" />
+  </backstage>
 </ArcGIS>

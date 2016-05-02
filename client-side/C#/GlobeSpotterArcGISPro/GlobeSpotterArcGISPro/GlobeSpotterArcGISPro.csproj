@@ -83,6 +83,7 @@
     <AddInContent Include="Images\GlobeSpotterArcGISPro32.png" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddIns\Buttons\ImageIdSearch.cs" />
     <Compile Include="AddIns\Buttons\HistoricalRecordingLayer.cs" />
     <Compile Include="AddIns\Buttons\ShowInCyclorama.cs" />
     <Compile Include="AddIns\Buttons\RecentRecordingLayer.cs" />
@@ -145,6 +146,10 @@
       <DependentUpon>GlobeSpotter.xaml</DependentUpon>
     </Compile>
     <Compile Include="AddIns\DockPanes\GlobeSpotter.cs" />
+    <Compile Include="AddIns\Views\ImageIdSearch.xaml.cs">
+      <DependentUpon>ImageIdSearch.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="AddIns\DockPanes\ImageIdSearch.cs" />
     <Compile Include="Layers\CycloMediaGroupLayer.cs" />
     <Compile Include="Layers\CycloMediaLayer.cs" />
     <Compile Include="Layers\HistoricalLayer.cs" />
@@ -187,6 +192,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="AddIns\Views\ImageIdSearch.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <AddInContent Include="Images\CycloMediaOptions32.png" />
@@ -217,6 +226,7 @@
       <Link>ToDo.txt</Link>
     </Content>
     <AddInContent Include="Images\HistoricalRecordingLayer32.png" />
+    <AddInContent Include="Images\ImageIdSearch.png" />
     <EmbeddedResource Include="Images\OpenLocation.cur" />
   </ItemGroup>
   <ItemGroup>

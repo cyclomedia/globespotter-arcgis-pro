@@ -16,21 +16,16 @@
  * License along with this library.
  */
 
-using System.Reflection;
-using System.Runtime.InteropServices;
-
-[assembly: AssemblyTitle("GlobeSpotter for ArcGIS Pro")]
-[assembly: AssemblyDescription("GlobeSpotter Integration for ArcGIS Pro")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("CycloMedia")]
-[assembly: AssemblyProduct("GlobeSpotter for ArcGIS Pro")]
-[assembly: AssemblyCopyright("Copyright © CycloMedia 2015 - 2016")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-
-[assembly: ComVisible(false)]
-
-[assembly: Guid("914cc234-6eac-401d-a7a8-96baa1782909")]
-
-[assembly: AssemblyVersion("0.6.0.*")]
-[assembly: AssemblyFileVersion("0.6.0")]
+namespace GlobeSpotterArcGISPro.AddIns.Views
+{
+  /// <summary>
+  /// Interaction logic for ImageIdSearch.xaml
+  /// </summary>
+  public partial class ImageIdSearch
+  {
+    public ImageIdSearch()
+    {
+      InitializeComponent();
+    }
+  }
+}
