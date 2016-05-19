@@ -24,23 +24,23 @@ using System.Xml.Serialization;
 namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
 {
   [XmlType(AnonymousType = true, Namespace = "https://www.globespotter.com/gsc")]
-  [XmlRoot(Namespace = "https://www.globespotter.com/gsc", IsNullable = false)]
-  public class SpatialReferences : List<SpatialReference>
+  [XmlRoot("SpatialReferences", Namespace = "https://www.globespotter.com/gsc", IsNullable = false)]
+  public class SpatialReferenceList : List<SpatialReference>
   {
     #region Members
 
-    private static readonly XmlSerializer XmlSpatialReferences;
+    private static readonly XmlSerializer XmlSpatialReferenceList;
     private static readonly Web Web;
 
-    private static SpatialReferences _spatialReferences;
+    private static SpatialReferenceList _spatialReferenceList;
 
     #endregion
 
     #region Constructor
 
-    static SpatialReferences()
+    static SpatialReferenceList()
     {
-      XmlSpatialReferences = new XmlSerializer(typeof (SpatialReferences));
+      XmlSpatialReferenceList = new XmlSerializer(typeof (SpatialReferenceList));
       Web = Web.Instance;
     }
 
@@ -60,11 +60,11 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
       }
     }
 
-    public static SpatialReferences Instance
+    public static SpatialReferenceList Instance
     {
       get
       {
-        if ((_spatialReferences == null) || (_spatialReferences.Count == 0))
+        if ((_spatialReferenceList == null) || (_spatialReferenceList.Count == 0))
         {
           try
           {
@@ -76,7 +76,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
           }
         }
 
-        return _spatialReferences ?? (_spatialReferences = new SpatialReferences());
+        return _spatialReferenceList ?? (_spatialReferenceList = new SpatialReferenceList());
       }
     }
 
@@ -102,7 +102,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
       return (spatRef == null) ? srsName : spatRef.SRSName;
     }
 
-    public static SpatialReferences Load()
+    public static SpatialReferenceList Load()
     {
       try
       {
@@ -111,7 +111,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
         if (spatialRef != null)
         {
           spatialRef.Position = 0;
-          _spatialReferences = (SpatialReferences) XmlSpatialReferences.Deserialize(spatialRef);
+          _spatialReferenceList = (SpatialReferenceList) XmlSpatialReferenceList.Deserialize(spatialRef);
           spatialRef.Close();
         }
       }
@@ -120,7 +120,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
         // ignored
       }
 
-      return _spatialReferences;
+      return _spatialReferenceList;
     }
 
     #endregion

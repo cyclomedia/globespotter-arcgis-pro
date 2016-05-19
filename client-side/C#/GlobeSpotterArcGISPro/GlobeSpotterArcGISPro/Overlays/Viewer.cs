@@ -16,9 +16,7 @@
  * License along with this library.
  */
 
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using System.Threading.Tasks;
 using GlobeSpotterAPI;
 
@@ -26,43 +24,28 @@ namespace GlobeSpotterArcGISPro.Overlays
 {
   public class Viewer : ViewingCone
   {
-    #region Members
-
-    private static readonly Dictionary<uint, Viewer> Viewers;
-
-    private RecordingLocation _location;
-
-    #endregion
-
     #region Properties
 
-    public string ImageId { get; private set; }
+    public RecordingLocation Location { get; private set; }
+
+    public string ImageId { get; set; }
 
     public uint ViewerId { get; private set; }
 
+    public double OverlayDrawDistance { get; set; }
+
     public bool HasMarker { get; set; }
-
-    public static List<string> ImageIds => Viewers.Select(viewer => viewer.Value.ImageId).ToList();
-
-    public static List<RecordingLocation> Locations => Viewers.Select(viewer => viewer.Value._location).ToList();
-
-    public static List<Viewer> MarkerViewers
-      => (from viewer in Viewers where viewer.Value.HasMarker select viewer.Value).ToList();
 
     #endregion
 
     #region Constructors
 
-    static Viewer()
+    public Viewer(uint viewerId, string imageId, double overlayDrawDistance)
     {
-      Viewers = new Dictionary<uint, Viewer>();
-    }
-
-    protected Viewer(uint viewerId, string imageId)
-    {
-      _location = null;
+      Location = null;
       ViewerId = viewerId;
       ImageId = imageId;
+      OverlayDrawDistance = overlayDrawDistance;
       HasMarker = false;
     }
 
@@ -73,43 +56,8 @@ namespace GlobeSpotterArcGISPro.Overlays
     public async Task SetAsync(RecordingLocation location, double angle, double hFov, Color color)
     {
       Dispose();
-      _location = location;
+      Location = location;
       await InitializeAsync(location, angle, hFov, color);
-    }
-
-    public void Update(string imageId)
-    {
-      ImageId = imageId;
-    }
-
-    public static void Clear()
-    {
-      foreach (var viewer in Viewers)
-      {
-        Viewer myViewer = viewer.Value;
-        myViewer.Dispose();
-      }
-
-      Viewers.Clear();
-    }
-
-    public static Viewer Get(uint viewerId)
-    {
-      return Viewers.ContainsKey(viewerId) ? Viewers[viewerId] : null;
-    }
-
-    public static void Add(uint viewerId, string imageId)
-    {
-      Viewers.Add(viewerId, new Viewer(viewerId, imageId));
-    }
-
-    public static void Delete(uint viewerId)
-    {
-      if (Viewers.ContainsKey(viewerId))
-      {
-        Viewers[viewerId].Dispose();
-        Viewers.Remove(viewerId);
-      }
     }
 
     #endregion

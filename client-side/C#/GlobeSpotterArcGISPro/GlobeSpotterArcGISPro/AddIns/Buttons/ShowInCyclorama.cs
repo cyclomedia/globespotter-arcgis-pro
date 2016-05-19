@@ -21,6 +21,7 @@ using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Mapping;
 using GlobeSpotterArcGISPro.AddIns.Modules;
 using GlobeSpotterArcGISPro.CycloMediaLayers;
+using GlobeSpotterArcGISPro.VectorLayers;
 
 namespace GlobeSpotterArcGISPro.AddIns.Buttons
 {
@@ -29,6 +30,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Buttons
     #region Members
 
     private CycloMediaLayer _cycloMediaLayer;
+    private VectorLayer _vectorLayer;
 
     #endregion
 
@@ -42,27 +44,42 @@ namespace GlobeSpotterArcGISPro.AddIns.Buttons
       {
         _cycloMediaLayer.IsVisibleInGlobespotter = IsChecked;
       }
+
+      if (_vectorLayer != null)
+      {
+        _vectorLayer.IsVisibleInGlobespotter = IsChecked;
+      }
     }
 
     protected override void OnUpdate()
     {
-      GlobeSpotter globeSpotter = GlobeSpotter.Current;
       MapView mapView = MapView.Active;
-      IReadOnlyList<Layer> layers = mapView.GetSelectedLayers();
+      IReadOnlyList<Layer> layers = mapView?.GetSelectedLayers();
 
-      if (layers.Count == 1)
+      if (layers?.Count == 1)
       {
         Layer layer = layers[0];
+        GlobeSpotter globeSpotter = GlobeSpotter.Current;
+
         CycloMediaGroupLayer groupLayer = globeSpotter.CycloMediaGroupLayer;
         _cycloMediaLayer = groupLayer?.GetLayer(layer);
+
+        VectorLayerList vectorLayerList = globeSpotter.VectorLayerList;
+        _vectorLayer = vectorLayerList.GetLayer(layer);
 
         if (_cycloMediaLayer != null)
         {
           IsChecked = _cycloMediaLayer.IsVisibleInGlobespotter;
           Enabled = _cycloMediaLayer.IsVisible;
         }
+        else if (_vectorLayer != null)
+        {
+          IsChecked = _vectorLayer.IsVisibleInGlobespotter;
+          Enabled = _vectorLayer.IsVisible;
+        }
         else
         {
+          IsChecked = false;
           Enabled = false;
         }
       }

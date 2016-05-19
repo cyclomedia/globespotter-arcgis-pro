@@ -2905,6 +2905,13 @@
             </summary>
             <param name="viewerID">The id of the viewer that loaded its entire view.</param>
         </member>
+        <member name="M:GlobeSpotterAPI.IAPIClient.OnImageDistanceSliderChanged(System.UInt32,System.Double)">
+            <summary>
+            Indicates to the host that the vector layer distance slider is changed.
+            </summary>
+            <param name="viewerId">The id of the viewer that loaded its entire view.</param>
+            <param name="distance">the new distance to the vector layer value.</param>
+        </member>
         <member name="M:GlobeSpotterAPI.IAPIClient.OnViewChanged(System.UInt32,System.Double,System.Double,System.Double)">
             <summary>
             Indicates to the host that the current view is changed due to a change in zoom level and / or
@@ -3228,6 +3235,11 @@
         <member name="M:GlobeSpotterAPI.AbstractAPIClient.OnViewClicked(System.UInt32,System.Double[])">
             <summary>
             . <see cref="M:GlobeSpotterAPI.IAPIClient.OnViewClicked(System.UInt32,System.Double[])"/>
+            </summary>
+        </member>
+        <member name="M:GlobeSpotterAPI.AbstractAPIClient.OnImageDistanceSliderChanged(System.UInt32,System.Double)">
+            <summary>
+            . <see cref="M:GlobeSpotterAPI.IAPIClient.OnImageDistanceSliderChanged(System.UInt32,System.Double)"/>
             </summary>
         </member>
         <member name="M:GlobeSpotterAPI.AbstractAPIClient.OnMarkerClicked(System.UInt32,System.UInt32,System.Double[])">

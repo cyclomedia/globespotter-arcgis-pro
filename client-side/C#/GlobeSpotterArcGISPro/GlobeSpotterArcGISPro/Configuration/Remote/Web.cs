@@ -26,7 +26,7 @@ using ArcGIS.Core.Geometry;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Resource;
 
-using mySpatialReferences = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReferences;
+using mySpatialReferenceList = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReferenceList;
 
 namespace GlobeSpotterArcGISPro.Configuration.Remote
 {
@@ -99,7 +99,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote
     public Stream GetByBbox(Envelope envelope, string wfsRequest)
     {
       string epsgCode = $"EPSG:{envelope.SpatialReference.Wkid}";
-      epsgCode = mySpatialReferences.Instance.ToKnownSrsName(epsgCode);
+      epsgCode = mySpatialReferenceList.Instance.ToKnownSrsName(epsgCode);
       string dateString = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:00-00:00");
       string recordingItem = string.Format(_ci, wfsRequest, epsgCode, envelope.XMin, envelope.YMin, envelope.XMax,
         envelope.YMax, dateString);

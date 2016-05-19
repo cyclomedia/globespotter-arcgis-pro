@@ -120,6 +120,8 @@
     <Compile Include="Configuration\File\ConstantsRecordingLayer.cs" />
     <Compile Include="Configuration\File\HistoricalRecordings.cs" />
     <Compile Include="Configuration\File\ConstantsViewer.cs" />
+    <Compile Include="Configuration\File\Layers\StoredLayer.cs" />
+    <Compile Include="Configuration\File\Layers\StoredLayerList.cs" />
     <Compile Include="Configuration\File\Settings.cs" />
     <Compile Include="Configuration\Remote\Recordings\FeatureCollection.cs" />
     <Compile Include="Configuration\Remote\Recordings\Images.cs" />
@@ -132,7 +134,7 @@
     <Compile Include="Configuration\Remote\SpatialReference\Bounds.cs" />
     <Compile Include="Configuration\Remote\Recordings\Recording.cs" />
     <Compile Include="Configuration\Remote\SpatialReference\SpatialReference.cs" />
-    <Compile Include="Configuration\Remote\SpatialReference\SpatialReferences.cs" />
+    <Compile Include="Configuration\Remote\SpatialReference\SpatialReferenceList.cs" />
     <Compile Include="Configuration\Resource\APIKey.cs" />
     <Compile Include="Configuration\Remote\GlobeSpotter\ApplicationConfiguration.cs" />
     <Compile Include="Configuration\Remote\GlobeSpotter\Functionality.cs" />
@@ -150,6 +152,7 @@
       <DependentUpon>ImageIdSearch.xaml</DependentUpon>
     </Compile>
     <Compile Include="AddIns\DockPanes\ImageIdSearch.cs" />
+    <Compile Include="Overlays\ViewerList.cs" />
     <Compile Include="VectorLayers\VectorLayer.cs" />
     <Compile Include="CycloMediaLayers\CycloMediaGroupLayer.cs" />
     <Compile Include="CycloMediaLayers\CycloMediaLayer.cs" />
@@ -167,6 +170,7 @@
     <Compile Include="Utilities\CoordSystemUtils.cs" />
     <Compile Include="Utilities\CurrentCult.cs" />
     <Compile Include="Utilities\FileUtils.cs" />
+    <Compile Include="VectorLayers\VectorLayerList.cs" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="AddIns\Views\Agreement.xaml">

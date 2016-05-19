@@ -16,21 +16,16 @@
  * License along with this library.
  */
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+namespace GlobeSpotterArcGISPro.Configuration.File.Layers
+{
+  public class StoredLayer
+  {
+    #region Properties
 
-[assembly: AssemblyTitle("GlobeSpotter for ArcGIS Pro")]
-[assembly: AssemblyDescription("GlobeSpotter Integration for ArcGIS Pro")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("CycloMedia")]
-[assembly: AssemblyProduct("GlobeSpotter for ArcGIS Pro")]
-[assembly: AssemblyCopyright("Copyright © CycloMedia 2015 - 2016")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
+    public string Name { get; set; }
 
-[assembly: ComVisible(false)]
+    public bool Visible { get; set; }
 
-[assembly: Guid("914cc234-6eac-401d-a7a8-96baa1782909")]
-
-[assembly: AssemblyVersion("0.7.0.*")]
-[assembly: AssemblyFileVersion("0.7.0")]
+    #endregion
+  }
+}

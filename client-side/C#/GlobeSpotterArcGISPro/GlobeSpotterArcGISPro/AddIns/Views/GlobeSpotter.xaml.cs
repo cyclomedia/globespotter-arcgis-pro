@@ -34,6 +34,7 @@ using GlobeSpotterArcGISPro.Configuration.Resource;
 using GlobeSpotterArcGISPro.CycloMediaLayers;
 using GlobeSpotterArcGISPro.Overlays;
 using GlobeSpotterArcGISPro.Utilities;
+using GlobeSpotterArcGISPro.VectorLayers;
 
 using FileSettings = GlobeSpotterArcGISPro.Configuration.File.Settings;
 using FileLogin = GlobeSpotterArcGISPro.Configuration.File.Login;
@@ -60,6 +61,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     private readonly HistoricalRecordings _historicalRecordings;
     private readonly List<string> _openNearest;
     private readonly List<CycloMediaLayer> _layers;
+    private readonly ViewerList _viewerList;
 
     private API _api;
     private CrossCheck _crossCheck;
@@ -75,15 +77,19 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
       _apiKey = ApiKey.Instance;
       _settings = FileSettings.Instance;
       _constants = ConstantsViewer.Instance;
+      _historicalRecordings = HistoricalRecordings.Instance;
+
       _login = FileLogin.Instance;
       _login.PropertyChanged += OnLoginPropertyChanged;
+
       _configuration = FileConfiguration.Instance;
-      _historicalRecordings = HistoricalRecordings.Instance;
       _configuration.PropertyChanged += OnConfigurationPropertyChanged;
+
       _openNearest = new List<string>();
       _crossCheck = null;
       _lastSpatialReference = null;
       _layers = new List<CycloMediaLayer>();
+      _viewerList = new ViewerList();
       Initialize();
     }
 
@@ -136,6 +142,11 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
         _api.SetMultiWindowCount((uint) _settings.CtrlClickHashTag);
         _api.SetWindowSpread((uint) _settings.CtrlClickDelta);
 
+        if (GlobeSpotterConfiguration.AddLayerWfs)
+        {
+          _api.SetViewerOverlayDrawDistanceEnabled(true);
+        }
+
         if (GlobeSpotterConfiguration.MeasurePermissions)
         {
           _api.SetMeasurementSeriesModeEnabled(true);
@@ -173,6 +184,16 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
         else
         {
           await OpenImageAsync(false);
+        }
+
+        VectorLayerList vectorLayerList = moduleGlobeSpotter.VectorLayerList;
+        vectorLayerList.LayerAdded += OnAddVectorLayer;
+        vectorLayerList.LayerRemoved += OnRemoveVectorLayer;
+        vectorLayerList.LayerUpdated += OnUpdatedVectorLayer;
+
+        foreach (var vectorLayer in vectorLayerList)
+        {
+          vectorLayer.PropertyChanged += OnVectorLayerPropertyChanged;
         }
       }
     }
@@ -228,17 +249,17 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
     public void OnImageChanged(uint viewerId)
     {
-      Viewer viewer = Viewer.Get(viewerId);
+      Viewer viewer = _viewerList.Get(viewerId);
 
       if ((viewer != null) && (_api != null))
       {
         string imageId = _api.GetImageID(viewerId);
-        viewer.Update(imageId);
+        viewer.ImageId = imageId;
 
         if (viewer.HasMarker)
         {
           viewer.HasMarker = false;
-          List<Viewer> markerViewers = Viewer.MarkerViewers;
+          List<Viewer> markerViewers = _viewerList.MarkerViewers;
 
           if ((markerViewers.Count == 0) && (_crossCheck != null))
           {
@@ -251,7 +272,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
     public async void OnImagePreviewCompleted(uint viewerId)
     {
-      Viewer viewer = Viewer.Get(viewerId);
+      Viewer viewer = _viewerList.Get(viewerId);
 
       if ((viewer != null) && (_api != null))
       {
@@ -267,6 +288,13 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
         Color color = _api.GetViewerBorderColor(viewerId);
         await viewer.SetAsync(location, angle, hFov, color);
         string imageId = viewer.ImageId;
+
+        if (GlobeSpotterConfiguration.AddLayerWfs)
+        {
+          await UpdateVectorLayerAsync();
+          double overlayDrawDistance = _constants.OverlayDrawDistance;
+          _api.SetOverlayDrawDistance(viewerId, overlayDrawDistance);
+        }
 
         if (_openNearest.Contains(imageId))
         {
@@ -310,7 +338,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
     public async void OnViewChanged(uint viewerId, double yaw, double pitch, double hFov)
     {
-      Viewer viewer = Viewer.Get(viewerId);
+      Viewer viewer = _viewerList.Get(viewerId);
 
       if (viewer != null)
       {
@@ -347,9 +375,10 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
       if (_api != null)
       {
         string imageId = _api.GetImageID(viewerId);
-        Viewer.Add(viewerId, imageId);
+        double overLayDrawDistance = _constants.OverlayDrawDistance;
+        _viewerList.Add(viewerId, imageId, overLayDrawDistance);
         _api.SetActiveViewerReplaceMode(true);
-        int nrImages = Viewer.ImageIds.Count;
+        int nrImages = _viewerList.Count;
         _api.SetViewerWindowBorderVisible(nrImages >= 2);
       }
     }
@@ -358,18 +387,17 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     {
       if (_api != null)
       {
-        Viewer viewer = Viewer.Get(viewerId);
+        Viewer viewer = _viewerList.Get(viewerId);
         bool hasMarker = viewer.HasMarker;
 
-        Viewer.Delete(viewerId);
-        List<string> imageIds = Viewer.ImageIds;
-        int nrImages = imageIds.Count;
+        _viewerList.Delete(viewerId);
+        int nrImages = _viewerList.Count;
         _api.SetViewerWindowBorderVisible(nrImages >= 2);
         uint? nrviewers = _api?.GetViewerCount();
 
         if (hasMarker)
         {
-          List<Viewer> markerViewers = Viewer.MarkerViewers;
+          List<Viewer> markerViewers = _viewerList.MarkerViewers;
 
           if ((markerViewers.Count == 0) && (_crossCheck != null))
           {
@@ -390,7 +418,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     public async void OnViewerActive(uint viewerId)
     {
       await MoveToLocationAsync(viewerId);
-      Viewer viewer = Viewer.Get(viewerId);
+      Viewer viewer = _viewerList.Get(viewerId);
 
       if (viewer != null)
       {
@@ -400,12 +428,27 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
     public async void OnViewerInactive(uint viewerId)
     {
-      Viewer viewer = Viewer.Get(viewerId);
+      Viewer viewer = _viewerList.Get(viewerId);
 
       if (viewer != null)
       {
         await viewer.SetActiveAsync(false);
       }
+    }
+
+    public async void OnImageDistanceSliderChanged(uint viewerId, double distance)
+    {
+      double e = 0.0;
+
+      if (Math.Abs(distance - _constants.OverlayDrawDistance) > e)
+      {
+        _constants.OverlayDrawDistance = distance;
+        _constants.Save();
+      }
+
+      Viewer viewer = _viewerList.Get(viewerId);
+      viewer.OverlayDrawDistance = distance;
+      await UpdateVectorLayerAsync();
     }
 
     public void OnMaxViewers()
@@ -670,6 +713,36 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
       }
     }
 
+    private async void OnVectorLayerPropertyChanged(object sender, PropertyChangedEventArgs args)
+    {
+      if (GlobeSpotterConfiguration.AddLayerWfs)
+      {
+        VectorLayer vectorLayer = sender as VectorLayer;
+
+        if (vectorLayer?.IsVisibleInGlobespotter ?? false)
+        {
+          switch (args.PropertyName)
+          {
+            case "IsVisibleInGlobespotter":
+              await vectorLayer.GetGmlFromLocationAsync(_viewerList.Viewers);
+              break;
+            case "Gml":
+              if ((vectorLayer.LayerId == null) || vectorLayer.GmlChanged)
+              {
+                RemoveVectorLayer(vectorLayer);
+                AddVectorLayer(vectorLayer);
+              }
+
+              break;
+          }
+        }
+        else
+        {
+          RemoveVectorLayer(vectorLayer);
+        }
+      }
+    }
+
     #endregion
 
     #region Functions
@@ -783,7 +856,28 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
         CycloMediaGroupLayer groupLayer = moduleGlobeSpotter.CycloMediaGroupLayer;
         groupLayer.PropertyChanged -= OnGroupLayerPropertyChanged;
 
-        Viewer.Clear();
+        VectorLayerList vectorLayerList = moduleGlobeSpotter.VectorLayerList;
+        vectorLayerList.LayerAdded -= OnAddVectorLayer;
+        vectorLayerList.LayerRemoved -= OnRemoveVectorLayer;
+        vectorLayerList.LayerUpdated -= OnUpdatedVectorLayer;
+
+        foreach (var vectorLayer in vectorLayerList)
+        {
+          vectorLayer.PropertyChanged -= OnVectorLayerPropertyChanged;
+        }
+
+        foreach (var vectorLayer in vectorLayerList)
+        {
+          uint? vectorLayerId = vectorLayer.LayerId;
+
+          if (vectorLayerId != null)
+          {
+            _api?.RemoveLayer((uint) vectorLayerId);
+            vectorLayer.LayerId = null;
+          }
+        }
+
+        _viewerList.RemoveViewers();
 
         if ((_api != null) && (_api.GetAPIReadyState()))
         {
@@ -849,6 +943,102 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
             });
           }
         }
+      }
+    }
+
+    #endregion
+
+    #region Vector layer events
+
+    private async void OnUpdatedVectorLayer()
+    {
+      if (GlobeSpotterConfiguration.AddLayerWfs)
+      {
+        await UpdateVectorLayerAsync();
+      }
+    }
+
+    private async void OnAddVectorLayer(VectorLayer vectorLayer)
+    {
+      if (GlobeSpotterConfiguration.AddLayerWfs)
+      {
+        vectorLayer.PropertyChanged += OnVectorLayerPropertyChanged;
+
+        if (vectorLayer.IsVisibleInGlobespotter)
+        {
+          await vectorLayer.GetGmlFromLocationAsync(_viewerList.Viewers);
+        }
+        else
+        {
+          RemoveVectorLayer(vectorLayer);
+        }
+      }
+    }
+
+    private void OnRemoveVectorLayer(VectorLayer vectorLayer)
+    {
+      if (GlobeSpotterConfiguration.AddLayerWfs)
+      {
+        vectorLayer.PropertyChanged -= OnVectorLayerPropertyChanged;
+        RemoveVectorLayer(vectorLayer);
+      }
+    }
+
+    #endregion
+
+    #region vector layer functions
+
+    private async Task UpdateVectorLayerAsync()
+    {
+      ModuleGlobeSpotter globeSpotterModule = ModuleGlobeSpotter.Current;
+      VectorLayerList vectorLayerList = globeSpotterModule.VectorLayerList;
+
+      // ReSharper disable once ForCanBeConvertedToForeach
+      for(int i = 0; i < vectorLayerList.Count; i++)
+      {
+        VectorLayer vectorLayer = vectorLayerList[i];
+
+        if (vectorLayer.IsVisibleInGlobespotter)
+        {
+          await vectorLayer.GetGmlFromLocationAsync(_viewerList.Viewers);
+        }
+        else
+        {
+          RemoveVectorLayer(vectorLayer);
+        }
+      }
+    }
+
+    private void AddVectorLayer(VectorLayer vectorLayer)
+    {
+      try
+      {
+        int minZoomLevel = _constants.MinVectorLayerZoomLevel;
+
+        MySpatialReference cyclSpatRel = _settings.CycloramaViewerCoordinateSystem;
+        string srsName = cyclSpatRel.SRSName;
+
+        string layerName = vectorLayer.Name;
+        string gml = vectorLayer.Gml;
+        Color color = vectorLayer.Color;
+
+        uint? layerId = _api?.AddGMLLayer(layerName, gml, srsName, color, true, false, minZoomLevel);
+        vectorLayer.LayerId = layerId;
+      }
+      catch
+      {
+        // ignored
+      }
+    }
+
+    private void RemoveVectorLayer(VectorLayer vectorLayer)
+    {
+      uint? layerId = vectorLayer?.LayerId;
+
+      if (layerId != null)
+      {
+        _api?.RemoveLayer((uint) layerId);
+        vectorLayer.LayerId = null;
       }
     }
 

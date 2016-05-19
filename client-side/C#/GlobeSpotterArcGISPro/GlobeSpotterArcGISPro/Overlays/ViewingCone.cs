@@ -108,7 +108,7 @@ namespace GlobeSpotterArcGISPro.Overlays
       await RedrawConeAsync();
     }
 
-    protected void Dispose()
+    public void Dispose()
     {
       _disposePolygon?.Dispose();
       _disposePolyLine?.Dispose();

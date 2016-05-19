@@ -231,9 +231,9 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
     private async void CreateExistsInAreaSpatialReferences()
     {
       _existsInAreaSpatialReferences = new List<SpatialReference>();
-      SpatialReferences spatialReferences = SpatialReferences.Instance;
+      SpatialReferenceList spatialReferenceList = SpatialReferenceList.Instance;
 
-      foreach (var spatialReference in spatialReferences)
+      foreach (var spatialReference in spatialReferenceList)
       {
         bool exists = await spatialReference.ExistsInAreaAsync();
 

@@ -125,7 +125,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       }
 
       MapMemberPropertiesChangedEvent.Subscribe(OnMapMemberPropertiesChanged);
-      OnMapMemberPropertiesChanged(null);
+      await CheckVisibilityLayersAsync();
     }
 
     public CycloMediaLayer GetLayer(Layer layer)
@@ -231,11 +231,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       return result;
     }
 
-    #endregion
-
-    #region Event handlers
-
-    private async void OnMapMemberPropertiesChanged(MapMemberPropertiesChangedEventArgs args)
+    private async Task CheckVisibilityLayersAsync()
     {
       if (!_updateVisibility)
       {
@@ -267,6 +263,15 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
 
         _updateVisibility = false;
       }
+    }
+
+    #endregion
+
+    #region Event handlers
+
+    private async void OnMapMemberPropertiesChanged(MapMemberPropertiesChangedEventArgs args)
+    {
+      await CheckVisibilityLayersAsync();
     }
 
     private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)

@@ -39,8 +39,9 @@ using ArcGIS.Desktop.Mapping.Events;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 using GlobeSpotterArcGISPro.Utilities;
+
 using MySpatialReference = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReference;
-using MySpatialReferences = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReferences;
+using MySpatialReferenceList = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReferenceList;
 using RecordingPoint = GlobeSpotterArcGISPro.Configuration.Remote.Recordings.Point;
 
 namespace GlobeSpotterArcGISPro.CycloMediaLayers
@@ -313,8 +314,8 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
     private async Task UpdateSpatialReferenceSettings()
     {
       SpatialReference spatialReference = await GetSpatialReferenceAsync();
-      MySpatialReferences mySpatialReferences = MySpatialReferences.Instance;
-      MySpatialReference mySpatialReference = mySpatialReferences.GetItem($"EPSG:{spatialReference.Wkid}");
+      MySpatialReferenceList mySpatialReferenceList = MySpatialReferenceList.Instance;
+      MySpatialReference mySpatialReference = mySpatialReferenceList.GetItem($"EPSG:{spatialReference.Wkid}");
       Settings settings = Settings.Instance;
       settings.RecordingLayerCoordinateSystem = mySpatialReference;
       settings.Save();

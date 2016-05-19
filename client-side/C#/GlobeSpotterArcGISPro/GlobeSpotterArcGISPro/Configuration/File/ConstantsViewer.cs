@@ -53,7 +53,12 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     /// <summary>
     /// Overlay draw distance
     /// </summary>
-    public int OverlayDrawDistance { get; set; }
+    public double OverlayDrawDistance { get; set; }
+
+    /// <summary>
+    /// Min vectorlayer zoomlevel
+    /// </summary>
+    public int MinVectorLayerZoomLevel { get; set; }
 
     /// <summary>
     /// Address language code
@@ -107,8 +112,9 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     {
       var result = new ConstantsViewer
       {
+        MinVectorLayerZoomLevel = 7,
         MaxViewers = 4,
-        OverlayDrawDistance = 30,
+        OverlayDrawDistance = 30.0,
         AddressLanguageCode = "nl",
         CrossCheckSize = 10.0
       };

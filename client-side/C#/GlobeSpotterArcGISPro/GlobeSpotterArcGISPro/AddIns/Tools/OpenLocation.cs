@@ -190,18 +190,21 @@ namespace GlobeSpotterArcGISPro.AddIns.Tools
             }
             else
             {
-              foreach (var feature in  features)
+              foreach (var feature in features)
               {
                 Layer layer = feature.Key;
                 CycloMediaLayer cycloMediaLayer = groupLayer.GetLayer(layer);
 
-                foreach (long uid in feature.Value)
+                if (cycloMediaLayer != null)
                 {
-                  Recording recording = cycloMediaLayer.GetRecordingAsync(uid).Result;
-
-                  if ((recording.IsAuthorized == null) || ((bool) recording.IsAuthorized))
+                  foreach (long uid in feature.Value)
                   {
-                    _location = recording.ImageId;
+                    Recording recording = cycloMediaLayer.GetRecordingAsync(uid).Result;
+
+                    if ((recording.IsAuthorized == null) || ((bool) recording.IsAuthorized))
+                    {
+                      _location = recording.ImageId;
+                    }
                   }
                 }
               }

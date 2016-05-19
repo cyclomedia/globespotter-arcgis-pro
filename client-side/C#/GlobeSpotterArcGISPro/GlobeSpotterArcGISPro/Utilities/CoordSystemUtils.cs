@@ -24,7 +24,7 @@ using ArcGIS.Desktop.Mapping;
 using GlobeSpotterArcGISPro.Configuration.File;
 
 using MySpatialReference = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReference;
-using MySpatialReferences = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReferences;
+using MySpatialReferenceList = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReferenceList;
 
 namespace GlobeSpotterArcGISPro.Utilities
 {
@@ -97,7 +97,7 @@ namespace GlobeSpotterArcGISPro.Utilities
 
       if (spatialReference?.ArcGisSpatialReference == null)
       {
-        MySpatialReferences spatialReferences = MySpatialReferences.Instance;
+        MySpatialReferenceList spatialReferences = MySpatialReferenceList.Instance;
         spatialReference = spatialReferences.GetItem(epsgCode);
 
         if (spatialReference == null)

@@ -71,10 +71,10 @@ namespace GlobeSpotterArcGISPro.Configuration.File
         if (value != null)
         {
           bool changed = (value != _recordingLayerCoordinateSystem);
-          SpatialReferences spatialReferences = SpatialReferences.Instance;
+          SpatialReferenceList spatialReferenceList = SpatialReferenceList.Instance;
           _recordingLayerCoordinateSystem = value;
 
-          foreach (var spatialReference in spatialReferences)
+          foreach (var spatialReference in spatialReferenceList)
           {
             if (spatialReference.SRSName == value.SRSName)
             {
@@ -101,10 +101,10 @@ namespace GlobeSpotterArcGISPro.Configuration.File
         if (value != null)
         {
           bool changed = (value != _cycloramaViewerCoordinateSystem);
-          SpatialReferences spatialReferences = SpatialReferences.Instance;
+          SpatialReferenceList spatialReferenceList = SpatialReferenceList.Instance;
           _cycloramaViewerCoordinateSystem = value;
 
-          foreach (var spatialReference in spatialReferences)
+          foreach (var spatialReference in spatialReferenceList)
           {
             if (spatialReference.SRSName == value.SRSName)
             {
