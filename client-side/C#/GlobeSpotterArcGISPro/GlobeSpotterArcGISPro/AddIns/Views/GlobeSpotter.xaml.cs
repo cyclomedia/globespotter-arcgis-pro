@@ -368,6 +368,16 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
     public void OnFeatureClicked(Dictionary<string, string> feature)
     {
+      MapView mapView = MapView.Active;
+      Map map = mapView?.Map;
+
+      string uri = feature[VectorLayer.FieldUri];
+      FeatureLayer layer = map?.FindLayer(uri) as FeatureLayer;
+
+      string objectIdStr = feature[VectorLayer.FieldObjectId];
+      long objectId = long.Parse(objectIdStr);
+      mapView?.FlashFeature(layer, objectId);
+      mapView?.ShowPopup(layer, objectId);
     }
 
     public void OnViewerAdded(uint viewerId)

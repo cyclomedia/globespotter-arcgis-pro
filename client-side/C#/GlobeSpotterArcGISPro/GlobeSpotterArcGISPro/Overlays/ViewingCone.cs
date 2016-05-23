@@ -159,12 +159,8 @@ namespace GlobeSpotterArcGISPro.Overlays
           Map map = thisView.Map;
           SpatialReference mapSpat = map.SpatialReference;
           SpatialReference mapPointSpat = _mapPoint.SpatialReference;
-
-          if (mapPointSpat.Wkid != mapSpat.Wkid)
-          {
-            ProjectionTransformation projection = ProjectionTransformation.Create(mapPointSpat, mapSpat);
-            _mapPoint = GeometryEngine.ProjectEx(_mapPoint, projection) as MapPoint;
-          }
+          ProjectionTransformation projection = ProjectionTransformation.Create(mapPointSpat, mapSpat);
+          _mapPoint = GeometryEngine.ProjectEx(_mapPoint, projection) as MapPoint;
 
           WinPoint point = thisView.MapToScreen(_mapPoint);
           double angleh = (_hFov*Math.PI)/360;

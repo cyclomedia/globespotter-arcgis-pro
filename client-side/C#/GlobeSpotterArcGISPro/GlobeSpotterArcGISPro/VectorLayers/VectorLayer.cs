@@ -39,7 +39,14 @@ namespace GlobeSpotterArcGISPro.VectorLayers
 {
   public class VectorLayer : INotifyPropertyChanged
   {
-    #region events
+    #region Consts
+
+    public const string FieldUri = "URI";
+    public const string FieldObjectId = "ObjectId";
+
+    #endregion
+
+    #region Events
 
     public event PropertyChangedEventHandler PropertyChanged;
 
@@ -135,56 +142,59 @@ namespace GlobeSpotterArcGISPro.VectorLayers
         foreach (var viewer in viewers)
         {
           double distance = viewer.OverlayDrawDistance;
-
-          if (cyclSpatRef?.IsGeographic ?? true)
-          {
-            distance = distance * factor;
-          }
-          else
-          {
-            distance = distance / factor;
-          }
-
           RecordingLocation recordingLocation = viewer.Location;
-          double x = recordingLocation.X;
-          double y = recordingLocation.Y;
-          double xMin = x - distance;
-          double xMax = x + distance;
-          double yMin = y - distance;
-          double yMax = y + distance;
 
-          Envelope envelope = EnvelopeBuilder.CreateEnvelope(xMin, yMin, xMax, yMax, cyclSpatRef);
-          Envelope copyEnvelope = envelope;
-
-          if (layerSpatRef.Wkid != 0)
+          if (recordingLocation != null)
           {
-            ProjectionTransformation projection = ProjectionTransformation.Create(cyclSpatRef, layerSpatRef);
-            copyEnvelope = GeometryEngine.ProjectEx(envelope, projection) as Envelope;
-          }
-
-          Polygon copyPolygon = PolygonBuilder.CreatePolygon(copyEnvelope, layerSpatRef);
-          ReadOnlyPartCollection polygonParts = copyPolygon.Parts;
-          IEnumerator<ReadOnlySegmentCollection> polygonSegments = polygonParts.GetEnumerator();
-          IList<Segment> segments = new List<Segment>();
-
-          while (polygonSegments.MoveNext())
-          {
-            ReadOnlySegmentCollection polygonSegment = polygonSegments.Current;
-
-            foreach (Segment segment in polygonSegment)
+            if (cyclSpatRef?.IsGeographic ?? true)
             {
-              segments.Add(segment);
+              distance = distance*factor;
             }
-          }
+            else
+            {
+              distance = distance/factor;
+            }
 
-          geometries.Add(segments);
+            double x = recordingLocation.X;
+            double y = recordingLocation.Y;
+            double xMin = x - distance;
+            double xMax = x + distance;
+            double yMin = y - distance;
+            double yMax = y + distance;
+
+            Envelope envelope = EnvelopeBuilder.CreateEnvelope(xMin, yMin, xMax, yMax, cyclSpatRef);
+            Envelope copyEnvelope = envelope;
+
+            if (layerSpatRef.Wkid != 0)
+            {
+              ProjectionTransformation projection = ProjectionTransformation.Create(cyclSpatRef, layerSpatRef);
+              copyEnvelope = GeometryEngine.ProjectEx(envelope, projection) as Envelope;
+            }
+
+            Polygon copyPolygon = PolygonBuilder.CreatePolygon(copyEnvelope, layerSpatRef);
+            ReadOnlyPartCollection polygonParts = copyPolygon.Parts;
+            IEnumerator<ReadOnlySegmentCollection> polygonSegments = polygonParts.GetEnumerator();
+            IList<Segment> segments = new List<Segment>();
+
+            while (polygonSegments.MoveNext())
+            {
+              ReadOnlySegmentCollection polygonSegment = polygonSegments.Current;
+
+              foreach (Segment segment in polygonSegment)
+              {
+                segments.Add(segment);
+              }
+            }
+
+            geometries.Add(segments);
+          }
         }
 
         Polygon polygon = PolygonBuilder.CreatePolygon(geometries, layerSpatRef);
 
         using (FeatureClass featureClass = Layer?.GetFeatureClass())
         {
-          string featureName = featureClass?.GetName();
+          string uri = Layer?.URI;
 
           SpatialQueryFilter spatialFilter = new SpatialQueryFilter
           {
@@ -202,25 +212,12 @@ namespace GlobeSpotterArcGISPro.VectorLayers
 
               if (!EditFeatures.Contains(feature))
               {
-                IReadOnlyList<Field> fields = row.GetFields();
-                var fieldvalues = new Dictionary<string, string> { { "FEATURECLASSNAME", featureName } };
-
-                foreach (Field field in fields)
-                {
-                  string name = field.Name;
-                  int id = row.FindField(name);
-                  string value = row.GetOriginalValue(id).ToString();
-                  fieldvalues.Add(name, value);
-                }
+                long objectId = row.GetObjectID();
+                var fieldvalues = new Dictionary<string, string> {{FieldUri, uri}, {FieldObjectId, objectId.ToString()}};
 
                 Geometry geometry = feature?.GetShape();
                 GeometryType geometryType = geometry?.GeometryType ?? GeometryType.Unknown;
                 Geometry copyGeometry = geometry;
-
-                if (!fieldvalues.ContainsKey("SHAPE"))
-                {
-                  fieldvalues.Add("SHAPE", geometryType.ToString());
-                }
 
                 if ((geometry != null) && (layerSpatRef.Wkid != 0))
                 {
@@ -322,8 +319,6 @@ namespace GlobeSpotterArcGISPro.VectorLayers
                     case GeometryType.Unknown:
                       break;
                   }
-
-                  // todo: Create the correct gml
 
                   string fieldValueStr = fieldvalues.Aggregate(string.Empty,
                     (current, fieldvalue) =>
