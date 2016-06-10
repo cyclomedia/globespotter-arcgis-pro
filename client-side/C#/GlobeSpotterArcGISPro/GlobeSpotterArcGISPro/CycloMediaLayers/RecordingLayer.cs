@@ -306,12 +306,6 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       YearForbidden.Clear();
     }
 
-    public override double GetHeight(double x, double y)
-    {
-      // toDo: Add this function
-      return 0.0;
-    }
-
     #endregion
 
     #region Constructors

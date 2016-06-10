@@ -30,14 +30,26 @@ namespace GlobeSpotterArcGISPro.Utilities
 {
   class CoordSystemUtils
   {
-    public static async Task<MapPoint> CycloramaToMapPointAsync(double x, double y, double z)
+    public static async Task<SpatialReference> CycloramaSpatialReferenceAsync()
     {
       Settings settings = Settings.Instance;
-      MySpatialReference spatRel = settings.CycloramaViewerCoordinateSystem;
-      SpatialReference mapSpatialReference = MapView.Active?.Map.SpatialReference;
-      SpatialReference gsSpatialReference = (spatRel == null)
+      MySpatialReference gsSpatRel = settings.CycloramaViewerCoordinateSystem;
+
+      MapView mapView = MapView.Active;
+      Map map = mapView?.Map;
+      SpatialReference mapSpatialReference = map?.SpatialReference;
+      SpatialReference gsSpatialReference = (gsSpatRel == null)
         ? mapSpatialReference
-        : (spatRel.ArcGisSpatialReference ?? (await spatRel.CreateArcGisSpatialReferenceAsync()));
+        : (gsSpatRel.ArcGisSpatialReference ?? (await gsSpatRel.CreateArcGisSpatialReferenceAsync()));
+      return gsSpatialReference;
+    }
+
+    public static async Task<MapPoint> CycloramaToMapPointAsync(double x, double y, double z)
+    {
+      MapView mapView = MapView.Active;
+      Map map = mapView?.Map;
+      SpatialReference mapSpatialReference = map?.SpatialReference;
+      SpatialReference gsSpatialReference = await CycloramaSpatialReferenceAsync();
       MapPoint point = null;
 
       await QueuedTask.Run(() =>
@@ -52,7 +64,7 @@ namespace GlobeSpotterArcGISPro.Utilities
         }
         else
         {
-          point = (MapPoint)mapPoint.Clone();
+          point = (MapPoint) mapPoint.Clone();
         }
       });
 
@@ -98,14 +110,10 @@ namespace GlobeSpotterArcGISPro.Utilities
       if (spatialReference?.ArcGisSpatialReference == null)
       {
         MySpatialReferenceList spatialReferences = MySpatialReferenceList.Instance;
-        spatialReference = spatialReferences.GetItem(epsgCode);
-
-        if (spatialReference == null)
-        {
-          spatialReference = spatialReferences.Aggregate<MySpatialReference, MySpatialReference>(null,
-            (current, spatialReferenceComp) =>
-              (spatialReferenceComp.ArcGisSpatialReference != null) ? spatialReferenceComp : current);
-        }
+        spatialReference = spatialReferences.GetItem(epsgCode) ??
+                           (spatialReferences.Aggregate<MySpatialReference, MySpatialReference>(null,
+                             (current, spatialReferenceComp) =>
+                               (spatialReferenceComp.ArcGisSpatialReference != null) ? spatialReferenceComp : current));
 
         if (spatialReference != null)
         {

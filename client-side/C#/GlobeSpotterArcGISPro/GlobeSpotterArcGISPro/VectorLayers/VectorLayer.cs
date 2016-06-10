@@ -16,6 +16,7 @@
  * License along with this library.
  */
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -26,18 +27,23 @@ using System.Threading.Tasks;
 using ArcGIS.Core.CIM;
 using ArcGIS.Core.Data;
 using ArcGIS.Core.Geometry;
+using ArcGIS.Desktop.Editing.Events;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
+using ArcGIS.Desktop.Mapping.Events;
 using GlobeSpotterAPI;
+
+using GlobeSpotterArcGISPro.AddIns.Modules;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.File.Layers;
+using GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter;
 using GlobeSpotterArcGISPro.Overlays;
-
+using GlobeSpotterArcGISPro.Overlays.Measurement;
 using MySpatialReference = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReference;
 
 namespace GlobeSpotterArcGISPro.VectorLayers
 {
-  public class VectorLayer : INotifyPropertyChanged
+  public class VectorLayer : INotifyPropertyChanged, IDisposable
   {
     #region Consts
 
@@ -56,10 +62,14 @@ namespace GlobeSpotterArcGISPro.VectorLayers
 
     private readonly Settings _settings;
     private readonly StoredLayerList _storedLayerList;
+    private readonly ViewerList _viewerList;
+    private readonly MeasurementList _measurementList;
+    private readonly CultureInfo _ci;
 
     private bool _isVisibleInGlobespotter;
     private string _gml;
-    private IList<Feature> _editFeatures;
+    private IList<long> _selection;
+    private List<Measurement> _measurements;
 
     #endregion
 
@@ -72,6 +82,23 @@ namespace GlobeSpotterArcGISPro.VectorLayers
       _storedLayerList = StoredLayerList.Instance;
       _isVisibleInGlobespotter = _storedLayerList.Get(Layer?.Name ?? string.Empty);
       LayerId = null;
+      _selection = null;
+
+      GlobeSpotter globeSpotter = GlobeSpotter.Current;
+      _viewerList = globeSpotter.ViewerList;
+      _measurementList = globeSpotter.MeasurementList;
+      _ci = CultureInfo.InvariantCulture;
+
+      MapSelectionChangedEvent.Subscribe(OnMapSelectionChanged);
+      DrawCompleteEvent.Subscribe(OnDrawCompleted);
+
+      QueuedTask.Run(async () =>
+      {
+        var table = layer.GetTable();
+        RowChangedEvent.Subscribe(OnRowChanged, table);
+        RowDeletedEvent.Subscribe(OnRowDeleted, table);
+        await LoadMeasurementsAsync();
+      });
     }
 
     #endregion
@@ -96,8 +123,6 @@ namespace GlobeSpotterArcGISPro.VectorLayers
 
     public bool GmlChanged { get; private set; }
 
-    public IList<Feature> EditFeatures => _editFeatures ?? (_editFeatures = new List<Feature>());
-
     public string Name => (Layer?.Name ?? string.Empty);
 
     public bool IsVisible => (Layer != null) && Layer.IsVisible;
@@ -113,11 +138,21 @@ namespace GlobeSpotterArcGISPro.VectorLayers
       }
     }
 
+    public List<Measurement> Measurements
+    {
+      get { return _measurements; }
+      set
+      {
+        _measurements = value;
+        NotifyPropertyChanged();
+      }
+    }
+
     #endregion
 
     #region Functions
 
-    public async Task<string> GetGmlFromLocationAsync(ICollection<Viewer> viewers)
+    public async Task<string> GenerateGmlAsync()
     {
       MapView mapView = MapView.Active;
       Map map = mapView?.Map;
@@ -134,10 +169,11 @@ namespace GlobeSpotterArcGISPro.VectorLayers
       string result =
         "<wfs:FeatureCollection xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:wfs=\"http://www.opengis.net/wfs\" xmlns:gml=\"http://www.opengis.net/gml\">";
 
-      await QueuedTask.Run(() =>
+      await QueuedTask.Run(async () =>
       {
         SpatialReference layerSpatRef = Layer.GetSpatialReference();
         IList<IList<Segment>> geometries = new List<IList<Segment>>();
+        ICollection<Viewer> viewers = _viewerList.Viewers;
 
         foreach (var viewer in viewers)
         {
@@ -190,6 +226,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
           }
         }
 
+        GC.Collect();
         Polygon polygon = PolygonBuilder.CreatePolygon(geometries, layerSpatRef);
 
         using (FeatureClass featureClass = Layer?.GetFeatureClass())
@@ -208,11 +245,11 @@ namespace GlobeSpotterArcGISPro.VectorLayers
             while (existsResult?.MoveNext() ?? false)
             {
               Row row = existsResult.Current;
-              Feature feature = row as Feature;
+              long objectId = row.GetObjectID();
 
-              if (!EditFeatures.Contains(feature))
+              if ((_selection == null) || (!_selection.Contains(objectId)))
               {
-                long objectId = row.GetObjectID();
+                Feature feature = row as Feature;
                 var fieldvalues = new Dictionary<string, string> {{FieldUri, uri}, {FieldObjectId, objectId.ToString()}};
 
                 Geometry geometry = feature?.GetShape();
@@ -243,7 +280,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
                       if (point != null)
                       {
                         gml =
-                          $"<gml:Point {GmlDimension(copyGeometry)}><gml:coordinates>{GmlPoint(point)}</gml:coordinates></gml:Point>";
+                          $"<gml:Point {GmlDimension(copyGeometry)}><gml:coordinates>{await GmlPointAsync(point)}</gml:coordinates></gml:Point>";
                       }
 
                       break;
@@ -267,12 +304,12 @@ namespace GlobeSpotterArcGISPro.VectorLayers
                             if (segments[i].SegmentType == SegmentType.Line)
                             {
                               MapPoint polygonPoint = segments[i].StartPoint;
-                              gml = $"{gml}{((i == 0) ? string.Empty : " ")}{GmlPoint(polygonPoint)}";
+                              gml = $"{gml}{((i == 0) ? string.Empty : " ")}{await GmlPointAsync(polygonPoint)}";
 
                               if (i == (segments.Count - 1))
                               {
                                 polygonPoint = segments[i].EndPoint;
-                                gml = $"{gml} {GmlPoint(polygonPoint)}";
+                                gml = $"{gml} {await GmlPointAsync(polygonPoint)}";
                               }
                             }
                           }
@@ -301,12 +338,12 @@ namespace GlobeSpotterArcGISPro.VectorLayers
                             if (segments[i].SegmentType == SegmentType.Line)
                             {
                               MapPoint linePoint = segments[i].StartPoint;
-                              gml = $"{gml}{((i == 0) ? string.Empty : " ")}{GmlPoint(linePoint)}";
+                              gml = $"{gml}{((i == 0) ? string.Empty : " ")}{await GmlPointAsync(linePoint)}";
 
                               if (i == (segments.Count - 1))
                               {
                                 linePoint = segments[i].EndPoint;
-                                gml = $"{gml} {GmlPoint(linePoint)}";
+                                gml = $"{gml} {await GmlPointAsync(linePoint)}";
                               }
                             }
                           }
@@ -353,10 +390,22 @@ namespace GlobeSpotterArcGISPro.VectorLayers
       return (Gml = newGml);
     }
 
-    private string GmlPoint(MapPoint point)
+    public async Task<double> GetOffsetZAsync()
     {
-      CultureInfo ci = CultureInfo.InvariantCulture;
-      return $"{point.X.ToString(ci)},{point.Y.ToString(ci)}{(point.HasZ ? $",{point.Z.ToString(ci)}" : string.Empty)}";
+      return await QueuedTask.Run(() =>
+      {
+        CIMBaseLayer cimBaseLayer = Layer?.GetDefinition();
+        CIMBasicFeatureLayer cimBasicFeatureLayer = cimBaseLayer as CIMBasicFeatureLayer;
+        CIMLayerElevationSurface layerElevation = cimBasicFeatureLayer?.LayerElevation;
+        return (layerElevation?.OffsetZ ?? 0.0);
+      });
+    }
+
+    private async Task<string> GmlPointAsync(MapPoint point)
+    {
+      bool hasZ = point.HasZ;
+      double z = hasZ ? (point.Z + (await GetOffsetZAsync())) : 0.0;
+      return $"{point.X.ToString(_ci)},{point.Y.ToString(_ci)}{(hasZ ? $",{z.ToString(_ci)}" : string.Empty)}";
     }
 
     private string GmlDimension(Geometry geometry)
@@ -364,9 +413,168 @@ namespace GlobeSpotterArcGISPro.VectorLayers
       return $"srsDimension = \"{(geometry.HasZ ? 3 : 2)}\"";
     }
 
+    public async Task LoadMeasurementsAsync()
+    {
+      await ReloadSelectionAsync();
+
+      if (_measurementList.Count >= 1)
+      {
+        _selection = new List<long>();
+      }
+
+      foreach (KeyValuePair<int, Measurement> keyValue in _measurementList)
+      {
+        Measurement measurement = keyValue.Value;
+        long? objectId = measurement?.ObjectId;
+
+        if (objectId != null)
+        {
+          _selection.Add((long)objectId);
+        }
+      }
+    }
+
     protected void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
     {
       PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    #endregion
+
+    #region Edit events
+
+    protected async void OnMapSelectionChanged(MapSelectionChangedEventArgs args)
+    {
+      bool contains = false;
+
+      foreach (var selection in args.Selection)
+      {
+        MapMember mapMember = selection.Key;
+        Layer layer = mapMember as Layer;
+
+        if (layer == Layer)
+        {
+          _selection = selection.Value;
+          contains = true;
+          await GenerateGmlAsync();
+
+          if (IsVisibleInGlobespotter)
+          {
+            Measurements = await ReloadSelectionAsync();
+          }
+        }
+      }
+
+      if ((!contains) && (_selection != null))
+      {
+        Measurements = null;
+        _selection = null;
+        await GenerateGmlAsync();
+      }
+    }
+
+    private async Task<List<Measurement>> ReloadSelectionAsync()
+    {
+      List<Measurement> result = new List<Measurement>();
+
+      await QueuedTask.Run(async () =>
+      {
+        Selection selectionFeatures = Layer?.GetSelection();
+
+        using (RowCursor rowCursur = selectionFeatures?.Search())
+        {
+          while (rowCursur?.MoveNext() ?? false)
+          {
+            Row row = rowCursur.Current;
+            Feature feature = row as Feature;
+            Geometry geometry = feature?.GetShape();
+            long objectId = feature?.GetObjectID() ?? -1;
+
+            if ((geometry != null) && (objectId != -1))
+            {
+              Measurement measurement = _measurementList.Get(objectId);
+              _measurementList.DrawPoint = false;
+              measurement = _measurementList.StartMeasurement(geometry, measurement, false, objectId, this);
+              _measurementList.DrawPoint = true;
+
+              if (measurement != null)
+              {
+                await measurement.UpdateMeasurementPointsAsync(geometry);
+                measurement.CloseMeasurement();
+                result.Add(measurement);
+              }
+            }
+          }
+        }
+      });
+
+      return result;
+    }
+
+    protected async void OnRowChanged(RowChangedEventArgs args)
+    {
+      if (IsVisibleInGlobespotter)
+      {
+        await QueuedTask.Run(async () =>
+        {
+          Row row = args.Row;
+          Feature feature = row as Feature;
+          Geometry geometry = feature?.GetShape();
+          long objectId = feature?.GetObjectID() ?? -1;
+          Measurement measurement = _measurementList.Get(objectId);
+          _measurementList.DrawPoint = false;
+          measurement = _measurementList.StartMeasurement(geometry, measurement, false, objectId, this);
+          _measurementList.DrawPoint = true;
+
+          if (measurement != null)
+          {
+            await measurement.UpdateMeasurementPointsAsync(geometry);
+            measurement.CloseMeasurement();
+          }
+        });
+      }
+    }
+
+    protected async void OnRowDeleted(RowChangedEventArgs args)
+    {
+      await QueuedTask.Run(() =>
+      {
+        Row row = args.Row;
+        Feature feature = row as Feature;
+        long objectId = feature?.GetObjectID() ?? -1;
+
+        if (_selection.Contains(objectId))
+        {
+          _selection.Remove(objectId);
+        }
+
+        if (IsVisibleInGlobespotter && GlobeSpotterConfiguration.MeasurePermissions)
+        {
+          Measurement measurement = _measurementList.Get(objectId);
+          measurement?.RemoveMeasurement();
+        }
+      });
+    }
+
+    protected async void OnDrawCompleted(MapViewEventArgs args)
+    {
+      MapView mapView = args.MapView;
+      Geometry sketchGeometry = await mapView.GetCurrentSketchAsync();
+
+      if (sketchGeometry == null)
+      {
+        await GenerateGmlAsync();
+      }
+    }
+
+    #endregion
+
+    #region Disposable
+
+    public void Dispose()
+    {
+      MapSelectionChangedEvent.Unsubscribe(OnMapSelectionChanged);
+      DrawCompleteEvent.Unsubscribe(OnDrawCompleted);
     }
 
     #endregion

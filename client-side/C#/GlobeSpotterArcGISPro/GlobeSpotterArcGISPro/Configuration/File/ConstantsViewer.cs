@@ -70,6 +70,21 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     /// </summary>
     public double CrossCheckSize { get; set; }
 
+    /// <summary>
+    /// Size of the measurement point
+    /// </summary>
+    public double MeasurementPointSize { get; set; }
+
+    /// <summary>
+    /// Size of the measurement font
+    /// </summary>
+    public double MeasurementFontSize { get; set; }
+
+    /// <summary>
+    /// MeasurementName
+    /// </summary>
+    public string MeasurementName { get; set; }
+
     public static ConstantsViewer Instance
     {
       get
@@ -116,7 +131,10 @@ namespace GlobeSpotterArcGISPro.Configuration.File
         MaxViewers = 4,
         OverlayDrawDistance = 30.0,
         AddressLanguageCode = "nl",
-        CrossCheckSize = 10.0
+        CrossCheckSize = 10.0,
+        MeasurementPointSize = 5.0,
+        MeasurementFontSize = 8.0,
+        MeasurementName = "my measurement"
       };
 
       result.Save();

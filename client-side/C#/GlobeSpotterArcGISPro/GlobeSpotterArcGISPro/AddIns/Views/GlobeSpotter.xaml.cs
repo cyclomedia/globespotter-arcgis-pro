@@ -33,6 +33,7 @@ using GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter;
 using GlobeSpotterArcGISPro.Configuration.Resource;
 using GlobeSpotterArcGISPro.CycloMediaLayers;
 using GlobeSpotterArcGISPro.Overlays;
+using GlobeSpotterArcGISPro.Overlays.Measurement;
 using GlobeSpotterArcGISPro.Utilities;
 using GlobeSpotterArcGISPro.VectorLayers;
 
@@ -62,6 +63,9 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     private readonly List<string> _openNearest;
     private readonly List<CycloMediaLayer> _layers;
     private readonly ViewerList _viewerList;
+    private readonly VectorLayerList _vectorLayerList;
+    private readonly MeasurementList _measurementList;
+    private readonly CycloMediaGroupLayer _cycloMediaGroupLayer;
 
     private API _api;
     private CrossCheck _crossCheck;
@@ -89,7 +93,12 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
       _crossCheck = null;
       _lastSpatialReference = null;
       _layers = new List<CycloMediaLayer>();
-      _viewerList = new ViewerList();
+
+      ModuleGlobeSpotter globeSpotterModule = ModuleGlobeSpotter.Current;
+      _viewerList = globeSpotterModule.ViewerList;
+      _vectorLayerList = globeSpotterModule.VectorLayerList;
+      _measurementList = globeSpotterModule.MeasurementList;
+      _cycloMediaGroupLayer = globeSpotterModule.CycloMediaGroupLayer;
       Initialize();
     }
 
@@ -141,6 +150,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
         _api.SetMultiWindowCount((uint) _settings.CtrlClickHashTag);
         _api.SetWindowSpread((uint) _settings.CtrlClickDelta);
+        _measurementList.Api = _api;
 
         if (GlobeSpotterConfiguration.AddLayerWfs)
         {
@@ -162,12 +172,9 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
         globeSpotter.PropertyChanged += OnGlobeSpotterPropertyChanged;
         _settings.PropertyChanged += OnSettingsPropertyChanged;
+        _cycloMediaGroupLayer.PropertyChanged += OnGroupLayerPropertyChanged;
 
-        ModuleGlobeSpotter moduleGlobeSpotter = ModuleGlobeSpotter.Current;
-        CycloMediaGroupLayer groupLayer = moduleGlobeSpotter.CycloMediaGroupLayer;
-        groupLayer.PropertyChanged += OnGroupLayerPropertyChanged;
-
-        foreach (CycloMediaLayer layer in groupLayer)
+        foreach (CycloMediaLayer layer in _cycloMediaGroupLayer)
         {
           if (!_layers.Contains(layer))
           {
@@ -186,15 +193,16 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
           await OpenImageAsync(false);
         }
 
-        VectorLayerList vectorLayerList = moduleGlobeSpotter.VectorLayerList;
-        vectorLayerList.LayerAdded += OnAddVectorLayer;
-        vectorLayerList.LayerRemoved += OnRemoveVectorLayer;
-        vectorLayerList.LayerUpdated += OnUpdatedVectorLayer;
+        _vectorLayerList.LayerAdded += OnAddVectorLayer;
+        _vectorLayerList.LayerRemoved += OnRemoveVectorLayer;
+        _vectorLayerList.LayerUpdated += OnUpdateVectorLayer;
 
-        foreach (var vectorLayer in vectorLayerList)
+        foreach (var vectorLayer in _vectorLayerList)
         {
           vectorLayer.PropertyChanged += OnVectorLayerPropertyChanged;
         }
+
+        await _vectorLayerList.LoadMeasurementsAsync();
       }
     }
 
@@ -734,7 +742,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
           switch (args.PropertyName)
           {
             case "IsVisibleInGlobespotter":
-              await vectorLayer.GetGmlFromLocationAsync(_viewerList.Viewers);
+              await vectorLayer.GenerateGmlAsync();
               break;
             case "Gml":
               if ((vectorLayer.LayerId == null) || vectorLayer.GmlChanged)
@@ -791,7 +799,8 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
         if (_api != null)
         {
           GlobeSpotterForm.Child.Controls.Add(_api.gui);
-          _api.Initialize(this);
+          ICollection<IAPIClient> apiClients = new List<IAPIClient> {this, _measurementList};
+          _api.Initialize(apiClients);
         }
       }
       else
@@ -858,25 +867,22 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     {
       if ((_api == null) || (_api.GetAPIReadyState()))
       {
+        _measurementList.Api = null;
         DockPaneGlobeSpotter globeSpotter = ((dynamic) DataContext);
         globeSpotter.PropertyChanged -= OnGlobeSpotterPropertyChanged;
         _settings.PropertyChanged -= OnSettingsPropertyChanged;
+        _cycloMediaGroupLayer.PropertyChanged -= OnGroupLayerPropertyChanged;
 
-        ModuleGlobeSpotter moduleGlobeSpotter = ModuleGlobeSpotter.Current;
-        CycloMediaGroupLayer groupLayer = moduleGlobeSpotter.CycloMediaGroupLayer;
-        groupLayer.PropertyChanged -= OnGroupLayerPropertyChanged;
+        _vectorLayerList.LayerAdded -= OnAddVectorLayer;
+        _vectorLayerList.LayerRemoved -= OnRemoveVectorLayer;
+        _vectorLayerList.LayerUpdated -= OnUpdateVectorLayer;
 
-        VectorLayerList vectorLayerList = moduleGlobeSpotter.VectorLayerList;
-        vectorLayerList.LayerAdded -= OnAddVectorLayer;
-        vectorLayerList.LayerRemoved -= OnRemoveVectorLayer;
-        vectorLayerList.LayerUpdated -= OnUpdatedVectorLayer;
-
-        foreach (var vectorLayer in vectorLayerList)
+        foreach (var vectorLayer in _vectorLayerList)
         {
           vectorLayer.PropertyChanged -= OnVectorLayerPropertyChanged;
         }
 
-        foreach (var vectorLayer in vectorLayerList)
+        foreach (var vectorLayer in _vectorLayerList)
         {
           uint? vectorLayerId = vectorLayer.LayerId;
 
@@ -960,7 +966,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
     #region Vector layer events
 
-    private async void OnUpdatedVectorLayer()
+    private async void OnUpdateVectorLayer()
     {
       if (GlobeSpotterConfiguration.AddLayerWfs)
       {
@@ -973,15 +979,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
       if (GlobeSpotterConfiguration.AddLayerWfs)
       {
         vectorLayer.PropertyChanged += OnVectorLayerPropertyChanged;
-
-        if (vectorLayer.IsVisibleInGlobespotter)
-        {
-          await vectorLayer.GetGmlFromLocationAsync(_viewerList.Viewers);
-        }
-        else
-        {
-          RemoveVectorLayer(vectorLayer);
-        }
+        await UpdateVectorLayerAsync(vectorLayer);
       }
     }
 
@@ -1000,45 +998,39 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
     private async Task UpdateVectorLayerAsync()
     {
-      ModuleGlobeSpotter globeSpotterModule = ModuleGlobeSpotter.Current;
-      VectorLayerList vectorLayerList = globeSpotterModule.VectorLayerList;
-
       // ReSharper disable once ForCanBeConvertedToForeach
-      for(int i = 0; i < vectorLayerList.Count; i++)
+      for(int i = 0; i < _vectorLayerList.Count; i++)
       {
-        VectorLayer vectorLayer = vectorLayerList[i];
+        VectorLayer vectorLayer = _vectorLayerList[i];
+        await UpdateVectorLayerAsync(vectorLayer);
+      }
+    }
 
-        if (vectorLayer.IsVisibleInGlobespotter)
-        {
-          await vectorLayer.GetGmlFromLocationAsync(_viewerList.Viewers);
-        }
-        else
-        {
-          RemoveVectorLayer(vectorLayer);
-        }
+    private async Task UpdateVectorLayerAsync(VectorLayer vectorLayer)
+    {
+      if (vectorLayer.IsVisibleInGlobespotter)
+      {
+        await vectorLayer.GenerateGmlAsync();
+      }
+      else
+      {
+        RemoveVectorLayer(vectorLayer);
       }
     }
 
     private void AddVectorLayer(VectorLayer vectorLayer)
     {
-      try
-      {
-        int minZoomLevel = _constants.MinVectorLayerZoomLevel;
+      int minZoomLevel = _constants.MinVectorLayerZoomLevel;
 
-        MySpatialReference cyclSpatRel = _settings.CycloramaViewerCoordinateSystem;
-        string srsName = cyclSpatRel.SRSName;
+      MySpatialReference cyclSpatRel = _settings.CycloramaViewerCoordinateSystem;
+      string srsName = cyclSpatRel.SRSName;
 
-        string layerName = vectorLayer.Name;
-        string gml = vectorLayer.Gml;
-        Color color = vectorLayer.Color;
+      string layerName = vectorLayer.Name;
+      string gml = vectorLayer.Gml;
+      Color color = vectorLayer.Color;
 
-        uint? layerId = _api?.AddGMLLayer(layerName, gml, srsName, color, true, false, minZoomLevel);
-        vectorLayer.LayerId = layerId;
-      }
-      catch
-      {
-        // ignored
-      }
+      uint? layerId = _api?.AddGMLLayer(layerName, gml, srsName, color, true, false, minZoomLevel);
+      vectorLayer.LayerId = layerId;
     }
 
     private void RemoveVectorLayer(VectorLayer vectorLayer)

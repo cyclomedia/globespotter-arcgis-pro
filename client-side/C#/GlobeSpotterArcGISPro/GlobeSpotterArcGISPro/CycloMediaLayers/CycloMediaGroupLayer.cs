@@ -16,6 +16,7 @@
  * License along with this library.
  */
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -217,6 +218,27 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
     {
       return this.Select(layer => layer.GetRecording(imageId)).Aggregate<Recording, Recording>
         (null, (current, featureCollection) => featureCollection ?? current);
+    }
+
+    public async Task<double?> GetHeightAsync(double x, double y)
+    {
+      double? result = null;
+      int count = 0;
+
+      foreach (CycloMediaLayer layer in this)
+      {
+        double? height = await layer.GetHeightAsync(x, y);
+
+        if (height != null)
+        {
+          result = result ?? 0.0;
+          result = result + height;
+          count++;
+        }
+      }
+
+      result = (result != null) ? (result/Math.Max(count, 1)) : null;
+      return result;
     }
 
     public async Task<bool> MakeEmptyAsync()

@@ -26,6 +26,8 @@ using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.CycloMediaLayers;
+using GlobeSpotterArcGISPro.Overlays;
+using GlobeSpotterArcGISPro.Overlays.Measurement;
 using GlobeSpotterArcGISPro.Utilities;
 using GlobeSpotterArcGISPro.VectorLayers;
 
@@ -39,6 +41,8 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
 
     private CycloMediaGroupLayer _cycloMediaGroupLayer;
     private VectorLayerList _vectorLayerList;
+    private ViewerList _viewerList;
+    private MeasurementList _measurementList;
     private readonly Agreement _agreement;
 
     #endregion
@@ -68,6 +72,10 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
     }
 
     public VectorLayerList VectorLayerList => _vectorLayerList ?? (_vectorLayerList = new VectorLayerList());
+
+    public ViewerList ViewerList => _viewerList ?? (_viewerList = new ViewerList());
+
+    public MeasurementList MeasurementList => _measurementList ?? (_measurementList = new MeasurementList());
 
     #endregion
 

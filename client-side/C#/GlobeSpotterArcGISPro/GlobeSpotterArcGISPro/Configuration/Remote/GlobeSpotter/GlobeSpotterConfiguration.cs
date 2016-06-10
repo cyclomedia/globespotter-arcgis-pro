@@ -136,7 +136,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter
 
     private bool CheckFunctionality(string name)
     {
-      return ((ApplicationConfiguration != null) && (ApplicationConfiguration.GetFunctionality(name) != null));
+      return (ApplicationConfiguration?.GetFunctionality(name) != null);
     }
 
     public static GlobeSpotterConfiguration Load()

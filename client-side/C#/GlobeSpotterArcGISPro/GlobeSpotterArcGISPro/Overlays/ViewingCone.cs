@@ -55,12 +55,12 @@ namespace GlobeSpotterArcGISPro.Overlays
       _active = false;
       _blinking = false;
     }
+
     #endregion
 
     #region Members
 
     private MapPoint _mapPoint;
-    private Color _color;
     private double _angle;
     private double _hFov;
     private bool _blinking;
@@ -72,13 +72,19 @@ namespace GlobeSpotterArcGISPro.Overlays
 
     #endregion Members
 
+    #region Properties
+
+    public Color Color { get; private set; }
+
+    #endregion
+
     #region Functions
 
     protected async Task InitializeAsync(RecordingLocation location, double angle, double hFov, Color color)
     {
       _angle = angle;
       _hFov = hFov;
-      _color = color;
+      Color = color;
       _isInitialized = true;
 
       double x = location.X;
@@ -183,7 +189,7 @@ namespace GlobeSpotterArcGISPro.Overlays
           polygonPointList.Add(_mapPoint);
           Polygon polygon = PolygonBuilder.CreatePolygon(polygonPointList);
 
-          Color colorPolygon = Color.FromArgb(_blinking ? BlinkAlpha : NormalAlpha, _color);
+          Color colorPolygon = Color.FromArgb(_blinking ? BlinkAlpha : NormalAlpha, Color);
           CIMColor cimColorPolygon = ColorFactory.CreateColor(colorPolygon);
           CIMPolygonSymbol polygonSymbol = SymbolFactory.DefaultPolygonSymbol;
           polygonSymbol.SetColor(cimColorPolygon);

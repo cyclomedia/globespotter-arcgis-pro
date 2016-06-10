@@ -438,9 +438,62 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       // toDo: kijken of deze nog nodig is
     }
 
-    public virtual double GetHeight(double x, double y)
+    public async Task<double?> GetHeightAsync(double x, double y)
     {
-      return 0.0;
+      double? result = null;
+      int count = 0;
+
+      await QueuedTask.Run(() =>
+      {
+        using (FeatureClass featureClass = Layer?.GetFeatureClass())
+        {
+          if (featureClass != null)
+          {
+            const double searchBox = 25.0;
+            double xMin = x - searchBox;
+            double xMax = x + searchBox;
+            double yMin = y - searchBox;
+            double yMax = y + searchBox;
+            Envelope envelope = EnvelopeBuilder.CreateEnvelope(xMin, xMax, yMin, yMax);
+
+            SpatialQueryFilter spatialFilter = new SpatialQueryFilter
+            {
+              FilterGeometry = envelope,
+              SpatialRelationship = SpatialRelationship.Contains,
+              SubFields = $"{Recording.FieldGroundLevelOffset}, SHAPE"
+            };
+
+            using (RowCursor existsResult = featureClass.Search(spatialFilter, false))
+            {
+              int groundLevelId = existsResult.FindField(Recording.FieldGroundLevelOffset);
+
+              while (existsResult.MoveNext())
+              {
+                using (Row row = existsResult.Current)
+                {
+                  double? groundLevel = row?.GetOriginalValue(groundLevelId) as double?;
+
+                  if (groundLevel != null)
+                  {
+                    Feature feature = row as Feature;
+                    Geometry geometry = feature?.GetShape();
+                    MapPoint point = geometry as MapPoint;
+                    double height = point?.Z ?? 0;
+
+                    // ReSharper disable once AccessToModifiedClosure
+                    result = result ?? 0.0;
+                    result = result + height - ((double) groundLevel);
+                    count++;
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      result = (result != null) ? (result/Math.Max(count, 1)) : null;
+      return result;
     }
 
     protected virtual void Remove()

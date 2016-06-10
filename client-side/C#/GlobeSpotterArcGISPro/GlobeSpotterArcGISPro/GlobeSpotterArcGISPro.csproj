@@ -152,7 +152,12 @@
       <DependentUpon>ImageIdSearch.xaml</DependentUpon>
     </Compile>
     <Compile Include="AddIns\DockPanes\ImageIdSearch.cs" />
+    <Compile Include="Overlays\Measurement\MeasurementList.cs" />
+    <Compile Include="Overlays\Measurement\Measurement.cs" />
+    <Compile Include="Overlays\Measurement\MeasurementObservation.cs" />
+    <Compile Include="Overlays\Measurement\MeasurementPoint.cs" />
     <Compile Include="Overlays\ViewerList.cs" />
+    <Compile Include="VectorLayers\EditTools.cs" />
     <Compile Include="VectorLayers\VectorLayer.cs" />
     <Compile Include="CycloMediaLayers\CycloMediaGroupLayer.cs" />
     <Compile Include="CycloMediaLayers\CycloMediaLayer.cs" />
