@@ -48,6 +48,7 @@
           <group refID="globeSpotterArcGISPro_layerGroup" />
           <group refID="globeSpotterArcGISPro_inquiryGroup" />
           <group refID="globeSpotterArcGISPro_navigateGroup" />
+          <group refID="globeSpotterArcGISPro_measurementGroup" />
         </tab>
       </tabs>
       <groups>
@@ -75,6 +76,13 @@
                 size="large" />
           <tool refID="esri_mapping_exploreTool"
                 size="large" />
+        </group>
+        <group id="globeSpotterArcGISPro_measurementGroup"
+               caption="Measurement"
+               appearsOnAddInTab="false"
+               keytip="MG">
+          <button refID="GlobeSpotterArcGISPro_MeasurementDetailButton"
+                  size="large" />
         </group>
       </groups>
       <controls>
@@ -140,11 +148,23 @@
                 caption="ImageId Search "
                 className="AddIns.Buttons.ImageIdSearch"
                 loadOnClick="false"
-                largeImage="Images\ImageIdSearch.png"
+                largeImage="Images\ImageIdSearch32.png"
                 condition="globeSpotterArcGISPro_recordingsReadyCondition"
                 keytip="GIS">
           <tooltip heading="ImageId Search">
             Search for the imageId
+            <disabledText />
+          </tooltip>
+        </button>
+        <button id="GlobeSpotterArcGISPro_MeasurementDetailButton"
+                caption="Measurement Detail"
+                className="AddIns.Buttons.MeasurementDetail"
+                loadOnClick="false"
+                largeImage="Images\MeasurementDetail32.png"
+                condition="globeSpotterArcGISPro_measurementDetailReadyCondition"
+                keytip="GM">
+          <tooltip heading="Show measurement detail">
+            Show measurement detail information
             <disabledText />
           </tooltip>
         </button>
@@ -164,6 +184,13 @@
                   dock="group"
                   dockWith="esri_mapping_locateDockPane">
           <content className="AddIns.Views.ImageIdSearch" />
+        </dockPane>
+        <dockPane id="GlobeSpotterArcGISPro_MeasurementDetail"
+                  caption="Selected Measurement Detail"
+                  className="AddIns.DockPanes.MeasurementDetail"
+                  dock="group"
+                  dockWith="esri_editing_EditFeaturesDockPane">
+          <content className="AddIns.Views.MeasurementDetail" />
         </dockPane>
       </dockPanes>
     </insertModule>
@@ -248,6 +275,15 @@
         <state id="globeSpotterArcGISPro_agreementAcceptedState" />
         <state id="globeSpotterArcGISPro_historicalLayerEnabledState" />
         <state id="globeSpotterArcGISPro_loginSuccessfullyState" />
+        <state id="esri_mapping_mapPane" />
+      </and>
+    </insertCondition>
+    <insertCondition id="globeSpotterArcGISPro_measurementDetailReadyCondition"
+                 caption="Measurement detail is available.">
+      <and>
+        <state id="globeSpotterArcGISPro_agreementAcceptedState" />
+        <state id="globeSpotterArcGISPro_loginSuccessfullyState" />
+        <state id="globeSpotterArcGISPro_measurementState" />
         <state id="esri_mapping_mapPane" />
       </and>
     </insertCondition>

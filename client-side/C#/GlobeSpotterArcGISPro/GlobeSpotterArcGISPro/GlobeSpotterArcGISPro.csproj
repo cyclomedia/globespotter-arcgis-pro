@@ -83,10 +83,12 @@
     <AddInContent Include="Images\GlobeSpotterArcGISPro32.png" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddIns\Buttons\MeasurementDetail.cs" />
     <Compile Include="AddIns\Buttons\ImageIdSearch.cs" />
     <Compile Include="AddIns\Buttons\HistoricalRecordingLayer.cs" />
     <Compile Include="AddIns\Buttons\ShowInCyclorama.cs" />
     <Compile Include="AddIns\Buttons\RecentRecordingLayer.cs" />
+    <Compile Include="AddIns\DockPanes\MeasurementDetail.cs" />
     <Compile Include="AddIns\Pages\Agreement.cs" />
     <Compile Include="AddIns\Pages\Configuration.cs" />
     <Compile Include="AddIns\Pages\About.cs" />
@@ -109,6 +111,9 @@
     </Compile>
     <Compile Include="AddIns\Views\Converters\CanMeasuring.cs" />
     <Compile Include="AddIns\Views\Converters\LoginStatus.cs" />
+    <Compile Include="AddIns\Views\MeasurementDetail.xaml.cs">
+      <DependentUpon>MeasurementDetail.xaml</DependentUpon>
+    </Compile>
     <Compile Include="AddIns\Views\Settings.xaml.cs">
       <DependentUpon>Settings.xaml</DependentUpon>
     </Compile>
@@ -190,6 +195,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="AddIns\Views\MeasurementDetail.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="AddIns\Views\Settings.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -236,7 +245,8 @@
       <Link>ToDo.txt</Link>
     </Content>
     <AddInContent Include="Images\HistoricalRecordingLayer32.png" />
-    <AddInContent Include="Images\ImageIdSearch.png" />
+    <AddInContent Include="Images\ImageIdSearch32.png" />
+    <AddInContent Include="Images\MeasurementDetail32.png" />
     <EmbeddedResource Include="Images\OpenLocation.cur" />
   </ItemGroup>
   <ItemGroup>

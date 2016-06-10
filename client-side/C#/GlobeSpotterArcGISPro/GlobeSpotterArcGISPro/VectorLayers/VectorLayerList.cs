@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Editing.Events;
 using ArcGIS.Desktop.Editing.Templates;
+using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Events;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
@@ -324,6 +325,19 @@ namespace GlobeSpotterArcGISPro.VectorLayers
           _editTool = EditTools.SketchPointTool;
           await StartSketchToolAsync();
           break;
+        default:
+          _editTool = EditTools.NoEditTool;
+          SketchFinished();
+          break;
+      }
+
+      if (_editTool == EditTools.NoEditTool)
+      {
+        FrameworkApplication.State.Deactivate("globeSpotterArcGISPro_measurementState");
+      }
+      else
+      {
+        FrameworkApplication.State.Activate("globeSpotterArcGISPro_measurementState");
       }
     }
 
