@@ -18,23 +18,28 @@
 
 using System;
 using System.Globalization;
-using System.Linq;
 using System.Windows.Data;
 
-using SystConvert = System.Convert;
+using ApiMeasurementPoint = GlobeSpotterAPI.MeasurementPoint;
 
 namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
 {
-  class CombineBoolean : IMultiValueConverter
+  class MeasurementPosition : IValueConverter
   {
-    #region IMultiValueConverter Members
+    #region IValueConverter Members
 
-    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-      return values.Aggregate(true, (current, t) => current && (t as bool? ?? SystConvert.ToBoolean(t)));
+      CultureInfo ci = CultureInfo.InvariantCulture;
+      ApiMeasurementPoint apiPoint = value as ApiMeasurementPoint;
+
+      string x = ((apiPoint == null) || double.IsNaN(apiPoint.x)) ? "---" : apiPoint.x.ToString("#0.00", ci);
+      string y = ((apiPoint == null) || double.IsNaN(apiPoint.y)) ? "---" : apiPoint.y.ToString("#0.00", ci);
+      string z = ((apiPoint == null) || double.IsNaN(apiPoint.z)) ? "---" : apiPoint.z.ToString("#0.00", ci);
+      return string.Format(ci, "{0}, {1}, {2}", x, y, z);
     }
 
-    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
       throw new NotSupportedException();
     }

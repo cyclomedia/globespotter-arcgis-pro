@@ -24,11 +24,37 @@ namespace GlobeSpotterArcGISPro.Overlays
 {
   public class Viewer : ViewingCone
   {
+    #region Members
+
+    private RecordingLocation _location;
+    private string _imageId;
+
+    #endregion
+
     #region Properties
 
-    public RecordingLocation Location { get; private set; }
+    public RecordingLocation Location
+    {
+      get
+      {
+        return _location;        
+      }
+      private set
+      {
+        _location = value;
+        OnPropertyChanged();
+      }
+    }
 
-    public string ImageId { get; set; }
+    public string ImageId
+    {
+      get { return _imageId; }
+      set
+      {
+        _imageId = value;
+        OnPropertyChanged();
+      }
+    }
 
     public uint ViewerId { get; private set; }
 

@@ -20,6 +20,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
+using GlobeSpotterAPI;
 
 namespace GlobeSpotterArcGISPro.AddIns.DockPanes
 {
@@ -43,6 +44,7 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
     private bool _isActive;
     private bool _replace;
     private bool _nearest;
+    private Point3D _lookAt;
 
     #endregion
 
@@ -100,6 +102,16 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
       }
     }
 
+    public Point3D LookAt
+    {
+      get { return _lookAt; }
+      set
+      {
+        _lookAt = value;
+        NotifyPropertyChanged();
+      }
+    }
+
     #endregion
 
     #region Overrides
@@ -130,37 +142,14 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
 
     internal static GlobeSpotter Show()
     {
-      DockPane pane = FrameworkApplication.DockPaneManager.Find(DockPaneId);
-      pane?.Activate();
-      return pane as GlobeSpotter;
-    }
+      GlobeSpotter globeSpotter = FrameworkApplication.DockPaneManager.Find(DockPaneId) as GlobeSpotter;
 
-    public static void OpenLocation(string location, bool replace, bool nearest)
-    {
-      bool globeSpotterDockPane = false;
-
-      foreach (var dockPane in FrameworkApplication.DockPaneManager.DockPanes)
+      if (!(globeSpotter?.IsVisible ?? true))
       {
-        if ((dockPane is GlobeSpotter) && (dockPane.IsVisible))
-        {
-          globeSpotterDockPane = true;
-          (dockPane as GlobeSpotter).Replace = replace;
-          (dockPane as GlobeSpotter).Nearest = nearest;
-          (dockPane as GlobeSpotter).Location = location;
-        }
+        globeSpotter.Activate();
       }
 
-      if (!globeSpotterDockPane)
-      {
-        GlobeSpotter globeSpotter = Show();
-
-        if (globeSpotter != null)
-        {
-          globeSpotter.Replace = replace;
-          globeSpotter.Nearest = nearest;
-          globeSpotter.Location = location;
-        }
-      }
+      return globeSpotter;
     }
 
     #endregion

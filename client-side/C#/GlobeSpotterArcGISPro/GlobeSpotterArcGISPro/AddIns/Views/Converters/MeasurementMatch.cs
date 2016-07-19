@@ -17,24 +17,44 @@
  */
 
 using System;
+using System.Drawing;
 using System.Globalization;
-using System.Linq;
 using System.Windows.Data;
-
-using SystConvert = System.Convert;
+using GlobeSpotterArcGISPro.Utilities;
 
 namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
 {
-  class CombineBoolean : IMultiValueConverter
+  class MeasurementMatch : IValueConverter
   {
-    #region IMultiValueConverter Members
+    #region IValueConverter Members
 
-    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-      return values.Aggregate(true, (current, t) => current && (t as bool? ?? SystConvert.ToBoolean(t)));
+      Bitmap bitmap = value as Bitmap;
+
+      if (bitmap == null)
+      {
+        bitmap = new Bitmap(64, 64);
+
+        using (Graphics g = Graphics.FromImage(bitmap))
+        {
+          g.Clear(Color.Transparent);
+        }
+      }
+
+      using (Graphics g = Graphics.FromImage(bitmap))
+      {
+        var pen = new Pen(Brushes.Black, 1);
+        int hHeight = bitmap.Height/2;
+        int hWidth = bitmap.Width/2;
+        g.DrawLine(pen, 0, hHeight, bitmap.Width, hHeight);
+        g.DrawLine(pen, hWidth, 0, hWidth, bitmap.Height);
+      }
+
+      return bitmap.ToBitmapSource();
     }
 
-    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
       throw new NotSupportedException();
     }

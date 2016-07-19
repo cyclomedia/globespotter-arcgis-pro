@@ -18,23 +18,27 @@
 
 using System;
 using System.Globalization;
-using System.Linq;
 using System.Windows.Data;
-
-using SystConvert = System.Convert;
 
 namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
 {
-  class CombineBoolean : IMultiValueConverter
+  class MeasuringOpenClose : IValueConverter
   {
-    #region IMultiValueConverter Members
+    #region Constants
 
-    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+    private const string MeasuringOpen = "Open";
+    private const string MeasuringClose = "Close";
+
+    #endregion
+
+    #region IValueConverter Members
+
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-      return values.Aggregate(true, (current, t) => current && (t as bool? ?? SystConvert.ToBoolean(t)));
+      return ((bool) value) ? MeasuringClose : MeasuringOpen;
     }
 
-    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
       throw new NotSupportedException();
     }

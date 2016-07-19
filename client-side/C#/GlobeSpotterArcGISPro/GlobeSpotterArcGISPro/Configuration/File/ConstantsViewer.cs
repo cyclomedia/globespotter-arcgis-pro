@@ -78,7 +78,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     /// <summary>
     /// Size of the measurement font
     /// </summary>
-    public double MeasurementFontSize { get; set; }
+    public float MeasurementFontSize { get; set; }
 
     /// <summary>
     /// MeasurementName
@@ -133,7 +133,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
         AddressLanguageCode = "nl",
         CrossCheckSize = 10.0,
         MeasurementPointSize = 5.0,
-        MeasurementFontSize = 8.0,
+        MeasurementFontSize = 8.0f,
         MeasurementName = "my measurement"
       };
 

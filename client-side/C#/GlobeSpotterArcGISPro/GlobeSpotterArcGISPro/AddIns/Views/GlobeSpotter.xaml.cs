@@ -27,6 +27,7 @@ using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Framework.Dialogs;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
+using ArcGIS.Desktop.Mapping.Events;
 using GlobeSpotterAPI;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter;
@@ -70,6 +71,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     private API _api;
     private CrossCheck _crossCheck;
     private SpatialReference _lastSpatialReference;
+    private bool _startOpenNearest;
 
     #endregion
 
@@ -93,6 +95,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
       _crossCheck = null;
       _lastSpatialReference = null;
       _layers = new List<CycloMediaLayer>();
+      _startOpenNearest = false;
 
       ModuleGlobeSpotter globeSpotterModule = ModuleGlobeSpotter.Current;
       _viewerList = globeSpotterModule.ViewerList;
@@ -203,6 +206,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
         }
 
         await _vectorLayerList.LoadMeasurementsAsync();
+        DrawCompleteEvent.Subscribe(OnDrawComplete);
       }
     }
 
@@ -210,6 +214,8 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     {
       MessageBox.Show(ThisResources.Globespotter_OnAPIFailed_Initialize_);
       RemoveApi();
+      DockPaneGlobeSpotter globeSpotter = ((dynamic) DataContext);
+      globeSpotter.Hide();
     }
 
     public void OnOpenImageFailed(string input)
@@ -242,7 +248,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
     public async void OnOpenNearestImageResult(string input, bool opened, string imageId, Point3D location)
     {
-      if (opened)
+      if (opened && _startOpenNearest)
       {
         if (_crossCheck == null)
         {
@@ -253,6 +259,8 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
         await _crossCheck.UpdateAsync(location.x, location.y, size);
         _openNearest.Add(imageId);
       }
+
+      _startOpenNearest = false;
     }
 
     public void OnImageChanged(uint viewerId)
@@ -300,7 +308,13 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
         if (GlobeSpotterConfiguration.AddLayerWfs)
         {
           await UpdateVectorLayerAsync();
-          double overlayDrawDistance = _constants.OverlayDrawDistance;
+
+          MapView mapView = MapView.Active;
+          Map map = mapView?.Map;
+          SpatialReference spatRef = map?.SpatialReference;
+          Unit unit = spatRef?.Unit;
+          double factor = unit?.ConversionFactor ?? 1;
+          double overlayDrawDistance = _constants.OverlayDrawDistance / factor;
           _api.SetOverlayDrawDistance(viewerId, overlayDrawDistance);
         }
 
@@ -322,6 +336,15 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
           viewer.HasMarker = true;
           _openNearest.Remove(imageId);
+        }
+
+        DockPaneGlobeSpotter globeSpotter = ((dynamic) DataContext);
+        Point3D point3D = globeSpotter?.LookAt;
+
+        if (point3D != null)
+        {
+          _api.LookAtCoordinate(viewerId, point3D.x, point3D.y, point3D.z);
+          globeSpotter.LookAt = null;
         }
       }
 
@@ -403,9 +426,10 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
     public void OnViewerRemoved(uint viewerId)
     {
-      if (_api != null)
+      Viewer viewer = _viewerList.Get(viewerId);
+
+      if ((_api != null) && (viewer != null))
       {
-        Viewer viewer = _viewerList.Get(viewerId);
         bool hasMarker = viewer.HasMarker;
 
         _viewerList.Delete(viewerId);
@@ -457,15 +481,21 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     public async void OnImageDistanceSliderChanged(uint viewerId, double distance)
     {
       double e = 0.0;
+      MapView mapView = MapView.Active;
+      Map map = mapView?.Map;
+      SpatialReference spatRef = map?.SpatialReference;
+      Unit unit = spatRef?.Unit;
+      double factor = unit?.ConversionFactor ?? 1;
+      double overlayDrawDistance = distance * factor;
 
-      if (Math.Abs(distance - _constants.OverlayDrawDistance) > e)
+      if (Math.Abs(overlayDrawDistance - _constants.OverlayDrawDistance) > e)
       {
-        _constants.OverlayDrawDistance = distance;
+        _constants.OverlayDrawDistance = overlayDrawDistance;
         _constants.Save();
       }
 
       Viewer viewer = _viewerList.Get(viewerId);
-      viewer.OverlayDrawDistance = distance;
+      viewer.OverlayDrawDistance = overlayDrawDistance;
       await UpdateVectorLayerAsync();
     }
 
@@ -806,7 +836,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
       else
       {
         DockPaneGlobeSpotter globeSpotter = ((dynamic) DataContext);
-        globeSpotter.Hide();
+        globeSpotter?.Hide();
       }
     }
 
@@ -850,6 +880,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
             }
           }
 
+          _startOpenNearest = true;
           _api.OpenNearestImage(location, (_settings.CtrlClickHashTag * _settings.CtrlClickDelta));
         }
         else
@@ -867,11 +898,13 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     {
       if ((_api == null) || (_api.GetAPIReadyState()))
       {
+        DrawCompleteEvent.Unsubscribe(OnDrawComplete);
         _measurementList.Api = null;
         DockPaneGlobeSpotter globeSpotter = ((dynamic) DataContext);
         globeSpotter.PropertyChanged -= OnGlobeSpotterPropertyChanged;
         _settings.PropertyChanged -= OnSettingsPropertyChanged;
         _cycloMediaGroupLayer.PropertyChanged -= OnGroupLayerPropertyChanged;
+        _measurementList.RemoveAll();
 
         _vectorLayerList.LayerAdded -= OnAddVectorLayer;
         _vectorLayerList.LayerRemoved -= OnRemoveVectorLayer;
@@ -918,7 +951,6 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
         if (GlobeSpotterForm.Child.Controls.Contains(_api.gui))
         {
           GlobeSpotterForm.Child.Controls.Remove(_api.gui);
-          _api.gui.Dispose();
         }
       }
 
@@ -1041,6 +1073,41 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
       {
         _api?.RemoveLayer((uint) layerId);
         vectorLayer.LayerId = null;
+      }
+    }
+
+    #endregion
+
+    #region Feed / meters check
+
+    private async void OnDrawComplete(MapViewEventArgs args)
+    {
+      if (_api != null)
+      {
+        MapView mapview = MapView.Active;
+        Map map = mapview?.Map;
+        SpatialReference spatRef = map?.SpatialReference;
+        Unit unit = spatRef?.Unit;
+
+        if (unit != null)
+        {
+          string unitName = unit.Name;
+          string label = _api.GetLengthUnitLabel();
+
+          if (label != unitName)
+          {
+            double factor = unit.ConversionFactor;
+            SpatialReference cyclSpatreference = await CoordSystemUtils.CycloramaSpatialReferenceAsync();
+            bool projected = cyclSpatreference.IsProjected;
+            Unit cyclUnit = cyclSpatreference.Unit;
+
+            double cyclFactor = cyclUnit.ConversionFactor;
+            var conversion = projected ? (factor/cyclFactor) : (factor*cyclFactor);
+
+            _api.SetLengthUnitLabel(unitName);
+            _api.SetLengthUnitFactor(conversion);
+          }
+        }
       }
     }
 

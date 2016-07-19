@@ -18,26 +18,32 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.ComponentModel;
+using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Windows.Data;
 using ArcGIS.Core.CIM;
 using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
+using GlobeSpotterAPI;
 using GlobeSpotterArcGISPro.AddIns.Modules;
 
-using Color = System.Drawing.Color;
+using ApiPoint = GlobeSpotterAPI.MeasurementPoint;
+using DockPaneGlobeSpotter = GlobeSpotterArcGISPro.AddIns.DockPanes.GlobeSpotter;
 using Point = System.Windows.Point;
 
 namespace GlobeSpotterArcGISPro.Overlays.Measurement
 {
-  public class MeasurementObservation: IDisposable
+  public class MeasurementObservation: IDisposable, INotifyPropertyChanged
   {
     #region Constants
 
     private const double InnerLineSize = 0.75;
     private const double OuterLineSize = 1.25;
+    private const double DistLine = 30.0;
 
     #endregion
 
@@ -45,70 +51,173 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
 
     private readonly MeasurementPoint _measurementPoint;
 
+    private MapPoint _point;
+    private Viewer _viewer;
+    private string _imageId;
     private IDisposable _disposeInnerLine;
     private IDisposable _disposeOuterLine;
 
     #endregion
 
+    #region Events
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    #endregion
+
     #region Properties
 
-    public string ImageId { private get; set; }
-    public MapPoint Point { private get; set; }
+    public double XDir { get; set; }
+
+    public double YDir { get; set; }
+
+    public string ImageId
+    {
+      get { return _imageId; }
+      set
+      {
+        _imageId = value;
+        OnPropertyChanged();
+      }
+    }
+
+    public Viewer Viewer
+    {
+      get { return _viewer; }
+      private set
+      {
+        if (_viewer != null)
+        {
+          _viewer.PropertyChanged -= OnViewerPropertyChanged;
+        }
+
+        _viewer = value;
+
+        if (_viewer != null)
+        {
+          _viewer.PropertyChanged += OnViewerPropertyChanged;
+        }
+
+        OnPropertyChanged();
+      }
+    }
+
+    public MapPoint Point
+    {
+      private get
+      {
+        return _point;
+      }
+      set
+      {
+        _point = value;
+        OnPropertyChanged();
+      }
+    }
+
+    public Bitmap Match { get; set; }
 
     #endregion
 
     #region Constructor
 
-    public MeasurementObservation(MeasurementPoint measurementPoint, string imageId, MapPoint observationPoint)
+    public MeasurementObservation(MeasurementPoint measurementPoint, string imageId, MapPoint observationPoint, Bitmap match, double xDir, double yDir)
     {
+      XDir = xDir;
+      YDir = yDir;
       _measurementPoint = measurementPoint;
       ImageId = imageId;
       Point = observationPoint;
+      Match = match;      
+      GlobeSpotter globeSpotter = GlobeSpotter.Current;
+      ViewerList viewerList = globeSpotter.ViewerList;
+      Viewer = viewerList.Get(imageId);
+
+      // event listeners
+      _measurementPoint.PropertyChanged += OnPropertyMeasurementPointChanged;
+      PropertyChanged += OnPropertyMeasurementObservationChanged;
       MapViewCameraChangedEvent.Subscribe(OnMapViewCameraChanged);
+      viewerList.ViewerAdded += OnViewerAdded;
+      viewerList.ViewerRemoved += OnViewerRemoved;
+      viewerList.ViewerMoved += OnViewerMoved;
     }
 
     #endregion
 
     #region Functions
 
-    public async void Dispose()
-    {
+    public void Dispose()
+    {      
+      _disposeInnerLine?.Dispose();
+      _disposeOuterLine?.Dispose();
+      Viewer = null;
+      GlobeSpotter globeSpotter = GlobeSpotter.Current;
+      ViewerList viewerList = globeSpotter.ViewerList;
+
+      // event listeners
       MapViewCameraChangedEvent.Unsubscribe(OnMapViewCameraChanged);
-      await RedrawObservationAsync();
+      viewerList.ViewerAdded -= OnViewerAdded;
+      viewerList.ViewerRemoved -= OnViewerRemoved;
+      viewerList.ViewerMoved -= OnViewerMoved;
+      _measurementPoint.PropertyChanged -= OnPropertyMeasurementPointChanged;
+      PropertyChanged -= OnPropertyMeasurementObservationChanged;
+    }
+
+    public void RemoveMe()
+    {
+      _measurementPoint.RemoveObservation(this);
+    }
+
+    public void LookAtMe()
+    {
+      ApiPoint point = _measurementPoint.ApiPoint;
+      Point3D coord = new Point3D(point.x, point.y, point.z);
+      DockPaneGlobeSpotter globeSpotter = DockPaneGlobeSpotter.Show();
+
+      if (globeSpotter != null)
+      {
+        globeSpotter.LookAt = coord;
+        globeSpotter.Replace = true;
+        globeSpotter.Nearest = false;
+        globeSpotter.Location = ImageId;
+      }
     }
 
     public async Task RedrawObservationAsync()
     {
       await QueuedTask.Run(() =>
       {
-        GlobeSpotter globeSpotter = GlobeSpotter.Current;
+        _disposeInnerLine?.Dispose();
+        _disposeOuterLine?.Dispose();
 
-        if (globeSpotter.InsideScale())
+        if (_measurementPoint?.IsObservationVisible() ?? false)
         {
           MapView thisView = MapView.Active;
-          MapPoint measPoint = _measurementPoint.Point;
-          Point winMeasPoint = thisView.MapToScreen(measPoint);
-          Point winObsPoint = thisView.MapToScreen(Point);
+          MapPoint measPoint = _measurementPoint?.Point;
+          MapPoint mapPointObsLine;
 
-          double xdir = (winMeasPoint.X - winObsPoint.X) / 2;
-          double ydir = (winMeasPoint.Y - winObsPoint.Y) / 2;
-          Point point1 = new Point(winObsPoint.X + xdir, winObsPoint.Y + ydir);
-          Point point2 = new Point(winObsPoint.X, winObsPoint.Y);
-          MapPoint mapPoint1 = thisView.ScreenToMap(point1);
-          MapPoint mapPoint2 = thisView.ScreenToMap(point2);
+          if ((measPoint != null) && (!double.IsNaN(measPoint.X)) && (!double.IsNaN(measPoint.Y)))
+          {
+            Point winMeasPoint = thisView.MapToScreen(measPoint);
+            Point winObsPoint = thisView.MapToScreen(Point);
+
+            double xdir = ((winMeasPoint.X - winObsPoint.X) * 3) / 2;
+            double ydir = ((winMeasPoint.Y - winObsPoint.Y) * 3) / 2;
+            Point winPointObsLine = new Point(winObsPoint.X + xdir, winObsPoint.Y + ydir);
+            mapPointObsLine = thisView.ScreenToMap(winPointObsLine);
+          }
+          else
+          {
+            mapPointObsLine = MapPointBuilder.CreateMapPoint((Point.X + (XDir*DistLine)), (Point.Y + (YDir*DistLine)));
+          }
 
           IList<MapPoint> linePointList = new List<MapPoint>();
-          linePointList.Add(mapPoint1);
-          linePointList.Add(mapPoint2);
+          linePointList.Add(mapPointObsLine);
+          linePointList.Add(Point);
           Polyline polyline = PolylineBuilder.CreatePolyline(linePointList);
 
-          ViewerList viewerList = globeSpotter.ViewerList;
-          ICollection<Viewer> viewers = viewerList.Viewers;
-          Viewer thisViewer = viewers.Aggregate<Viewer, Viewer>(null,
-            (current, viewer) => (viewer.ImageId == ImageId) ? viewer : current);
-
-          Color outerColorLine = thisViewer?.Color ?? Color.DarkGray;
-          CIMColor cimOuterColorLine = ColorFactory.CreateColor(outerColorLine);
+          Color outerColorLine = Viewer?.Color ?? Color.DarkGray;
+          CIMColor cimOuterColorLine = ColorFactory.CreateColor(Color.FromArgb(255, outerColorLine));
           CIMLineSymbol cimOuterLineSymbol = SymbolFactory.DefaultLineSymbol;
           cimOuterLineSymbol.SetColor(cimOuterColorLine);
           cimOuterLineSymbol.SetSize(OuterLineSize);
@@ -123,17 +232,80 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
           CIMSymbolReference cimInnerLineSymbolRef = cimInnerLineSymbol.MakeSymbolReference();
           _disposeInnerLine = thisView.AddOverlay(polyline, cimInnerLineSymbolRef);
         }
-        else
-        {
-          _disposeInnerLine?.Dispose();
-          _disposeOuterLine?.Dispose();
-        }
       });
+    }
+
+    private async Task RedrawViewAsync()
+    {
+      await RedrawObservationAsync();
+      ICollectionView view = CollectionViewSource.GetDefaultView(_measurementPoint);
+      view.Refresh();
+    }
+
+    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    {
+      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     #endregion
 
     #region Event handlers
+
+    private async void OnViewerAdded(Viewer viewer)
+    {
+      if (viewer.ImageId == ImageId)
+      {
+        Viewer = viewer;
+        await RedrawViewAsync();
+      }
+    }
+
+    private async void OnViewerRemoved(Viewer viewer)
+    {
+      if (viewer.ImageId == ImageId)
+      {
+        Viewer = null;
+        await RedrawViewAsync();
+      }
+    }
+
+    private async void OnViewerMoved(Viewer viewer)
+    {
+      Viewer = (viewer.ImageId == ImageId) ? viewer : null;
+      await RedrawViewAsync();
+    }
+
+    private async void OnViewerPropertyChanged(object sender, PropertyChangedEventArgs args)
+    {
+      string propertyName = args.PropertyName;
+
+      if (propertyName == "Color")
+      {
+        await RedrawViewAsync();
+        // ReSharper disable once ExplicitCallerInfoArgument
+        OnPropertyChanged("Viewer");
+      }
+    }
+
+    private async void OnPropertyMeasurementPointChanged(object sender, PropertyChangedEventArgs args)
+    {
+      if (args.PropertyName == "Point")
+      {
+        await RedrawViewAsync();
+        // ReSharper disable once ExplicitCallerInfoArgument
+        OnPropertyChanged("Viewer");
+      }
+    }
+
+    private async void OnPropertyMeasurementObservationChanged(object sender, PropertyChangedEventArgs args)
+    {
+      if (args.PropertyName == "Point")
+      {
+        await RedrawViewAsync();
+        // ReSharper disable once ExplicitCallerInfoArgument
+        OnPropertyChanged("Viewer");
+      }
+    }
 
     private async void OnMapViewCameraChanged(MapViewCameraChangedEventArgs args)
     {

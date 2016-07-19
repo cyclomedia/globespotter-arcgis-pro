@@ -16,12 +16,20 @@
  * License along with this library.
  */
 
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
+using GlobeSpotterArcGISPro.Overlays.Measurement;
+using GlobeSpotterArcGISPro.Utilities;
+
+using Image = System.Windows.Controls.Image;
+
+using static GlobeSpotterArcGISPro.Properties.Resources;
 
 namespace GlobeSpotterArcGISPro.AddIns.DockPanes
 {
-  internal class MeasurementDetail : DockPane
+  internal class MeasurementDetail : DockPane, INotifyPropertyChanged
   {
     #region Constants
 
@@ -29,9 +37,69 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
 
     #endregion
 
+    #region Events
+
+    public new event PropertyChangedEventHandler PropertyChanged;
+
+    #endregion
+
+    #region Members
+
+    private MeasurementPoint _measurementPoint;
+    private MeasurementObservation _selectedObservation;
+
+    #endregion
+
+    #region Icons
+
+    public Image SystemSearch => new Image { Source = SystemSearch16.ToBitmapSource() };
+
+    public Image FocusMode => new Image { Source = FocusMode16.ToBitmapSource() };
+
+    public Image UserTrash => new Image { Source = UserTrash16.ToBitmapSource() };
+
+    #endregion
+
     #region Constructor
 
     protected MeasurementDetail() { }
+
+    #endregion
+
+    #region Properties
+
+    public MeasurementObservation SelectedObservation
+    {
+      get { return _selectedObservation; }
+      set
+      {
+        _selectedObservation = value;
+        OnPropertyChanged();
+      }
+    }
+
+    public MeasurementPoint MeasurementPoint
+    {
+      get { return _measurementPoint; }
+      set
+      {
+        if (_measurementPoint != value)
+        {
+          if ((value != null) && (!IsVisible))
+          {
+            Activate();
+          }
+
+          _measurementPoint = value;
+          OnPropertyChanged();
+
+          if (_measurementPoint == null)
+          {
+            SelectedObservation = null;
+          }
+        }
+      }
+    }
 
     #endregion
 
@@ -42,18 +110,9 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
       return (FrameworkApplication.DockPaneManager.Find(DockPaneId) as MeasurementDetail);
     }
 
-    public static void OpenHide()
+    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
     {
-      MeasurementDetail pane = Get();
-
-      if (pane.IsVisible)
-      {
-        pane.Hide();
-      }
-      else
-      {
-        pane.Activate();
-      }
+      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     #endregion

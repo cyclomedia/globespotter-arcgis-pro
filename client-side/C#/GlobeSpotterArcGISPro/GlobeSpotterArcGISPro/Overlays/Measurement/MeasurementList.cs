@@ -26,6 +26,9 @@ using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter;
 using GlobeSpotterArcGISPro.VectorLayers;
 
+using ApiMeasurementObservation = GlobeSpotterAPI.MeasurementObservation;
+using ApiMeasurementPoint = GlobeSpotterAPI.MeasurementPoint;
+
 namespace GlobeSpotterArcGISPro.Overlays.Measurement
 {
   class MeasurementList : Dictionary<int, Measurement>, IAPIClient
@@ -33,10 +36,10 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
     #region Members
 
     private readonly ConstantsViewer _constants;
-    private bool _observationAdded;
     private bool _screenPointAdded;
     private bool _mapPointAdded;
     private bool _drawingSketch;
+    private bool _pointAdded;
 
     #endregion
 
@@ -56,11 +59,11 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
       Open = null;
       Sketch = null;
       _constants = ConstantsViewer.Instance;
-      _observationAdded = false;
       _screenPointAdded = false;
       _mapPointAdded = false;
       DrawPoint = true;
       _drawingSketch = false;
+      _pointAdded = false;
     }
 
     #endregion
@@ -70,11 +73,6 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
     public void CloseOpenMeasurement()
     {
       Open?.CloseMeasurement();
-    }
-
-    public void RemoveSketch()
-    {
-      Sketch?.RemoveMeasurement();
     }
 
     public Measurement Get(int entityId)
@@ -143,18 +141,6 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
       }
 
       return result;
-    }
-
-    public async Task UpdateAsync()
-    {
-      foreach (var measurement in this)
-      {
-        foreach (var measurementPoint in measurement.Value)
-        {
-          var point = measurementPoint.Value;
-          await point.RedrawPointAsync();
-        }
-      }
     }
 
     public void RemoveAll()
@@ -275,14 +261,7 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
 
     private async Task UpdateMeasurementPointAsync(int entityId, int pointId)
     {
-      Measurement measurement = Get(entityId);
-
-      if ((!measurement.IsPointMeasurement) || (!_observationAdded))
-      {
-        await MeasurementPointUpdatedAsync(entityId, pointId);
-      }
-
-      _observationAdded = false;
+      await MeasurementPointUpdatedAsync(entityId, pointId);
     }
 
     public async Task MeasurementPointUpdatedAsync(int entityId, int pointId)
@@ -292,12 +271,13 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
         _screenPointAdded = !_mapPointAdded;
 
         PointMeasurementData measurementData = Api.GetMeasurementPointData(entityId, pointId);
+        ApiMeasurementPoint measurementPoint = measurementData.measurementPoint;
         Measurement measurement = Get(entityId);
 
         if (measurement != null)
         {
           int index = (int) Api?.GetMeasurementPointIndex(entityId, pointId);
-          await measurement.UpdatePointAsync(pointId, measurementData, index);
+          await measurement.UpdatePointAsync(pointId, measurementPoint, index);
         }
 
         _screenPointAdded = false;
@@ -313,7 +293,7 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
       }
     }
 
-    public async void SketchModified(Geometry geometry, VectorLayer vectorLayer)
+    public async Task SketchModifiedAsync(Geometry geometry, VectorLayer vectorLayer)
     {
       if (GlobeSpotterConfiguration.MeasurePermissions)
       {
@@ -383,6 +363,11 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
       return measurement;
     }
 
+    public int GetMeasurementNumber(Measurement measurement)
+    {
+      return Keys.Aggregate(1, (current, elem) => current + ((elem < measurement.EntityId) ? 1 : 0));
+    }
+
     #endregion
 
     #region GlobeSpotter events
@@ -443,10 +428,14 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
       Add(entityId, measurement);
     }
 
-    public void OnMeasurementClosed(int entityId, EntityData data)
+    public async void OnMeasurementClosed(int entityId, EntityData data)
     {
       Measurement measurement = Get(entityId);
-      measurement?.Close();
+
+      if (measurement != null)
+      {
+        await measurement.CloseAsync();
+      }
     }
 
     public void OnMeasurementOpened(int entityId, EntityData data)
@@ -463,6 +452,7 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
     {
       Measurement measurement = Get(entityId);
       measurement?.AddPoint(pointId);
+      _pointAdded = true;
 
       if ((!(Api?.GetMeasurementSeriesModeEnabled() ?? true)) || (measurement?.IsPointMeasurement ?? false))
       {
@@ -489,7 +479,14 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
       {
         MeasurementPoint point = measurement[pointId];
         point.Opened();
+
+        if ((!measurement.IsPointMeasurement) && (_pointAdded))
+        {
+          point.Closed();
+        }
       }
+
+      _pointAdded = false;
     }
 
     public void OnMeasurementPointClosed(int entityId, int pointId)
@@ -503,17 +500,42 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
       }
     }
 
-    public void OnMeasurementPointObservationAdded(int entityId, int pointId, string imageId, Bitmap match)
+    public async void OnMeasurementPointObservationAdded(int entityId, int pointId, string imageId, Bitmap match)
     {
-      _observationAdded = true;
+      ObservationMeasurementData observation = Api.GetMeasurementPointObservationData(entityId, pointId, imageId);
+      ApiMeasurementObservation measurementObservation = observation.measurementObservation;
+      Measurement measurement = Get(entityId);
+
+      if (measurement?.ContainsKey(pointId) ?? false)
+      {
+        MeasurementPoint measurementPoint = measurement[pointId];
+        await measurementPoint.UpdateObservationAsync(measurementObservation, match);
+      }
     }
 
-    public void OnMeasurementPointObservationUpdated(int entityId, int pointId, string imageId)
+    public async void OnMeasurementPointObservationUpdated(int entityId, int pointId, string imageId)
     {
-      _observationAdded = true;
+      ObservationMeasurementData observation = Api.GetMeasurementPointObservationData(entityId, pointId, imageId);
+      ApiMeasurementObservation measurementObservation = observation.measurementObservation;
+      Measurement measurement = Get(entityId);
+
+      if (measurement?.ContainsKey(pointId) ?? false)
+      {
+        MeasurementPoint measurementPoint = measurement[pointId];
+        await measurementPoint.UpdateObservationAsync(measurementObservation, null);
+      }
     }
 
-    public void OnMeasurementPointObservationRemoved(int entityId, int pointId, string imageId) { }
+    public void OnMeasurementPointObservationRemoved(int entityId, int pointId, string imageId)
+    {
+      Measurement measurement = Get(entityId);
+
+      if (measurement?.ContainsKey(pointId) ?? false)
+      {
+        MeasurementPoint measurementPoint = measurement[pointId];
+        measurementPoint.RemoveObservation(imageId);
+      }
+    }
 
     public void OnDividerPositionChanged(double position) { }
 

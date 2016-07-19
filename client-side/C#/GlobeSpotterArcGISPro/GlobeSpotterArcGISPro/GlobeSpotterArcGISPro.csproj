@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -10,8 +10,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>GlobeSpotterArcGISPro</RootNamespace>
     <AssemblyName>GlobeSpotterForArcGISPro</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -104,12 +105,25 @@
       <DependentUpon>Configuration.xaml</DependentUpon>
     </Compile>
     <Compile Include="AddIns\Views\Converters\AgreementAccepted.cs" />
+    <Compile Include="AddIns\Views\Converters\boolToVisibility.cs" />
+    <Compile Include="AddIns\Views\Converters\MeasurementUndo.cs" />
+    <Compile Include="AddIns\Views\Converters\IsNotNull.cs" />
+    <Compile Include="AddIns\Views\Converters\MeasurementObservationSelected.cs" />
+    <Compile Include="AddIns\Views\Converters\MeasurementOpenClose.cs" />
     <Compile Include="AddIns\Views\Converters\ConfigurationService.cs" />
     <Compile Include="AddIns\Views\Converters\CombineBoolean.cs" />
     <Compile Include="AddIns\Views\About.xaml.cs">
       <DependentUpon>About.xaml</DependentUpon>
     </Compile>
     <Compile Include="AddIns\Views\Converters\CanMeasuring.cs" />
+    <Compile Include="AddIns\Views\Converters\MeasurementObservationWidth.cs" />
+    <Compile Include="AddIns\Views\Converters\MeasurementColor.cs" />
+    <Compile Include="AddIns\Views\Converters\MeasurementImageStd.cs" />
+    <Compile Include="AddIns\Views\Converters\MeasurementMatch.cs" />
+    <Compile Include="AddIns\Views\Converters\MeasurementImage.cs" />
+    <Compile Include="AddIns\Views\Converters\MeasurementRelEst.cs" />
+    <Compile Include="AddIns\Views\Converters\MeasurementPositionStd.cs" />
+    <Compile Include="AddIns\Views\Converters\MeasurementPosition.cs" />
     <Compile Include="AddIns\Views\Converters\LoginStatus.cs" />
     <Compile Include="AddIns\Views\MeasurementDetail.xaml.cs">
       <DependentUpon>MeasurementDetail.xaml</DependentUpon>
@@ -162,6 +176,7 @@
     <Compile Include="Overlays\Measurement\MeasurementObservation.cs" />
     <Compile Include="Overlays\Measurement\MeasurementPoint.cs" />
     <Compile Include="Overlays\ViewerList.cs" />
+    <Compile Include="Utilities\ImageExtensions.cs" />
     <Compile Include="VectorLayers\EditTools.cs" />
     <Compile Include="VectorLayers\VectorLayer.cs" />
     <Compile Include="CycloMediaLayers\CycloMediaGroupLayer.cs" />
@@ -247,6 +262,9 @@
     <AddInContent Include="Images\HistoricalRecordingLayer32.png" />
     <AddInContent Include="Images\ImageIdSearch32.png" />
     <AddInContent Include="Images\MeasurementDetail32.png" />
+    <EmbeddedResource Include="Images\UserTrash16.png" />
+    <EmbeddedResource Include="Images\FocusMode16.png" />
+    <EmbeddedResource Include="Images\SystemSearch16.png" />
     <EmbeddedResource Include="Images\OpenLocation.cur" />
   </ItemGroup>
   <ItemGroup>

@@ -18,23 +18,28 @@
 
 using System;
 using System.Globalization;
-using System.Linq;
 using System.Windows.Data;
-
-using SystConvert = System.Convert;
+using ArcGIS.Core.Geometry;
+using GlobeSpotterArcGISPro.Overlays.Measurement;
 
 namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
 {
-  class CombineBoolean : IMultiValueConverter
+  class MeasurementUndo : IMultiValueConverter
   {
-    #region IMultiValueConverter Members
+    #region IValueConverter Members
 
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
-      return values.Aggregate(true, (current, t) => current && (t as bool? ?? SystConvert.ToBoolean(t)));
+      MeasurementPoint point = (values.Length >= 1) ? (values[0] as MeasurementPoint) : null;
+      bool isOpen = (values.Length >= 2) && (values[1] is bool) && ((bool) values[1]);
+      MapPoint mapPoint = (values.Length >= 3) ? (values[2] as MapPoint) : null;
+      Measurement measurement = point?.Measurement;
+      bool update = (((measurement?.ObjectId == null) && (mapPoint != null) && (!double.IsNaN(mapPoint.X)) && (!double.IsNaN(mapPoint.Y)) && (!double.IsNaN(mapPoint.Z)))
+        || ((point?.LastPoint != null) && (point.LastPoint != mapPoint)));
+      return (((!measurement?.IsPointMeasurement) ?? false) || isOpen) && update;
     }
 
-    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+    public object[] ConvertBack(object value, Type []targetTypes, object parameter, CultureInfo culture)
     {
       throw new NotSupportedException();
     }

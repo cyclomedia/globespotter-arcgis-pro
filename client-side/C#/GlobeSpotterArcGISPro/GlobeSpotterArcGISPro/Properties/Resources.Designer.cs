@@ -61,6 +61,16 @@ namespace GlobeSpotterArcGISPro.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap FocusMode16 {
+            get {
+                object obj = ResourceManager.GetObject("FocusMode16", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Initialize API failed.
         /// </summary>
         internal static string Globespotter_OnAPIFailed_Initialize_ {
@@ -93,6 +103,26 @@ namespace GlobeSpotterArcGISPro.Properties {
         internal static string Login_CreateAes_Salt_must_be_at_least_8_bytes_ {
             get {
                 return ResourceManager.GetString("Login_CreateAes_Salt_must_be_at_least_8_bytes_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SystemSearch16 {
+            get {
+                object obj = ResourceManager.GetObject("SystemSearch16", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap UserTrash16 {
+            get {
+                object obj = ResourceManager.GetObject("UserTrash16", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
     }

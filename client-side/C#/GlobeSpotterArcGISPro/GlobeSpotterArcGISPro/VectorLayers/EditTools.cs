@@ -18,13 +18,14 @@
 
 namespace GlobeSpotterArcGISPro.VectorLayers
 {
-  enum EditTools
+  public enum EditTools
   {
     NoEditTool = -1,
     ModifyFeatureImpl = 1,
     ReshapeFeature = 2,
     SketchLineTool = 3,
     SketchPolygonTool = 4,
-    SketchPointTool = 5
+    SketchPointTool = 5,
+    Verticles = 6
   }
 }

@@ -23,6 +23,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using ArcGIS.Core.Geometry;
+using ArcGIS.Desktop.Editing;
 using ArcGIS.Desktop.Editing.Events;
 using ArcGIS.Desktop.Editing.Templates;
 using ArcGIS.Desktop.Framework;
@@ -58,7 +59,14 @@ namespace GlobeSpotterArcGISPro.VectorLayers
 
     private readonly MeasurementList _measurementList;
     private readonly CycloMediaGroupLayer _cycloMediaGroupLayer;
-    private EditTools _editTool;
+    private string _currentToolId;
+    private bool _updateHeight;
+
+    #endregion
+
+    #region Properties
+
+    public EditTools EditTool { get; private set; }
 
     #endregion
 
@@ -66,10 +74,12 @@ namespace GlobeSpotterArcGISPro.VectorLayers
 
     public VectorLayerList()
     {
+      _updateHeight = false;
+      _currentToolId = string.Empty;
       GlobeSpotter moduleGlobeSpotter = GlobeSpotter.Current;
       _measurementList = moduleGlobeSpotter.MeasurementList;
       _cycloMediaGroupLayer = moduleGlobeSpotter.CycloMediaGroupLayer;
-      _editTool = EditTools.NoEditTool;
+      EditTool = EditTools.NoEditTool;
       DetectVectorLayers(true);
     }
 
@@ -124,7 +134,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
       {
         if (!this.Aggregate(false, (current, vecLayer) => (vecLayer.Layer == layer) || current))
         {
-          var vectorLayer = new VectorLayer(featureLayer);
+          var vectorLayer = new VectorLayer(featureLayer, this);
           Add(vectorLayer);
           vectorLayer.PropertyChanged += OnVectorLayerPropertyChanged;
           LayerAdded?.Invoke(vectorLayer);
@@ -139,6 +149,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
       LayersRemovedEvent.Subscribe(OnLayersRemoved);
       MapMemberPropertiesChangedEvent.Subscribe(OnMapMemberPropertiesChanged);
       TOCSelectionChangedEvent.Subscribe(OnTocSelectionChanged);
+      DrawStartedEvent.Subscribe(OnDrawStarted);
       DrawCompleteEvent.Subscribe(OnDrawCompleted);
       ActiveToolChangedEvent.Subscribe(OnActiveToolChangedEvent);
       EditCompletedEvent.Subscribe(OnEditCompleted);
@@ -152,7 +163,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
       _measurementList.StartMeasurement(geometry, measurement, true, null, vectorLayer);
     }
 
-    private async Task StartSketchToolAsync()
+    public async Task StartSketchToolAsync()
     {
       EditingTemplate editingFeatureTemplate = EditingTemplate.Current;
       Layer layer = editingFeatureTemplate?.Layer;
@@ -164,105 +175,136 @@ namespace GlobeSpotterArcGISPro.VectorLayers
       }
     }
 
-    private async void AddHeightToMeasurement(Geometry geometry, MapView mapView)
+    private async Task AddHeightToMeasurementAsync(Geometry geometry, MapView mapView)
     {
       const double e = 0.1;
 
       switch (geometry.GeometryType)
       {
         case GeometryType.Point:
-          MapPoint srcPoint = geometry as MapPoint;
-
-          if ((srcPoint != null) && Math.Abs(srcPoint.Z) < e)
+          if (!_updateHeight)
           {
-            srcPoint = await AddHeightToMapPoint(srcPoint);
-            await mapView.SetCurrentSketchAsync(srcPoint);
+            _updateHeight = true;
+            await UpdateHeightAsync(mapView);
+            _updateHeight = false;
           }
 
           break;
         case GeometryType.Polyline:
-          Polyline polyline = geometry as Polyline;
-          List<MapPoint> mapLinePoints = new List<MapPoint>();
-          bool changesLine = false;
-
-          if (polyline != null)
+          if (!_updateHeight)
           {
-            foreach (MapPoint point in polyline.Points)
+            _updateHeight = true;
+            await UpdateHeightAsync(mapView);
+            Polyline polyline = geometry as Polyline;
+            List<MapPoint> mapLinePoints = new List<MapPoint>();
+            bool changesLine = false;
+
+            if (polyline != null)
             {
-              if (Math.Abs(point.Z) < e)
+              foreach (MapPoint point in polyline.Points)
               {
-                changesLine = true;
-                MapPoint srcLinePoint = await AddHeightToMapPoint(point);
-                mapLinePoints.Add(srcLinePoint);
+                if (Math.Abs(point.Z) < e)
+                {
+                  changesLine = true;
+                  MapPoint srcLinePoint = await AddHeightToMapPointAsync(point);
+                  mapLinePoints.Add(srcLinePoint);
+                }
+                else
+                {
+                  mapLinePoints.Add(point);
+                }
               }
-              else
+
+              if (changesLine)
               {
-                mapLinePoints.Add(point);
+                await QueuedTask.Run(() =>
+                {
+                  polyline = PolylineBuilder.CreatePolyline(mapLinePoints, polyline.SpatialReference);
+                });
+
+                await mapView.SetCurrentSketchAsync(polyline);
               }
             }
 
-            if (changesLine)
-            {
-              await QueuedTask.Run(() =>
-              {
-                polyline = PolylineBuilder.CreatePolyline(mapLinePoints, polyline.SpatialReference);
-              });
-
-              await mapView.SetCurrentSketchAsync(polyline);
-            }
+            _updateHeight = false;
           }
 
           break;
         case GeometryType.Polygon:
-          // todo: make this function for add a z to a polygon is working
-          // ============================================================
-          /*
-          Polygon polygon = geometry as Polygon;
-          List<MapPoint> mapPolygonPoints = new List<MapPoint>();
-          bool changesPolygon = false;
-
-          if (polygon != null)
+          if (!_updateHeight)
           {
-            for(int j = 0; j < polygon.Points.Count; j++)
-            {
-              MapPoint mapPoint = polygon.Points[j];
+            _updateHeight = true;
+            await UpdateHeightAsync(mapView);
+            Polygon polygon = geometry as Polygon;
+            List<MapPoint> mapPolygonPoints = new List<MapPoint>();
+            bool changesPolygon = false;
 
-              if ((Math.Abs(mapPoint.Z) < e) && (j <= (polygon.Points.Count - 2)))
+            if (polygon != null)
+            {
+              for(int j = 0; j < polygon.Points.Count; j++)
               {
-                changesPolygon = true;
-                MapPoint srcPolygonPoint = await AddHeightToMapPoint(mapPoint);
-                mapPolygonPoints.Add(srcPolygonPoint);
+                MapPoint mapPoint = polygon.Points[j];
+
+                if ((Math.Abs(mapPoint.Z) < e) && (j <= (polygon.Points.Count - 2)))
+                {
+                  changesPolygon = true;
+                  MapPoint srcPolygonPoint = await AddHeightToMapPointAsync(mapPoint);
+                  mapPolygonPoints.Add(srcPolygonPoint);
+                }
+                else if (changesPolygon && (j == (polygon.Points.Count - 1)))
+                {
+                  mapPolygonPoints.Add(mapPolygonPoints[0]);
+                }
+                else
+                {
+                  mapPolygonPoints.Add(mapPoint);
+                }
               }
-              else if (changesPolygon && (j == (polygon.Points.Count - 1)))
+
+              if (changesPolygon)
               {
-                mapPolygonPoints.Add(mapPolygonPoints[0]);
-              }
-              else
-              {
-                mapPolygonPoints.Add(mapPoint);
+                await QueuedTask.Run(() =>
+                {
+                  polygon = PolygonBuilder.CreatePolygon(mapPolygonPoints, polygon.SpatialReference);
+                });
+
+                await mapView.SetCurrentSketchAsync(polygon);
               }
             }
 
-            if (changesPolygon)
-            {
-              await QueuedTask.Run(() =>
-              {
-                polyline = PolylineBuilder.CreatePolyline(mapPolygonPoints, polygon.SpatialReference);
-              });
-
-              await mapView.SetCurrentSketchAsync(polygon);
-            }
-          }*/
+            _updateHeight = false;
+          }
 
           break;
       }
     }
 
-    private async Task<MapPoint> AddHeightToMapPoint(MapPoint srcPoint)
+    public async Task UpdateHeightAsync(MapView mapView)
+    {
+      await QueuedTask.Run(async () =>
+      {
+        if (ElevationCapturing.CaptureMode != ElevationCaptureMode.Constant)
+        {
+          await ElevationCapturing.SetCaptureModeAsync(ElevationCaptureMode.Constant);
+        }
+
+        Envelope envelope = mapView.Extent;
+        double centerX = (envelope.XMax - envelope.XMin)/2 + envelope.XMin;
+        double centerY = (envelope.YMax - envelope.YMin)/2 + envelope.YMin;
+        double centerZ = (envelope.ZMax - envelope.ZMin)/2 + envelope.ZMin;
+        MapPoint srcPoint = MapPointBuilder.CreateMapPoint(centerX, centerY, centerZ);
+        MapPoint dstPoint = await AddHeightToMapPointAsync(srcPoint);
+        ElevationCapturing.ElevationConstantValue = dstPoint.Z;
+      });
+    }
+
+    public async Task<MapPoint> AddHeightToMapPointAsync(MapPoint srcPoint)
     {
       return await QueuedTask.Run(async () =>
       {
-        SpatialReference srcSpatialReference = srcPoint.SpatialReference;
+        MapView mapView = MapView.Active;
+        Map map = mapView.Map;
+        SpatialReference srcSpatialReference = map.SpatialReference;
         SpatialReference dstSpatialReference = await CoordSystemUtils.CycloramaSpatialReferenceAsync();
 
         ProjectionTransformation dstProjection = ProjectionTransformation.Create(srcSpatialReference,
@@ -286,7 +328,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
       });
     }
 
-    private void SketchFinished()
+    public void SketchFinished()
     {
       Measurement sketch = _measurementList.Sketch;
 
@@ -303,41 +345,70 @@ namespace GlobeSpotterArcGISPro.VectorLayers
 
     protected async void OnActiveToolChangedEvent(ToolEventArgs args)
     {
-      string currentId = args.CurrentID;
-
-      switch (currentId)
+      if (_currentToolId != args.CurrentID)
       {
-        case "esri_editing_ModifyFeatureImpl":
-          _editTool = EditTools.ModifyFeatureImpl;
-          break;
-        case "esri_editing_ReshapeFeature":
-          _editTool = EditTools.ReshapeFeature;
-          break;
-        case "esri_editing_SketchLineTool":
-          _editTool = EditTools.SketchLineTool;
-          await StartSketchToolAsync();
-          break;
-        case "esri_editing_SketchPolygonTool":
-          _editTool = EditTools.SketchPolygonTool;
-          await StartSketchToolAsync();
-          break;
-        case "esri_editing_SketchPointTool":
-          _editTool = EditTools.SketchPointTool;
-          await StartSketchToolAsync();
-          break;
-        default:
-          _editTool = EditTools.NoEditTool;
-          SketchFinished();
-          break;
+        _currentToolId = args.CurrentID;
+
+        switch (_currentToolId)
+        {
+          case "esri_editing_ModifyFeatureImpl":
+            EditTool = EditTools.ModifyFeatureImpl;
+            break;
+          case "esri_editing_ReshapeFeature":
+            EditTool = EditTools.ReshapeFeature;
+            break;
+          case "esri_editing_SketchLineTool":
+            EditTool = EditTools.SketchLineTool;
+            SketchFinished();
+            await StartSketchToolAsync();
+            break;
+          case "esri_editing_SketchPolygonTool":
+            EditTool = EditTools.SketchPolygonTool;
+            SketchFinished();
+            await StartSketchToolAsync();
+            break;
+          case "esri_editing_SketchPointTool":
+            EditTool = EditTools.SketchPointTool;
+            SketchFinished();
+            await StartSketchToolAsync();
+            break;
+          default:
+            EditTool = EditTools.NoEditTool;
+            SketchFinished();
+            break;
+        }
+
+        if (EditTool == EditTools.NoEditTool)
+        {
+          FrameworkApplication.State.Deactivate("globeSpotterArcGISPro_measurementState");
+        }
+        else
+        {
+          FrameworkApplication.State.Activate("globeSpotterArcGISPro_measurementState");
+        }
+      }
+    }
+
+    protected async void OnDrawStarted(MapViewEventArgs args)
+    {
+      MapView mapView = args.MapView;
+      Geometry geometry = await mapView.GetCurrentSketchAsync();
+
+      if ((geometry?.HasZ ?? false) && (EditTool == EditTools.SketchPointTool))
+      {
+        await AddHeightToMeasurementAsync(geometry, mapView);
       }
 
-      if (_editTool == EditTools.NoEditTool)
+      if ((geometry != null) && (EditTool == EditTools.ModifyFeatureImpl))
       {
-        FrameworkApplication.State.Deactivate("globeSpotterArcGISPro_measurementState");
+        EditTool = EditTools.Verticles;
+        Measurement measurement = _measurementList.Sketch;
+        measurement?.OpenMeasurement();
+        measurement?.EnableMeasurementSeries();
       }
-      else
+      else if ((geometry == null) && (EditTool == EditTools.Verticles))
       {
-        FrameworkApplication.State.Activate("globeSpotterArcGISPro_measurementState");
+        EditTool = EditTools.ModifyFeatureImpl;
       }
     }
 
@@ -348,7 +419,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
 
       if (geometry != null)
       {
-        switch (_editTool)
+        switch (EditTool)
         {
           case EditTools.ModifyFeatureImpl:
             if (_measurementList.Count == 1)
@@ -364,23 +435,30 @@ namespace GlobeSpotterArcGISPro.VectorLayers
               }
               else if (geometry.HasZ)
               {
-                AddHeightToMeasurement(geometry, mapView);
+                await AddHeightToMeasurementAsync(geometry, mapView);
               }
 
-              _measurementList.SketchModified(geometry, measurement.VectorLayer);
+              await _measurementList.SketchModifiedAsync(geometry, measurement.VectorLayer);
             }
 
             break;
           case EditTools.SketchLineTool:
           case EditTools.SketchPolygonTool:
-          case EditTools.SketchPointTool:
+          case EditTools.Verticles:
             if (geometry.HasZ)
             {
-              AddHeightToMeasurement(geometry, mapView);
+              await AddHeightToMeasurementAsync(geometry, mapView);
             }
 
             VectorLayer thisVectorLayer = _measurementList.Sketch?.VectorLayer;
-            _measurementList.SketchModified(geometry, thisVectorLayer);
+            await _measurementList.SketchModifiedAsync(geometry, thisVectorLayer);
+            break;
+          case EditTools.SketchPointTool:
+            if (geometry.HasZ)
+            {
+              await AddHeightToMeasurementAsync(geometry, mapView);
+            }
+
             break;
         }
       }
@@ -392,7 +470,18 @@ namespace GlobeSpotterArcGISPro.VectorLayers
 
     protected Task OnEditCompleted(EditCompletedEventArgs args)
     {
-      SketchFinished();
+      Measurement measurement = _measurementList?.Sketch;
+      VectorLayer vectorLayer = measurement?.VectorLayer;
+      FeatureLayer measurementLayer = vectorLayer?.Layer;
+      bool completed = args.Members.Select(mapMember => mapMember as FeatureLayer).Aggregate
+        (false, (current, featureLayer)
+          => ((featureLayer != null) && (featureLayer == measurementLayer)) || current);
+
+      if (completed)
+      {
+        SketchFinished();
+      }
+
       return Task.FromResult(0);
     }
 
@@ -446,6 +535,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
       ActiveToolChangedEvent.Unsubscribe(OnActiveToolChangedEvent);
       EditCompletedEvent.Unsubscribe(OnEditCompleted);
       DrawCompleteEvent.Unsubscribe(OnDrawCompleted);
+      DrawStartedEvent.Unsubscribe(OnDrawStarted);
 
       while (Count >= 1)
       {

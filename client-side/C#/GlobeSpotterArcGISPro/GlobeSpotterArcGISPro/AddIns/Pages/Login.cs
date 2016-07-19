@@ -91,7 +91,11 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
     protected override Task CommitAsync()
     {
-      Save();
+      if ((_login.Username != _username) || (_login.Password != _password))
+      {
+        Save();
+      }
+
       return base.CommitAsync();
     }
 

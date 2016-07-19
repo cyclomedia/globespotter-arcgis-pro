@@ -18,23 +18,27 @@
 
 using System;
 using System.Globalization;
-using System.Linq;
 using System.Windows.Data;
+using System.Windows.Media;
+using GlobeSpotterArcGISPro.Overlays;
 
-using SystConvert = System.Convert;
+using DrawingColor = System.Drawing.Color;
 
 namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
 {
-  class CombineBoolean : IMultiValueConverter
+  class MeasurementColor : IValueConverter
   {
-    #region IMultiValueConverter Members
+    #region IValueConverter Members
 
-    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-      return values.Aggregate(true, (current, t) => current && (t as bool? ?? SystConvert.ToBoolean(t)));
+      Viewer thisViewer = value as Viewer;
+      DrawingColor color = thisViewer?.Color ?? DrawingColor.Gray;
+      Color mediaColor = Color.FromArgb(255, color.R, color.G, color.B);
+      return new SolidColorBrush(mediaColor);
     }
 
-    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
       throw new NotSupportedException();
     }

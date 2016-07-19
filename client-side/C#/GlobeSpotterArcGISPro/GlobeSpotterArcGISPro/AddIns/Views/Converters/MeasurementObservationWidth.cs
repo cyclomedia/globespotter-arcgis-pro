@@ -18,23 +18,24 @@
 
 using System;
 using System.Globalization;
-using System.Linq;
 using System.Windows.Data;
-
-using SystConvert = System.Convert;
+using GlobeSpotterArcGISPro.Overlays.Measurement;
 
 namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
 {
-  class CombineBoolean : IMultiValueConverter
+  class MeasurementObservationWidth : IMultiValueConverter
   {
     #region IMultiValueConverter Members
 
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
-      return values.Aggregate(true, (current, t) => current && (t as bool? ?? SystConvert.ToBoolean(t)));
+      double totalWidth = (double) values[0];
+      MeasurementPoint point = values[1] as MeasurementPoint;
+      int count = point?.Count ?? 0;
+      return (totalWidth - (14*count))/Math.Max(count, 1);
     }
 
-    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+    public object[] ConvertBack(object value, Type[] targetType, object parameter, CultureInfo culture)
     {
       throw new NotSupportedException();
     }

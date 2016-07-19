@@ -17,12 +17,27 @@
  */
 
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 
 namespace GlobeSpotterArcGISPro.Overlays
 {
+  #region Delegates
+
+  public delegate void ViewerDelegate(Viewer viewer);
+
+  #endregion
+
   public class ViewerList : Dictionary<uint, Viewer>
   {
+    #region Events
+
+    public event ViewerDelegate ViewerAdded;
+    public event ViewerDelegate ViewerRemoved;
+    public event ViewerDelegate ViewerMoved;
+
+    #endregion
+
     public List<Viewer> MarkerViewers => (from viewer in this where viewer.Value.HasMarker select viewer.Value).ToList();
 
     public ICollection<Viewer> Viewers => Values;
@@ -43,18 +58,43 @@ namespace GlobeSpotterArcGISPro.Overlays
       return ContainsKey(viewerId) ? this[viewerId] : null;
     }
 
+    public Viewer Get(string imageId)
+    {
+      return Viewers.Aggregate<Viewer, Viewer>(null, (current, viewer) => (viewer.ImageId == imageId) ? viewer : current);
+    }
+
     public void Add(uint viewerId, string imageId, double overlayDrawDistance)
     {
-      Add(viewerId, new Viewer(viewerId, imageId, overlayDrawDistance));
+      Viewer viewer = new Viewer(viewerId, imageId, overlayDrawDistance);
+      viewer.PropertyChanged += OnViewerPropertyChanged;
+      Add(viewerId, viewer);
+      ViewerAdded?.Invoke(viewer);
     }
 
     public void Delete(uint viewerId)
     {
       if (ContainsKey(viewerId))
       {
-        this[viewerId].Dispose();
+        Viewer viewer = this[viewerId];
+        viewer.PropertyChanged -= OnViewerPropertyChanged;
+        viewer.Dispose();
         Remove(viewerId);
+        ViewerRemoved?.Invoke(viewer);
       }
     }
+
+    #region event listners
+
+    private void OnViewerPropertyChanged(object sender, PropertyChangedEventArgs args)
+    {
+      Viewer sendViewer = sender as Viewer;
+
+      if ((args.PropertyName == "ImageId") && (sendViewer != null))
+      {
+        ViewerMoved?.Invoke(sendViewer);
+      }
+    }
+
+    #endregion
   }
 }

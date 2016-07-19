@@ -88,16 +88,19 @@ namespace GlobeSpotterArcGISPro.Configuration.File
       get { return _credentials; }
       set
       {
-        _credentials = value;
-        OnPropertyChanged();
+        if (_credentials != value)
+        {
+          _credentials = value;
+          OnPropertyChanged();
 
-        if (value)
-        {
-          FrameworkApplication.State.Activate("globeSpotterArcGISPro_loginSuccessfullyState");
-        }
-        else
-        {
-          FrameworkApplication.State.Deactivate("globeSpotterArcGISPro_loginSuccessfullyState");
+          if (value)
+          {
+            FrameworkApplication.State.Activate("globeSpotterArcGISPro_loginSuccessfullyState");
+          }
+          else
+          {
+            FrameworkApplication.State.Deactivate("globeSpotterArcGISPro_loginSuccessfullyState");
+          }
         }
       }
     }

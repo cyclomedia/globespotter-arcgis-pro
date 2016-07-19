@@ -79,7 +79,16 @@ namespace GlobeSpotterArcGISPro.AddIns.Tools
       if (!string.IsNullOrEmpty(_location))
       {
         bool replace = (!(Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)));
-        DockPaneGlobeSpotter.OpenLocation(_location, replace, _nearest);
+        DockPaneGlobeSpotter globeSpotter = DockPaneGlobeSpotter.Show();
+
+        if (globeSpotter != null)
+        {
+          globeSpotter.LookAt = null;
+          globeSpotter.Replace = replace;
+          globeSpotter.Nearest = _nearest;
+          globeSpotter.Location = _location;
+        }
+
         _location = string.Empty;
         _nearest = false;
       }

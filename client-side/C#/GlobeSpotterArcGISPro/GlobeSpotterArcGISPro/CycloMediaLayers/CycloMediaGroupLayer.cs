@@ -214,10 +214,17 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       MapMemberPropertiesChangedEvent.Unsubscribe(OnMapMemberPropertiesChanged);
     }
 
-    public Recording GetRecording(string imageId)
+    public async Task<Recording> GetRecordingAsync(string imageId)
     {
-      return this.Select(layer => layer.GetRecording(imageId)).Aggregate<Recording, Recording>
-        (null, (current, featureCollection) => featureCollection ?? current);
+      Recording result = null;
+
+      foreach (CycloMediaLayer layer in this)
+      {
+        Recording recording = await layer.GetRecordingAsync(imageId);
+        result = recording ?? result;
+      }
+
+      return result;
     }
 
     public async Task<double?> GetHeightAsync(double x, double y)
@@ -238,18 +245,6 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       }
 
       result = (result != null) ? (result/Math.Max(count, 1)) : null;
-      return result;
-    }
-
-    public async Task<bool> MakeEmptyAsync()
-    {
-      bool result = true;
-
-      foreach (var layer in AllLayers)
-      {
-        result = result && (await layer.MakeEmptyAsync());
-      }
-
       return result;
     }
 

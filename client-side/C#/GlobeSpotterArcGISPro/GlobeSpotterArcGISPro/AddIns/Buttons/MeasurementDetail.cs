@@ -24,17 +24,38 @@ namespace GlobeSpotterArcGISPro.AddIns.Buttons
 {
   internal class MeasurementDetail : Button
   {
+    #region Members
+
+    private readonly MeasurementDetailPane _pane;
+
+    #endregion
+
+    #region Constructor
+
+    public MeasurementDetail()
+    {
+      _pane = MeasurementDetailPane.Get();
+    }
+
+    #endregion
+
     #region Overrides
 
     protected override void OnClick()
     {
-      MeasurementDetailPane.OpenHide();
+      if (_pane.IsVisible)
+      {
+        _pane.Hide();
+      }
+      else
+      {
+        _pane.Activate();
+      }
     }
 
     protected override void OnUpdate()
     {
-      MeasurementDetailPane pane = MeasurementDetailPane.Get();
-      IsChecked = pane.IsVisible;
+      IsChecked = _pane.IsVisible;
       base.OnUpdate();
     }
 

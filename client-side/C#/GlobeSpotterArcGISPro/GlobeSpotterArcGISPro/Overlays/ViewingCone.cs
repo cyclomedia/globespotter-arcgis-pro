@@ -18,7 +18,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using ArcGIS.Core.CIM;
@@ -32,10 +34,11 @@ using GlobeSpotterArcGISPro.Configuration.File;
 
 using MySpatialReference = GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference.SpatialReference;
 using WinPoint = System.Windows.Point;
+using SystCol = System.Drawing.Color;
 
 namespace GlobeSpotterArcGISPro.Overlays
 {
-  public class ViewingCone
+  public class ViewingCone: INotifyPropertyChanged
   {
     #region Constants
 
@@ -45,6 +48,12 @@ namespace GlobeSpotterArcGISPro.Overlays
     private const byte BlinkAlpha = 255;
     private const byte NormalAlpha = 128;
     private const int BlinkTime = 300;
+
+    #endregion
+
+    #region Events
+
+    public event PropertyChangedEventHandler PropertyChanged;
 
     #endregion
 
@@ -69,12 +78,21 @@ namespace GlobeSpotterArcGISPro.Overlays
     private bool _isInitialized;
     private IDisposable _disposePolygon;
     private IDisposable _disposePolyLine;
+    private SystCol? _color;
 
     #endregion Members
 
     #region Properties
 
-    public Color Color { get; private set; }
+    public SystCol? Color
+    {
+      get { return _color; }
+      private set
+      {
+        _color = value;
+        OnPropertyChanged();
+      }
+    }
 
     #endregion
 
@@ -118,6 +136,7 @@ namespace GlobeSpotterArcGISPro.Overlays
     {
       _disposePolygon?.Dispose();
       _disposePolyLine?.Dispose();
+      Color = null;
 
       if (_isInitialized)
       {
@@ -159,8 +178,9 @@ namespace GlobeSpotterArcGISPro.Overlays
       {
         GlobeSpotter globeSpotter = GlobeSpotter.Current;
 
-        if ((globeSpotter.InsideScale()) && (!_mapPoint.IsEmpty))
+        if ((globeSpotter.InsideScale()) && (!_mapPoint.IsEmpty) && (Color != null))
         {
+          var thisColor = (SystCol) Color;
           MapView thisView = MapView.Active;
           Map map = thisView.Map;
           SpatialReference mapSpat = map.SpatialReference;
@@ -189,7 +209,7 @@ namespace GlobeSpotterArcGISPro.Overlays
           polygonPointList.Add(_mapPoint);
           Polygon polygon = PolygonBuilder.CreatePolygon(polygonPointList);
 
-          Color colorPolygon = Color.FromArgb(_blinking ? BlinkAlpha : NormalAlpha, Color);
+          Color colorPolygon = SystCol.FromArgb(_blinking ? BlinkAlpha : NormalAlpha, thisColor);
           CIMColor cimColorPolygon = ColorFactory.CreateColor(colorPolygon);
           CIMPolygonSymbol polygonSymbol = SymbolFactory.DefaultPolygonSymbol;
           polygonSymbol.SetColor(cimColorPolygon);
@@ -203,7 +223,7 @@ namespace GlobeSpotterArcGISPro.Overlays
           linePointList.Add(point2);
           Polyline polyline = PolylineBuilder.CreatePolyline(linePointList);
 
-          Color colorLine = _active ? Color.Yellow : Color.Gray;
+          Color colorLine = _active ? SystCol.Yellow : SystCol.Gray;
           CIMColor cimColorLine = ColorFactory.CreateColor(colorLine);
           CIMLineSymbol cimLineSymbol = SymbolFactory.DefaultLineSymbol;
           cimLineSymbol.SetColor(cimColorLine);
@@ -248,6 +268,11 @@ namespace GlobeSpotterArcGISPro.Overlays
     private async void OnMapViewCameraChanged(MapViewCameraChangedEventArgs args)
     {
       await RedrawConeAsync();
+    }
+
+    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    {
+      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     #endregion

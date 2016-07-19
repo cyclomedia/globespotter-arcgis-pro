@@ -412,10 +412,57 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       });
     }
 
-    public Recording GetRecording(string imageId)
+    public async Task<Recording> GetRecordingAsync(string imageId)
     {
-      // toDo: later
-      return null;
+      return await QueuedTask.Run(() =>
+      {
+        Recording result = null;
+
+        using (FeatureClass featureClass = Layer?.GetFeatureClass())
+        {
+          if (featureClass != null)
+          {
+            var fields = Recording.Fields;
+            string shapeFieldName = Recording.ShapeFieldName;
+            string imageIdField = Recording.FieldImageId;
+
+            QueryFilter filter = new QueryFilter
+            {
+              WhereClause = $"{imageIdField} = {imageId}",
+              SubFields =
+                $"{fields.Aggregate(string.Empty, (current, field) => $"{current}{(string.IsNullOrEmpty(current) ? string.Empty : ", ")}{field.Key}")}, {shapeFieldName}"
+            };
+
+            using (RowCursor existsResult = featureClass.Search(filter, false))
+            {
+              while (existsResult.MoveNext())
+              {
+                using (Row row = existsResult.Current)
+                {
+                  if (row != null)
+                  {
+                    result = new Recording();
+
+                    foreach (var field in fields)
+                    {
+                      string name = field.Key;
+                      int nameId = existsResult.FindField(name);
+                      object item = row.GetOriginalValue(nameId);
+                      result.UpdateItem(name, item);
+                    }
+
+                    int shapeId = row.FindField(shapeFieldName);
+                    object point = row.GetOriginalValue(shapeId);
+                    result.UpdateItem(shapeFieldName, point);
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        return result;
+      });
     }
 
     public async Task RefreshAsync()
@@ -431,11 +478,6 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
           OnMapViewCameraChanged(null);
         }
       });
-    }
-
-    public void AddZToSketch()
-    {
-      // toDo: kijken of deze nog nodig is
     }
 
     public async Task<double?> GetHeightAsync(double x, double y)
