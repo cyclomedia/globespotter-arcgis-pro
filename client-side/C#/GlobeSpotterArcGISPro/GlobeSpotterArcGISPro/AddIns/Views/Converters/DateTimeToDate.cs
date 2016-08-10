@@ -16,21 +16,27 @@
  * License along with this library.
  */
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System;
+using System.Globalization;
+using System.Windows.Data;
 
-[assembly: AssemblyTitle("GlobeSpotter for ArcGIS Pro")]
-[assembly: AssemblyDescription("GlobeSpotter Integration for ArcGIS Pro")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("CycloMedia")]
-[assembly: AssemblyProduct("GlobeSpotter for ArcGIS Pro")]
-[assembly: AssemblyCopyright("Copyright © CycloMedia 2015 - 2016")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
+namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
+{
+  class DateTimeToDate : IValueConverter
+  {
+    #region IValueConverter Members
 
-[assembly: ComVisible(false)]
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+      DateTime? dateTime = value as DateTime?;
+      return dateTime?.ToLongDateString() ?? string.Empty;
+    }
 
-[assembly: Guid("914cc234-6eac-401d-a7a8-96baa1782909")]
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+      return value;
+    }
 
-[assembly: AssemblyVersion("0.9.0.*")]
-[assembly: AssemblyFileVersion("0.9.0")]
+    #endregion
+  }
+}

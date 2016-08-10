@@ -16,8 +16,10 @@
  * License along with this library.
  */
 
+using System.Collections.ObjectModel;
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
+using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 
 namespace GlobeSpotterArcGISPro.AddIns.DockPanes
 {
@@ -26,6 +28,21 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
     #region Constants
 
     private const string DockPaneId = "GlobeSpotterArcGISPro_ImageIdSearch";
+
+    #endregion
+
+    #region Members
+
+    private ObservableCollection<Recording> _imageInfo;
+
+    #endregion
+
+    #region Properties
+
+    public string ImageId { get; set; }
+
+    public ObservableCollection<Recording> ImageInfo
+      => _imageInfo ?? (_imageInfo = new ObservableCollection<Recording>());
 
     #endregion
 

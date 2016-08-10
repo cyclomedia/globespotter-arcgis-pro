@@ -16,6 +16,16 @@
  * License along with this library.
  */
 
+using System.Windows.Controls;
+using System.Windows.Input;
+using ArcGIS.Core.Geometry;
+using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
+using GlobeSpotterArcGISPro.CycloMediaLayers;
+
+using ModuleGlobeSpotter = GlobeSpotterArcGISPro.AddIns.Modules.GlobeSpotter;
+using PaneImageIdSearch = GlobeSpotterArcGISPro.AddIns.DockPanes.ImageIdSearch;
+using DockPaneGlobeSpotter = GlobeSpotterArcGISPro.AddIns.DockPanes.GlobeSpotter;
+
 namespace GlobeSpotterArcGISPro.AddIns.Views
 {
   /// <summary>
@@ -26,6 +36,56 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     public ImageIdSearch()
     {
       InitializeComponent();
+    }
+
+    private void OnMatchesMouseDoubleClicked(object sender, MouseButtonEventArgs e)
+    {
+      ListBox listBox = sender as ListBox;
+
+      if (listBox != null)
+      {
+        foreach (Recording selectedItem in listBox.SelectedItems)
+        {
+          DockPaneGlobeSpotter globeSpotter = DockPaneGlobeSpotter.Show();
+
+          if (globeSpotter != null)
+          {
+            globeSpotter.LookAt = null;
+            globeSpotter.Replace = true;
+            globeSpotter.Nearest = false;
+            globeSpotter.Location = selectedItem.ImageId;
+          }
+        }
+      }
+    }
+
+    private async void OnImageIdChanged(object sender, TextChangedEventArgs e)
+    {
+      TextBox textBox = sender as TextBox;
+      string imageId = textBox?.Text ?? string.Empty;
+      PaneImageIdSearch paneImageIdSearch = ((dynamic)DataContext);
+      paneImageIdSearch.ImageInfo.Clear();
+
+      if (imageId.Length == 8)
+      {
+        ModuleGlobeSpotter globeSpotter = ModuleGlobeSpotter.Current;
+        CycloMediaGroupLayer groupLayer = globeSpotter.CycloMediaGroupLayer;
+
+        foreach (var layer in groupLayer)
+        {
+          SpatialReference spatialReference = await layer.GetSpatialReferenceAsync();
+          string epsgCode = $"EPSG:{spatialReference.Wkid}";
+          FeatureCollection featureCollection = FeatureCollection.Load(imageId, epsgCode);
+
+          if (featureCollection.NumberOfFeatures >= 1)
+          {
+            foreach (Recording recording in featureCollection.FeatureMembers.Recordings)
+            {
+              paneImageIdSearch.ImageInfo.Add(recording);
+            }
+          }
+        }
+      }
     }
   }
 }

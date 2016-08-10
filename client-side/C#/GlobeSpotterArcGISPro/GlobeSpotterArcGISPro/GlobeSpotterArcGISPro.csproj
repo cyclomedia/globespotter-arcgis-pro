@@ -106,6 +106,10 @@
     </Compile>
     <Compile Include="AddIns\Views\Converters\AgreementAccepted.cs" />
     <Compile Include="AddIns\Views\Converters\boolToVisibility.cs" />
+    <Compile Include="AddIns\Views\Converters\RecentHistorical.cs" />
+    <Compile Include="AddIns\Views\Converters\DateTimeToTime.cs" />
+    <Compile Include="AddIns\Views\Converters\DateTimeToDate.cs" />
+    <Compile Include="AddIns\Views\Converters\ImageIdInput.cs" />
     <Compile Include="AddIns\Views\Converters\MeasurementUndo.cs" />
     <Compile Include="AddIns\Views\Converters\IsNotNull.cs" />
     <Compile Include="AddIns\Views\Converters\MeasurementObservationSelected.cs" />

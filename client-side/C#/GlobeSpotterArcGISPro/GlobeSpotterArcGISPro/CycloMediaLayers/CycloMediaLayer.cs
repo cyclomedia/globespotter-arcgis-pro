@@ -189,7 +189,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       return _colors[index];
     }
 
-    private async Task<SpatialReference> GetSpatialReferenceAsync()
+    public async Task<SpatialReference> GetSpatialReferenceAsync()
     {
       return await QueuedTask.Run(() =>
       {

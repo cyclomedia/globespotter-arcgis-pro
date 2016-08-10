@@ -106,6 +106,13 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote
       return PostRequest(RecordingServiceUrl, GetStreamCallback, recordingItem, TypeDownloadConfig.XML) as Stream;
     }
 
+    public Stream GetByImageId(string imageId, string epsgCode)
+    {
+      epsgCode = mySpatialReferenceList.Instance.ToKnownSrsName(epsgCode);
+      string imageIdUrl = ImageIdUrl(imageId, epsgCode);
+      return GetRequest(imageIdUrl, GetStreamCallback, TypeDownloadConfig.XML) as Stream;
+    }
+
     #endregion
 
     #region Web request functions

@@ -88,6 +88,32 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.Recordings
       return features;
     }
 
+    public static FeatureCollection Load(string imageId, string epsgCode)
+    {
+      FeatureCollection features = null;
+
+      if ((!string.IsNullOrEmpty(imageId)) && (!string.IsNullOrEmpty(epsgCode)))
+      {
+        try
+        {
+          Stream featuresStream = Web.GetByImageId(imageId, epsgCode);
+
+          if (featuresStream != null)
+          {
+            featuresStream.Position = 0;
+            features = (FeatureCollection) XmlFeatureCollection.Deserialize(featuresStream);
+            featuresStream.Close();
+          }
+        }
+        catch
+        {
+          // ignored
+        }
+      }
+
+      return features;
+    }
+
     #endregion
   }
 }

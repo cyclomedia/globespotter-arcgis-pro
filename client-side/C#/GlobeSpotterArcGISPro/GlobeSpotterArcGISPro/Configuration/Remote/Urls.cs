@@ -33,6 +33,8 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote
     private const string configurationRequest = "{0}/configuration/configuration/API";
     private const string apiSwf = "/viewer_api.swf";
     private const string spatialReferencesXml = "/config/srs/globespotterspatialreferences.xml";
+    private const string recordingRequest =
+      "{0}?service=WFS&version=1.1.0&request=GetFeature&srsname={1}&featureid={2}&TYPENAME=atlas:Recording";
     // ReSharper restore InconsistentNaming
 
     #endregion
@@ -75,6 +77,15 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote
     /// Recordings URL
     /// </summary>
     protected string RecordingServiceUrl => $"{BaseUrl}/recordings/wfs";
+
+    #endregion
+
+    #region Functions
+
+    protected string ImageIdUrl(string imageId, string epsgCode)
+    {
+      return string.Format(recordingRequest, RecordingServiceUrl, epsgCode, imageId);
+    }
 
     #endregion
   }
