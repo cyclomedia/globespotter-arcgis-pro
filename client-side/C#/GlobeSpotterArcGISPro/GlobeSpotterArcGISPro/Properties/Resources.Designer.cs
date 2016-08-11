@@ -71,6 +71,15 @@ namespace GlobeSpotterArcGISPro.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Globespotter ArcGISPro Addin Error..
+        /// </summary>
+        internal static string GlobeSpotter_ArcGISPro_Error_ {
+            get {
+                return ResourceManager.GetString("GlobeSpotter_ArcGISPro_Error_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Initialize API failed.
         /// </summary>
         internal static string Globespotter_OnAPIFailed_Initialize_ {
@@ -85,6 +94,15 @@ namespace GlobeSpotterArcGISPro.Properties {
         internal static string Globespotter_OnMaxViewers_Failed {
             get {
                 return ResourceManager.GetString("Globespotter_OnMaxViewers_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adobe reader is not installed on your system, please first install adobe reader.
+        /// </summary>
+        internal static string Help_Adobe_reader_is_not_installed_on_your_system_ {
+            get {
+                return ResourceManager.GetString("Help_Adobe_reader_is_not_installed_on_your_system_", resourceCulture);
             }
         }
         

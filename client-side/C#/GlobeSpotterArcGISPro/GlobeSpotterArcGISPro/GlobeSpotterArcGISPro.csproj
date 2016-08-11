@@ -84,6 +84,7 @@
     <AddInContent Include="Images\GlobeSpotterArcGISPro32.png" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddIns\Buttons\Help.cs" />
     <Compile Include="AddIns\Buttons\MeasurementDetail.cs" />
     <Compile Include="AddIns\Buttons\ImageIdSearch.cs" />
     <Compile Include="AddIns\Buttons\HistoricalRecordingLayer.cs" />
@@ -276,7 +277,11 @@
     <EmbeddedResource Include="Resources\Recordings\FCRecordings.shp" />
     <EmbeddedResource Include="Resources\Recordings\FCRecordings.shx" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\Doc\GlobeSpotter for ArcGIS Pro User Manual.pdf">
+      <Link>Resources\GlobeSpotter for ArcGIS Pro User Manual.pdf</Link>
+    </EmbeddedResource>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <UsingTask AssemblyFile="C:\Program Files\ArcGIS\Pro\bin\proapp-sdk-MSBuild.dll" TaskName="proapp_sdk_MSBuild.PackageAddIn" />
   <UsingTask AssemblyFile="C:\Program Files\ArcGIS\Pro\bin\proapp-sdk-MSBuild.dll" TaskName="proapp_sdk_MSBuild.CleanAddIn" />

@@ -121,11 +121,17 @@
   <data name="FocusMode16" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Images\FocusMode16.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="GlobeSpotter_ArcGISPro_Error_" xml:space="preserve">
+    <value>Globespotter ArcGISPro Addin Error.</value>
+  </data>
   <data name="Globespotter_OnAPIFailed_Initialize_" xml:space="preserve">
     <value>Initialize API failed</value>
   </data>
   <data name="Globespotter_OnMaxViewers_Failed" xml:space="preserve">
     <value>Unable to open the new Cyclorama viewer. Max number of Cyclorama viewers reached.</value>
+  </data>
+  <data name="Help_Adobe_reader_is_not_installed_on_your_system_" xml:space="preserve">
+    <value>Adobe reader is not installed on your system, please first install adobe reader</value>
   </data>
   <data name="Login_CreateAes_Password_must_be_at_least_8_characters_" xml:space="preserve">
     <value>Password must be at least 8 characters.</value>
