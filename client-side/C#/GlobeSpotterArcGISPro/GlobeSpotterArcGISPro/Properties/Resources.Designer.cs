@@ -98,11 +98,11 @@ namespace GlobeSpotterArcGISPro.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Adobe reader is not installed on your system, please first install adobe reader.
+        ///   Looks up a localized string similar to There is no pdf viewer available on your system, please first install a pdf viewer.
         /// </summary>
-        internal static string Help_Adobe_reader_is_not_installed_on_your_system_ {
+        internal static string Help_pdf_viewer_is_not_installed_on_your_system_ {
             get {
-                return ResourceManager.GetString("Help_Adobe_reader_is_not_installed_on_your_system_", resourceCulture);
+                return ResourceManager.GetString("Help_pdf_viewer_is_not_installed_on_your_system_", resourceCulture);
             }
         }
         

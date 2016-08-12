@@ -71,8 +71,6 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
       }
     }
 
-    public VectorLayerList VectorLayerList => _vectorLayerList ?? (_vectorLayerList = new VectorLayerList());
-
     public ViewerList ViewerList => _viewerList ?? (_viewerList = new ViewerList());
 
     public MeasurementList MeasurementList => _measurementList ?? (_measurementList = new MeasurementList());
@@ -150,6 +148,17 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
         settings.PropertyChanged -= OnSettingsPropertyChanged;
         login.PropertyChanged -= OnLoginPropertyChanged;
       }
+    }
+
+    public async Task<VectorLayerList> GetVectorLayerListAsync()
+    {
+      if (_vectorLayerList == null)
+      {
+        _vectorLayerList = new VectorLayerList();
+        await _vectorLayerList.DetectVectorLayersAsync();
+      }
+
+      return _vectorLayerList;
     }
 
     public async Task AddLayersAsync()

@@ -80,7 +80,6 @@ namespace GlobeSpotterArcGISPro.VectorLayers
       _measurementList = moduleGlobeSpotter.MeasurementList;
       _cycloMediaGroupLayer = moduleGlobeSpotter.CycloMediaGroupLayer;
       EditTool = EditTools.NoEditTool;
-      DetectVectorLayers(true);
     }
 
     #endregion
@@ -101,18 +100,23 @@ namespace GlobeSpotterArcGISPro.VectorLayers
       }
     }
 
-    private void DetectVectorLayers(bool initEvents)
+    public async Task DetectVectorLayersAsync()
+    {
+      await DetectVectorLayersAsync(true);
+    }
+
+    private async Task DetectVectorLayersAsync(bool initEvents)
     {
       Clear();
       MapView mapView = MapView.Active;
       Map map = mapView?.Map;
-      ReadOnlyObservableCollection<Layer> layers = map?.Layers;
+      IReadOnlyList<Layer> layers = map?.GetLayersAsFlattenedList();
 
       if (layers != null)
       {
         foreach (var layer in layers)
         {
-          AddLayer(layer);
+          await AddLayerAsync(layer);
         }
       }
 
@@ -124,7 +128,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
       }
     }
 
-    private void AddLayer(Layer layer)
+    private async Task AddLayerAsync(Layer layer)
     {
       FeatureLayer featureLayer = layer as FeatureLayer;
       GlobeSpotter globeSpotter = GlobeSpotter.Current;
@@ -135,9 +139,14 @@ namespace GlobeSpotterArcGISPro.VectorLayers
         if (!this.Aggregate(false, (current, vecLayer) => (vecLayer.Layer == layer) || current))
         {
           var vectorLayer = new VectorLayer(featureLayer, this);
-          Add(vectorLayer);
-          vectorLayer.PropertyChanged += OnVectorLayerPropertyChanged;
-          LayerAdded?.Invoke(vectorLayer);
+          bool initialized = await vectorLayer.InitializeEventsAsync();
+
+          if (initialized)
+          {
+            Add(vectorLayer);
+            vectorLayer.PropertyChanged += OnVectorLayerPropertyChanged;
+            LayerAdded?.Invoke(vectorLayer);
+          }
         }
       }
     }
@@ -519,13 +528,13 @@ namespace GlobeSpotterArcGISPro.VectorLayers
       LayerUpdated?.Invoke();
     }
 
-    private void OnMapViewInitialized(MapViewEventArgs args)
+    private async void OnMapViewInitialized(MapViewEventArgs args)
     {
-      DetectVectorLayers(false);
+      await DetectVectorLayersAsync(false);
       AddEvents();
     }
 
-    private void OnMapClosed(MapClosedEventArgs args)
+    private async void OnMapClosed(MapClosedEventArgs args)
     {
       LayersAddedEvent.Unsubscribe(OnLayersAdded);
       LayersMovedEvent.Unsubscribe(OnLayersMoved);
@@ -542,16 +551,16 @@ namespace GlobeSpotterArcGISPro.VectorLayers
         VectorLayer vectorLayer = this[0];
         vectorLayer.PropertyChanged -= OnVectorLayerPropertyChanged;
         LayerRemoved?.Invoke(vectorLayer);
-        vectorLayer.Dispose();
+        await vectorLayer.DisposeAsync();
         RemoveAt(0);
       }
     }
 
-    private void OnLayersAdded(LayerEventsArgs args)
+    private async void OnLayersAdded(LayerEventsArgs args)
     {
       foreach (Layer layer in args.Layers)
       {
-        AddLayer(layer);
+        await AddLayerAsync(layer);
       }
     }
 
@@ -560,7 +569,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
       LayerUpdated?.Invoke();
     }
 
-    private void OnLayersRemoved(LayerEventsArgs args)
+    private async void OnLayersRemoved(LayerEventsArgs args)
     {
       foreach (Layer layer in args.Layers)
       {
@@ -577,7 +586,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
               VectorLayer vectorLayer = this[i];
               vectorLayer.PropertyChanged -= OnVectorLayerPropertyChanged;
               LayerRemoved?.Invoke(vectorLayer);
-              vectorLayer.Dispose();
+              await vectorLayer.DisposeAsync();
               RemoveAt(i);
             }
             else

@@ -18,3 +18,10 @@ Version 0.9.1 (11/08/2016)
 - Added file: installation manual
 - The add-in is signed now
 - Added: Help button with the user manual
+
+
+Version 0.9.2 (12/08/2016)
+============================
+- Updated installation manual
+- Now you can use every pdf reader for read the usermanual (not only acrobat reader)
+- several stability issues solved

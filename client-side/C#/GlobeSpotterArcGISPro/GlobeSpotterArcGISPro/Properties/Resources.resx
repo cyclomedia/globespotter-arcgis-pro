@@ -130,8 +130,8 @@
   <data name="Globespotter_OnMaxViewers_Failed" xml:space="preserve">
     <value>Unable to open the new Cyclorama viewer. Max number of Cyclorama viewers reached.</value>
   </data>
-  <data name="Help_Adobe_reader_is_not_installed_on_your_system_" xml:space="preserve">
-    <value>Adobe reader is not installed on your system, please first install adobe reader</value>
+  <data name="Help_pdf_viewer_is_not_installed_on_your_system_" xml:space="preserve">
+    <value>There is no pdf viewer available on your system, please first install a pdf viewer</value>
   </data>
   <data name="Login_CreateAes_Password_must_be_at_least_8_characters_" xml:space="preserve">
     <value>Password must be at least 8 characters.</value>

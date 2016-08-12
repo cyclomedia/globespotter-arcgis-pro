@@ -52,9 +52,9 @@ namespace GlobeSpotterArcGISPro.AddIns.Buttons
       try
       {
         OnUpdate();
-        var adobePath = Registry.GetValue(@"HKEY_CLASSES_ROOT\Software\Adobe\Acrobat\Exe", string.Empty, string.Empty);
+        RegistryKey pdfKey = Registry.ClassesRoot.OpenSubKey(".pdf");
 
-        if (adobePath != null)
+        if (pdfKey != null)
         {
           if (_process == null)
           {
@@ -109,7 +109,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Buttons
         }
         else
         {
-          MessageBox.Show(Resources.Help_Adobe_reader_is_not_installed_on_your_system_);
+          MessageBox.Show(Resources.Help_pdf_viewer_is_not_installed_on_your_system_);
         }
       }
       catch (Exception ex)

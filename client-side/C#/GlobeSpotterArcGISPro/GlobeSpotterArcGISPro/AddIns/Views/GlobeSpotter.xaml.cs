@@ -64,7 +64,6 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     private readonly List<string> _openNearest;
     private readonly List<CycloMediaLayer> _layers;
     private readonly ViewerList _viewerList;
-    private readonly VectorLayerList _vectorLayerList;
     private readonly MeasurementList _measurementList;
     private readonly CycloMediaGroupLayer _cycloMediaGroupLayer;
 
@@ -72,6 +71,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     private CrossCheck _crossCheck;
     private SpatialReference _lastSpatialReference;
     private bool _startOpenNearest;
+    private VectorLayerList _vectorLayerList;
 
     #endregion
 
@@ -97,9 +97,9 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
       _layers = new List<CycloMediaLayer>();
       _startOpenNearest = false;
 
+      GetVectorLayerListAsync();
       ModuleGlobeSpotter globeSpotterModule = ModuleGlobeSpotter.Current;
       _viewerList = globeSpotterModule.ViewerList;
-      _vectorLayerList = globeSpotterModule.VectorLayerList;
       _measurementList = globeSpotterModule.MeasurementList;
       _cycloMediaGroupLayer = globeSpotterModule.CycloMediaGroupLayer;
       Initialize();
@@ -794,6 +794,12 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     #endregion
 
     #region Functions
+
+    private async void GetVectorLayerListAsync()
+    {
+      ModuleGlobeSpotter globeSpotterModule = ModuleGlobeSpotter.Current;
+      _vectorLayerList = await globeSpotterModule.GetVectorLayerListAsync();
+    }
 
     private void UpdateRecordingLayer(CycloMediaLayer layer)
     {

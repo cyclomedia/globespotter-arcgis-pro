@@ -51,7 +51,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Buttons
       }
     }
 
-    protected override void OnUpdate()
+    protected override async void OnUpdate()
     {
       MapView mapView = MapView.Active;
       IReadOnlyList<Layer> layers = mapView?.GetSelectedLayers();
@@ -64,7 +64,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Buttons
         CycloMediaGroupLayer groupLayer = globeSpotter.CycloMediaGroupLayer;
         _cycloMediaLayer = groupLayer?.GetLayer(layer);
 
-        VectorLayerList vectorLayerList = globeSpotter.VectorLayerList;
+        VectorLayerList vectorLayerList = await globeSpotter.GetVectorLayerListAsync();
         _vectorLayer = vectorLayerList.GetLayer(layer);
 
         if (_cycloMediaLayer != null)
