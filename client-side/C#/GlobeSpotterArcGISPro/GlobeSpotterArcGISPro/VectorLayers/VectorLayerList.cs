@@ -18,7 +18,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -425,6 +424,9 @@ namespace GlobeSpotterArcGISPro.VectorLayers
     {
       MapView mapView = args.MapView;
       Geometry geometry = await mapView.GetCurrentSketchAsync();
+      EditingTemplate editingFeatureTemplate = EditingTemplate.Current;
+      Layer layer = editingFeatureTemplate?.Layer;
+      VectorLayer thisVectorLayer = GetLayer(layer);
 
       if (geometry != null)
       {
@@ -447,7 +449,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
                 await AddHeightToMeasurementAsync(geometry, mapView);
               }
 
-              await _measurementList.SketchModifiedAsync(geometry, measurement.VectorLayer);
+              await _measurementList.SketchModifiedAsync(geometry, thisVectorLayer);
             }
 
             break;
@@ -459,7 +461,6 @@ namespace GlobeSpotterArcGISPro.VectorLayers
               await AddHeightToMeasurementAsync(geometry, mapView);
             }
 
-            VectorLayer thisVectorLayer = _measurementList.Sketch?.VectorLayer;
             await _measurementList.SketchModifiedAsync(geometry, thisVectorLayer);
             break;
           case EditTools.SketchPointTool:

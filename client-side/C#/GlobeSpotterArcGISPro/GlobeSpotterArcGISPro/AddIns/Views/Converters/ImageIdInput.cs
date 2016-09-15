@@ -18,7 +18,6 @@
 
 using System;
 using System.Globalization;
-using System.Linq;
 using System.Windows.Data;
 
 namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
@@ -36,13 +35,20 @@ namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
     {
       string text = value as string;
       string result = string.Empty;
+      int counter = 0;
 
       if (!string.IsNullOrEmpty(text))
       {
         text = text.ToUpper();
-        result = text.Where((item, i)
-          => (((item >= 'A') && (item <= 'Z')) || ((item >= '0') && (item <= '9'))) && (i <= 7)).Aggregate(result,
-            (current, item) => current + item);
+
+        foreach (char item in text)
+        {
+          if ((((item >= 'A') && (item <= 'Z')) || ((item >= '0') && (item <= '9'))) && (counter <= 7))
+          {
+            counter++;
+            result = result + item;
+          }
+        }
       }
 
       return result;
