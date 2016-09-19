@@ -1,6 +1,12 @@
 Release notes:
 ==============
 
+Version 1.0.0 (19/09/2016)
+============================
+- When a new project is opened, the previous globeSpotter window is always closed
+- build as first release
+
+
 Version 0.9.5 (19/09/2016)
 ============================
 - Several stability issues are solved

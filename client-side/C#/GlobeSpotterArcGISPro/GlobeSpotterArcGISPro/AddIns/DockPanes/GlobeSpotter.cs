@@ -18,6 +18,7 @@
 
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using ArcGIS.Desktop.Core.Events;
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
 using GlobeSpotterAPI;
@@ -35,6 +36,15 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
     #region Events
 
     public new event PropertyChangedEventHandler PropertyChanged;
+
+    #endregion
+
+    #region Constructor
+
+    protected GlobeSpotter()
+    {
+      ProjectClosedEvent.Subscribe(OnProjectClosed);
+    }
 
     #endregion
 
@@ -150,6 +160,15 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
       }
 
       return globeSpotter;
+    }
+
+    #endregion
+
+    #region Event handlers
+
+    private void OnProjectClosed(ProjectEventArgs args)
+    {
+      Hide();
     }
 
     #endregion
