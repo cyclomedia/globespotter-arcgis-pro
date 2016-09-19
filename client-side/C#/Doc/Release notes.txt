@@ -1,6 +1,13 @@
 Release notes:
 ==============
 
+Version 0.9.5 (19/09/2016)
+============================
+- Several stability issues are solved
+- Bug solved: Sometimes the measurement cross was removed after the previous measurement was saved
+  (there were after the previous fix some situations when this can be happen, these situations are fixed now)
+
+
 Version 0.9.4 (15/09/2016)
 ============================
 - Bug solved: Copy-past issue of the imageId to the ImageId search field

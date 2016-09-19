@@ -520,7 +520,14 @@ namespace GlobeSpotterArcGISPro.VectorLayers
                 Measurement measurement = _measurementList.Get(objectId) ?? (await _measurementList.GetAsync(geometry));
                 thisMeasurement = true;
                 _measurementList.DrawPoint = false;
-                measurement = _measurementList.StartMeasurement(geometry, measurement, false, objectId, this);
+                EditTools editTool = _vectorLayerList.EditTool;
+
+                if ((editTool != EditTools.SketchLineTool) && (editTool != EditTools.SketchPointTool) &&
+                    (editTool != EditTools.SketchPolygonTool))
+                {
+                  measurement = _measurementList.StartMeasurement(geometry, measurement, false, objectId, this);
+                }
+
                 _measurementList.DrawPoint = true;
 
                 if (measurement != null)

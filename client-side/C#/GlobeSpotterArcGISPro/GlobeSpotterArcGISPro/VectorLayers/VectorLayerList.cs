@@ -88,7 +88,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
     public VectorLayer GetLayer(Layer layer)
     {
       return this.Aggregate<VectorLayer, VectorLayer>(null,
-        (current, layerCheck) => (layerCheck.Layer == layer) ? layerCheck : current);
+        (current, layerCheck) => (layerCheck?.Layer == layer) ? layerCheck : current);
     }
 
     public async Task LoadMeasurementsAsync()
@@ -177,7 +177,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
       Layer layer = editingFeatureTemplate?.Layer;
       VectorLayer vectorLayer = GetLayer(layer);
 
-      if (vectorLayer.IsVisibleInGlobespotter)
+      if (vectorLayer?.IsVisibleInGlobespotter ?? false)
       {
         await StartMeasurementSketchAsync(vectorLayer);
       }
@@ -550,10 +550,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
       while (Count >= 1)
       {
         VectorLayer vectorLayer = this[0];
-        vectorLayer.PropertyChanged -= OnVectorLayerPropertyChanged;
-        LayerRemoved?.Invoke(vectorLayer);
-        await vectorLayer.DisposeAsync();
-        RemoveAt(0);
+        await RemoveLayer(vectorLayer);
       }
     }
 
@@ -585,10 +582,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
             if (this[i].Layer == featureLayer)
             {
               VectorLayer vectorLayer = this[i];
-              vectorLayer.PropertyChanged -= OnVectorLayerPropertyChanged;
-              LayerRemoved?.Invoke(vectorLayer);
-              await vectorLayer.DisposeAsync();
-              RemoveAt(i);
+              await RemoveLayer(vectorLayer);
             }
             else
             {
@@ -596,6 +590,18 @@ namespace GlobeSpotterArcGISPro.VectorLayers
             }
           }
         }
+      }
+    }
+
+    private async Task RemoveLayer(VectorLayer vectorLayer)
+    {
+      vectorLayer.PropertyChanged -= OnVectorLayerPropertyChanged;
+      LayerRemoved?.Invoke(vectorLayer);
+      await vectorLayer.DisposeAsync();
+
+      if (Contains(vectorLayer))
+      {
+        Remove(vectorLayer);
       }
     }
 

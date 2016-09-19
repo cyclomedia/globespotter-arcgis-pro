@@ -150,7 +150,7 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
 
     public MeasurementPoint GetPointByNr(int nr)
     {
-      return Values.ElementAt(nr);
+      return (Values.Count > nr) ? Values.ElementAt(nr) : null;
     }
 
     public async Task CloseAsync()
@@ -160,13 +160,14 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
 
       if (!IsPointMeasurement)
       {
-        foreach (var measurementPoint in this)
+        for (int i = 0; i < Count; i++)
         {
-          var point = measurementPoint.Value;
+          MeasurementPoint point = this.ElementAt(i).Value;
           await point.RedrawPointAsync();
 
-          foreach (var observation in point)
+          for(int j = 0; j < point.Count; j++)
           {
+            MeasurementObservation observation = point[j];
             await observation.RedrawObservationAsync();
           }
         }
@@ -291,7 +292,11 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
       for (int i = 0; i < Count; i++)
       {
         MeasurementPoint msPoint = GetPointByNr(i);
-        msPoint.IntId = i + 1;
+
+        if (msPoint != null)
+        {
+          msPoint.IntId = i + 1;
+        }
       }
 
       if (Count >= 1)
@@ -450,7 +455,7 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
           {
             MeasurementPoint measurementPoint = GetPointByNr(i);
 
-            if (((!measurementPoint.NotCreated) && (!IsPointMeasurement)) || (IsPointMeasurement && (PointNr >= 1)))
+            if ((measurementPoint != null) && (((!measurementPoint.NotCreated) && (!IsPointMeasurement)) || (IsPointMeasurement && (PointNr >= 1))))
             {
               toRemove.Add(measurementPoint, true);
             }
