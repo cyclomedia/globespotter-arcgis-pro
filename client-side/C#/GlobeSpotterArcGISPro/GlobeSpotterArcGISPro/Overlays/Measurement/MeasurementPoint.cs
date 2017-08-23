@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2016, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -540,7 +540,7 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
               Size = fontSizeR
             };
 
-            CIMPointSymbol symbol = SymbolFactory.ConstructPointSymbol(marker);
+            CIMPointSymbol symbol = SymbolFactory.Instance.ConstructPointSymbol(marker);
             CIMSymbolReference symbolReference = symbol.MakeSymbolReference();
             _disposeText = thisView.AddOverlay(pointText, symbolReference);
           }

@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2016, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -114,7 +114,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
         {
           await QueuedTask.Run(() =>
           {
-            GroupLayer = LayerFactory.CreateGroupLayer(map, 0, name);
+            GroupLayer = LayerFactory.Instance.CreateGroupLayer(map, 0, name);
             GroupLayer.SetExpanded(true);
           });
         }

@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2016, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -217,16 +217,16 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
           Polyline polyline = PolylineBuilder.CreatePolyline(linePointList);
 
           Color outerColorLine = Viewer?.Color ?? Color.DarkGray;
-          CIMColor cimOuterColorLine = ColorFactory.CreateColor(Color.FromArgb(255, outerColorLine));
-          CIMLineSymbol cimOuterLineSymbol = SymbolFactory.DefaultLineSymbol;
+          CIMColor cimOuterColorLine = ColorFactory.Instance.CreateColor(Color.FromArgb(255, outerColorLine));
+          CIMLineSymbol cimOuterLineSymbol = SymbolFactory.Instance.DefaultLineSymbol;
           cimOuterLineSymbol.SetColor(cimOuterColorLine);
           cimOuterLineSymbol.SetSize(OuterLineSize);
           CIMSymbolReference cimOuterLineSymbolRef = cimOuterLineSymbol.MakeSymbolReference();
           _disposeOuterLine = thisView.AddOverlay(polyline, cimOuterLineSymbolRef);
 
           Color innerColorLine = Color.LightGray;
-          CIMColor cimInnerColorLine = ColorFactory.CreateColor(innerColorLine);
-          CIMLineSymbol cimInnerLineSymbol = SymbolFactory.DefaultLineSymbol;
+          CIMColor cimInnerColorLine = ColorFactory.Instance.CreateColor(innerColorLine);
+          CIMLineSymbol cimInnerLineSymbol = SymbolFactory.Instance.DefaultLineSymbol;
           cimInnerLineSymbol.SetColor(cimInnerColorLine);
           cimInnerLineSymbol.SetSize(InnerLineSize);
           CIMSymbolReference cimInnerLineSymbolRef = cimInnerLineSymbol.MakeSymbolReference();

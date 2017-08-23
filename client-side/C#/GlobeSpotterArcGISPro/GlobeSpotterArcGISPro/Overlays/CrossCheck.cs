@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2016, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -56,7 +56,7 @@ namespace GlobeSpotterArcGISPro.Overlays
         if ((mapSpatialReference != null) && (spatialReference.Wkid != mapSpatialReference.Wkid))
         {
           ProjectionTransformation projection = ProjectionTransformation.Create(spatialReference, mapSpatialReference);
-          mapPoint = GeometryEngine.ProjectEx(point, projection) as MapPoint;
+          mapPoint = GeometryEngine.Instance.ProjectEx(point, projection) as MapPoint;
         }
         else
         {
@@ -65,9 +65,9 @@ namespace GlobeSpotterArcGISPro.Overlays
 
         if ((mapPoint != null) && (!mapPoint.IsEmpty))
         {
-          CIMColor cimColor = ColorFactory.CreateColor(Color.Black);
-          CIMMarker cimMarker = SymbolFactory.ConstructMarker(cimColor, size, SimpleMarkerStyle.Cross);
-          CIMPointSymbol pointSymbol = SymbolFactory.ConstructPointSymbol(cimMarker);
+          CIMColor cimColor = ColorFactory.Instance.CreateColor(Color.Black);
+          CIMMarker cimMarker = SymbolFactory.Instance.ConstructMarker(cimColor, size, SimpleMarkerStyle.Cross);
+          CIMPointSymbol pointSymbol = SymbolFactory.Instance.ConstructPointSymbol(cimMarker);
           CIMSymbolReference pointSymbolReference = pointSymbol.MakeSymbolReference();
           IDisposable disposeCross = thisView.AddOverlay(mapPoint, pointSymbolReference);
 

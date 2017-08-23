@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2016, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -120,7 +120,7 @@ namespace GlobeSpotterArcGISPro.Overlays
         if ((mapSpatialReference != null) && (spatialReference.Wkid != mapSpatialReference.Wkid))
         {
           ProjectionTransformation projection = ProjectionTransformation.Create(spatialReference, mapSpatialReference);
-          _mapPoint = GeometryEngine.ProjectEx(point, projection) as MapPoint;
+          _mapPoint = GeometryEngine.Instance.ProjectEx(point, projection) as MapPoint;
         }
         else
         {
@@ -186,7 +186,7 @@ namespace GlobeSpotterArcGISPro.Overlays
           SpatialReference mapSpat = map.SpatialReference;
           SpatialReference mapPointSpat = _mapPoint.SpatialReference;
           ProjectionTransformation projection = ProjectionTransformation.Create(mapPointSpat, mapSpat);
-          _mapPoint = GeometryEngine.ProjectEx(_mapPoint, projection) as MapPoint;
+          _mapPoint = GeometryEngine.Instance.ProjectEx(_mapPoint, projection) as MapPoint;
 
           WinPoint point = thisView.MapToScreen(_mapPoint);
           double angleh = (_hFov*Math.PI)/360;
@@ -210,8 +210,8 @@ namespace GlobeSpotterArcGISPro.Overlays
           Polygon polygon = PolygonBuilder.CreatePolygon(polygonPointList);
 
           Color colorPolygon = SystCol.FromArgb(_blinking ? BlinkAlpha : NormalAlpha, thisColor);
-          CIMColor cimColorPolygon = ColorFactory.CreateColor(colorPolygon);
-          CIMPolygonSymbol polygonSymbol = SymbolFactory.DefaultPolygonSymbol;
+          CIMColor cimColorPolygon = ColorFactory.Instance.CreateColor(colorPolygon);
+          CIMPolygonSymbol polygonSymbol = SymbolFactory.Instance.DefaultPolygonSymbol;
           polygonSymbol.SetColor(cimColorPolygon);
           polygonSymbol.SetOutlineColor(null);
           CIMSymbolReference polygonSymbolReference = polygonSymbol.MakeSymbolReference();
@@ -224,8 +224,8 @@ namespace GlobeSpotterArcGISPro.Overlays
           Polyline polyline = PolylineBuilder.CreatePolyline(linePointList);
 
           Color colorLine = _active ? SystCol.Yellow : SystCol.Gray;
-          CIMColor cimColorLine = ColorFactory.CreateColor(colorLine);
-          CIMLineSymbol cimLineSymbol = SymbolFactory.DefaultLineSymbol;
+          CIMColor cimColorLine = ColorFactory.Instance.CreateColor(colorLine);
+          CIMLineSymbol cimLineSymbol = SymbolFactory.Instance.DefaultLineSymbol;
           cimLineSymbol.SetColor(cimColorLine);
           cimLineSymbol.SetSize(_blinking ? BorderSizeBlinking : BorderSize);
           CIMSymbolReference lineSymbolReference = cimLineSymbol.MakeSymbolReference();

@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2016, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -520,7 +520,7 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
               await QueuedTask.Run(() =>
               {
                 ProjectionTransformation projection = ProjectionTransformation.Create(layerSpatRef, cyclSpatRef);
-                copyGsPoint = GeometryEngine.ProjectEx(point, projection) as MapPoint;
+                copyGsPoint = GeometryEngine.Instance.ProjectEx(point, projection) as MapPoint;
               });
 
               CreateMeasurementPoint(copyGsPoint);

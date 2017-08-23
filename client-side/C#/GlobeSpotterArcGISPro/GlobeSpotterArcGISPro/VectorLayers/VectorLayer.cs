@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2016, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -226,7 +226,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
             if (layerSpatRef.Wkid != 0)
             {
               ProjectionTransformation projection = ProjectionTransformation.Create(cyclSpatRef, layerSpatRef);
-              copyEnvelope = GeometryEngine.ProjectEx(envelope, projection) as Envelope;
+              copyEnvelope = GeometryEngine.Instance.ProjectEx(envelope, projection) as Envelope;
             }
 
             Polygon copyPolygon = PolygonBuilder.CreatePolygon(copyEnvelope, layerSpatRef);
@@ -281,7 +281,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
                 if ((geometry != null) && (layerSpatRef.Wkid != 0))
                 {
                   ProjectionTransformation projection = ProjectionTransformation.Create(layerSpatRef, cyclSpatRef);
-                  copyGeometry = GeometryEngine.ProjectEx(geometry, projection);
+                  copyGeometry = GeometryEngine.Instance.ProjectEx(geometry, projection);
                 }
 
                 if (copyGeometry != null)

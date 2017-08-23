@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2016, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -150,8 +150,8 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
               if (spatialReference.ArcGisSpatialReference != null)
               {
                 Bounds bounds = spatialReference.NativeBounds;
-                var minCoordinate = new Coordinate(bounds.MinX, bounds.MinY);
-                var maxCoordinate = new Coordinate(bounds.MaxX, bounds.MaxY);
+                var minCoordinate = new Coordinate2D(bounds.MinX, bounds.MinY);
+                var maxCoordinate = new Coordinate2D(bounds.MaxX, bounds.MaxY);
                 envelope = EnvelopeBuilder.CreateEnvelope(minCoordinate, maxCoordinate,
                   spatialReference.ArcGisSpatialReference);
               }
@@ -173,7 +173,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
               {
                 ProjectionTransformation projection = ProjectionTransformation.Create(envelope.SpatialReference,
                   ArcGisSpatialReference);
-                var copyEnvelope = GeometryEngine.ProjectEx(envelope, projection) as Envelope;
+                var copyEnvelope = GeometryEngine.Instance.ProjectEx(envelope, projection) as Envelope;
 
                 if ((copyEnvelope == null) || (copyEnvelope.IsEmpty))
                 {
