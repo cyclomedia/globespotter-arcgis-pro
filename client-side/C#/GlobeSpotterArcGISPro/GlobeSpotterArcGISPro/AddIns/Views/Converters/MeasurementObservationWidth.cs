@@ -32,7 +32,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
       double totalWidth = (double) values[0];
       MeasurementPoint point = values[1] as MeasurementPoint;
       int count = point?.Count ?? 0;
-      return (totalWidth - (14*count))/Math.Max(count, 1);
+      return (totalWidth - (15*count))/Math.Max(count, 1);
     }
 
     public object[] ConvertBack(object value, Type[] targetType, object parameter, CultureInfo culture)
