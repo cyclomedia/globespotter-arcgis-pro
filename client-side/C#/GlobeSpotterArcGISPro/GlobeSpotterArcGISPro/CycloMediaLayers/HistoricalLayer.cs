@@ -504,8 +504,8 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       _minimumScale = Constants.MinimumScale;
     }
 
-    public HistoricalLayer(CycloMediaGroupLayer layer)
-      : base(layer)
+    public HistoricalLayer(CycloMediaGroupLayer layer, Envelope initialExtent = null)
+      : base(layer, initialExtent)
     {
       _historicalRecordings = HistoricalRecordings.Instance;
       MapViewTimeChangedEvent.Subscribe(OnTimeChanged);

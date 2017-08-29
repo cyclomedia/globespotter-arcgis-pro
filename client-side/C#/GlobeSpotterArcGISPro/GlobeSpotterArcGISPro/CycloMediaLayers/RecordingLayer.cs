@@ -316,8 +316,8 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       _minimumScale = Constants.MinimumScale;
     }
 
-    public RecordingLayer(CycloMediaGroupLayer layer)
-      : base(layer)
+    public RecordingLayer(CycloMediaGroupLayer layer, Envelope initialExtent = null)
+      : base(layer, initialExtent)
     {
     }
 

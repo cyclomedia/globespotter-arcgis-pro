@@ -22,6 +22,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
@@ -38,6 +39,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
     private readonly ConstantsRecordingLayer _constants;
     private IList<CycloMediaLayer> _allLayers;
     private bool _updateVisibility;
+    private Envelope _initialExtent;
 
     #endregion
 
@@ -53,8 +55,8 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
 
     public IList<CycloMediaLayer> AllLayers => _allLayers ?? (_allLayers = new List<CycloMediaLayer>
     {
-      new RecordingLayer(this),
-      new HistoricalLayer(this)
+      new RecordingLayer(this, InitialExtent),
+      new HistoricalLayer(this, InitialExtent)
     });
 
     public bool ContainsLayers => (Count != 0);
@@ -63,6 +65,8 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
     {
       get { return this.Aggregate(false, (current, layer) => layer.InsideScale || current); }
     }
+
+    public Envelope InitialExtent => _initialExtent ?? (_initialExtent = MapView.Active?.Extent);
 
     #endregion
 
@@ -77,12 +81,13 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
 
     #region Functions
 
-    public async Task InitializeAsync()
+    public async Task InitializeAsync(MapView mapView = null)
     {
       _updateVisibility = false;
       GroupLayer = null;
       Clear();
-      Map map = MapView.Active?.Map;
+      _initialExtent = (mapView ?? MapView.Active)?.Extent;
+      Map map = (mapView ?? MapView.Active)?.Map;
       string name = _constants.CycloMediaLayerName;
 
       if (map != null)
@@ -121,7 +126,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
 
         foreach (Layer layer in layers)
         {
-          await AddLayerAsync(layer.Name);
+          await AddLayerAsync(layer.Name, mapView);
         }
       }
 
@@ -135,7 +140,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
         (current, layerCheck) => (layerCheck.Layer == layer) ? layerCheck : current);
     }
 
-    public async Task<CycloMediaLayer> AddLayerAsync(string name)
+    public async Task<CycloMediaLayer> AddLayerAsync(string name, MapView mapView = null)
     {
       CycloMediaLayer thisLayer = null;
 
@@ -147,7 +152,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
         if (thisLayer != null)
         {
           Add(thisLayer);
-          await thisLayer.AddToLayersAsync();
+          await thisLayer.AddToLayersAsync(mapView);
           // ReSharper disable once ExplicitCallerInfoArgument
           NotifyPropertyChanged(nameof(Count));
           FrameworkApplication.State.Activate("globeSpotterArcGISPro_recordingLayerEnabledState");

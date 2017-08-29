@@ -142,14 +142,14 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
 
     #region Constructor
 
-    protected CycloMediaLayer(CycloMediaGroupLayer layer)
+    protected CycloMediaLayer(CycloMediaGroupLayer layer, Envelope initialExtent = null)
     {
       _constants = ConstantsRecordingLayer.Instance;
       _cycloMediaGroupLayer = layer;
       _isVisibleInGlobespotter = true;
       Visible = false;
       IsRemoved = true;
-      _lastextent = MapView.Active.Extent;
+      _lastextent = initialExtent ?? MapView.Active?.Extent;
       IsInitialized = false;
     }
 
@@ -263,10 +263,10 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       await project.SaveEditsAsync();
     }
 
-    public async Task AddToLayersAsync()
+    public async Task AddToLayersAsync(MapView mapView = null)
     {
       Layer = null;
-      Map map = MapView.Active?.Map;
+      Map map = (mapView ?? MapView.Active)?.Map;
 
       if (map != null)
       {
