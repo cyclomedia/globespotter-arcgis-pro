@@ -215,7 +215,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
                 {
                   changesLine = true;
                   MapPoint srcLinePoint = await AddHeightToMapPointAsync(point);
-                  mapLinePoints.Add(srcLinePoint);
+                  mapLinePoints.Add(MapPointBuilder.CreateMapPoint(srcLinePoint, polyline.SpatialReference));
                 }
                 else
                 {
