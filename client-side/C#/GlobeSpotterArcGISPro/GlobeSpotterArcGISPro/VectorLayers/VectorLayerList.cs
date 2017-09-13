@@ -104,10 +104,10 @@ namespace GlobeSpotterArcGISPro.VectorLayers
       await DetectVectorLayersAsync(true);
     }
 
-    private async Task DetectVectorLayersAsync(bool initEvents)
+    private async Task DetectVectorLayersAsync(bool initEvents, MapView initMapView = null)
     {
       Clear();
-      MapView mapView = MapView.Active;
+      MapView mapView = initMapView ?? MapView.Active;
       Map map = mapView?.Map;
       IReadOnlyList<Layer> layers = map?.GetLayersAsFlattenedList();
 
@@ -531,7 +531,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
 
     private async void OnMapViewInitialized(MapViewEventArgs args)
     {
-      await DetectVectorLayersAsync(false);
+      await DetectVectorLayersAsync(false, args.MapView);
       AddEvents();
     }
 
