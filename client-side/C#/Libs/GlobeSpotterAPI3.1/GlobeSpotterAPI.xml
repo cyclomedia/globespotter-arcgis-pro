@@ -2147,15 +2147,27 @@
             <returns>nothing</returns>
             <seealso cref="M:GlobeSpotterAPI.API.RemoveLayer(System.UInt32)"/>
         </member>
+        <member name="M:GlobeSpotterAPI.API.SetBaseLayerTMS(System.String,System.UInt32,System.String,GlobeSpotterAPI.TMSLayer,System.Boolean)">
+            <summary>
+            Sets the baselayer of a map
+            </summary>
+            <param name="name">Name of this layer (may be anything).</param>
+            <param name="type">Layer type. Should be 4 for TMS</param>
+            <param name="srsName">The name(s) of the layer(s) to be retrieved.</param>
+            <param name="TMSLayer">TMS layer object</param>
+            <param name="useProxy">Wether to use CycloMedia proxy or not</param>
+            <returns>nothing</returns>
+            <seealso cref="M:GlobeSpotterAPI.API.RemoveLayer(System.UInt32)"/>
+        </member>
         <member name="M:GlobeSpotterAPI.API.SetBaseLayerWMS(System.String,System.UInt32,System.String,GlobeSpotterAPI.WMSLayer,System.Boolean)">
             <summary>
             Sets the baselayer of a map
             </summary>
             <param name="name">Name of this layer (may be anything).</param>
-            <param name="type">URL of the WMS-service.</param>
+            <param name="type">Type of layer. Should be 1 for WMS</param>
             <param name="srsName">The name(s) of the layer(s) to be retrieved.</param>
-            <param name="layer">Supported WMS version.</param>
-            <param name="useProxy">Wether the layer needs to be transparent or not.</param>
+            <param name="WMSLayer">WMS layer object.</param>
+            <param name="useProxy">Wether to use CycloMedia proxy or not.</param>
             <returns>nothing</returns>
             <seealso cref="M:GlobeSpotterAPI.API.RemoveLayer(System.UInt32)"/>
         </member>
@@ -4321,6 +4333,52 @@
             <summary>
             Construct MeasurementPoint 
             </summary>
+        </member>
+        <member name="T:GlobeSpotterAPI.TMSLayer">
+            <summary>
+            TMSLayer
+            </summary>
+        </member>
+        <member name="P:GlobeSpotterAPI.TMSLayer.url">
+            <summary>
+            base url of osm tiles
+            </summary>
+        </member>
+        <member name="P:GlobeSpotterAPI.TMSLayer.maxExtent">
+            <summary>
+            map extent
+            </summary>
+        </member>
+        <member name="P:GlobeSpotterAPI.TMSLayer.maxResolution">
+            <summary>
+            max resolution
+            </summary>
+        </member>
+        <member name="P:GlobeSpotterAPI.TMSLayer.maxZoomLevel">
+            <summary>
+            max zoomlevel
+            </summary>
+        </member>
+        <member name="P:GlobeSpotterAPI.TMSLayer.featureZoomLevel">
+            <summary>
+            feature zoomlevel
+            </summary>
+        </member>
+        <member name="P:GlobeSpotterAPI.TMSLayer.tileOrder">
+            <summary>
+            tileOrder 1 = LB 2 = LT
+            </summary>
+        </member>
+        <member name="M:GlobeSpotterAPI.TMSLayer.#ctor(System.String,GlobeSpotterAPI.MapExtent,System.Double,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            constructor
+            </summary>
+        </member>
+        <member name="M:GlobeSpotterAPI.TMSLayer.ToXMLString">
+            <summary>
+            Creates an XML-repressentation of this object.
+            </summary>
+            <returns>XML-string</returns>
         </member>
         <member name="T:GlobeSpotterAPI.OSMLayer">
             <summary>

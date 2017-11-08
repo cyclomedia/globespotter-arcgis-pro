@@ -1,6 +1,11 @@
 Release notes:
 ==============
 
+Version 2.0.2 (08/11/2017)
+============================
+- build with the new GlobeSpotter.NET API, this api fixed the small window in case of proxy usage
+
+
 Version 2.0.1 (13/09/2017)
 ============================
 - bug fix: Layers detection while initializing the addIn goes sometimes wrong
