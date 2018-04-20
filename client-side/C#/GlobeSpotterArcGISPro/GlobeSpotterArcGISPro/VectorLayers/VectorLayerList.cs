@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2016, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -104,10 +104,10 @@ namespace GlobeSpotterArcGISPro.VectorLayers
       await DetectVectorLayersAsync(true);
     }
 
-    private async Task DetectVectorLayersAsync(bool initEvents)
+    private async Task DetectVectorLayersAsync(bool initEvents, MapView initMapView = null)
     {
       Clear();
-      MapView mapView = MapView.Active;
+      MapView mapView = initMapView ?? MapView.Active;
       Map map = mapView?.Map;
       IReadOnlyList<Layer> layers = map?.GetLayersAsFlattenedList();
 
@@ -215,7 +215,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
                 {
                   changesLine = true;
                   MapPoint srcLinePoint = await AddHeightToMapPointAsync(point);
-                  mapLinePoints.Add(srcLinePoint);
+                  mapLinePoints.Add(MapPointBuilder.CreateMapPoint(srcLinePoint, polyline.SpatialReference));
                 }
                 else
                 {
@@ -317,7 +317,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
 
         ProjectionTransformation dstProjection = ProjectionTransformation.Create(srcSpatialReference,
           dstSpatialReference);
-        MapPoint dstPoint = GeometryEngine.ProjectEx(srcPoint, dstProjection) as MapPoint;
+        MapPoint dstPoint = GeometryEngine.Instance.ProjectEx(srcPoint, dstProjection) as MapPoint;
 
         if (dstPoint != null)
         {
@@ -328,7 +328,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
             dstPoint = MapPointBuilder.CreateMapPoint(dstPoint.X, dstPoint.Y, ((double)height), dstSpatialReference);
             ProjectionTransformation srcProjection = ProjectionTransformation.Create(dstSpatialReference,
               srcSpatialReference);
-            srcPoint = GeometryEngine.ProjectEx(dstPoint, srcProjection) as MapPoint;
+            srcPoint = GeometryEngine.Instance.ProjectEx(dstPoint, srcProjection) as MapPoint;
           }
         }
 
@@ -531,7 +531,7 @@ namespace GlobeSpotterArcGISPro.VectorLayers
 
     private async void OnMapViewInitialized(MapViewEventArgs args)
     {
-      await DetectVectorLayersAsync(false);
+      await DetectVectorLayersAsync(false, args.MapView);
       AddEvents();
     }
 

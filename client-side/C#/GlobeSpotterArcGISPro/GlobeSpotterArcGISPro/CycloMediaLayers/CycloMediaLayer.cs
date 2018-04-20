@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2016, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -142,14 +142,14 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
 
     #region Constructor
 
-    protected CycloMediaLayer(CycloMediaGroupLayer layer)
+    protected CycloMediaLayer(CycloMediaGroupLayer layer, Envelope initialExtent = null)
     {
       _constants = ConstantsRecordingLayer.Instance;
       _cycloMediaGroupLayer = layer;
       _isVisibleInGlobespotter = true;
       Visible = false;
       IsRemoved = true;
-      _lastextent = MapView.Active.Extent;
+      _lastextent = initialExtent ?? MapView.Active?.Extent;
       IsInitialized = false;
     }
 
@@ -210,7 +210,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
         if ((spatialReference != null) && (envSpat.Wkid != spatialReference.Wkid))
         {
           ProjectionTransformation projection = ProjectionTransformation.Create(envSpat, spatialReference);
-          result = GeometryEngine.ProjectEx(envelope, projection) as Envelope;
+          result = GeometryEngine.Instance.ProjectEx(envelope, projection) as Envelope;
         }
         else
         {
@@ -263,10 +263,10 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       await project.SaveEditsAsync();
     }
 
-    public async Task AddToLayersAsync()
+    public async Task AddToLayersAsync(MapView mapView = null)
     {
       Layer = null;
-      Map map = MapView.Active?.Map;
+      Map map = (mapView ?? MapView.Active)?.Map;
 
       if (map != null)
       {
@@ -327,7 +327,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       {
         string featureClassUrl = $@"{project.DefaultGeodatabasePath}\{fcName}";
         Uri uri = new Uri(featureClassUrl);
-        FeatureLayer result = LayerFactory.CreateFeatureLayer(uri, layerContainer);
+        FeatureLayer result = LayerFactory.Instance.CreateFeatureLayer(uri, layerContainer);
         result.SetName(Name);
         result.SetMinScale(MinimumScale);
         result.SetVisibility(true);
@@ -570,8 +570,10 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       await QueuedTask.Run(() =>
       {
         string location = project.DefaultGeodatabasePath;
+        Uri uriLocation = new Uri(location);
+        FileGeodatabaseConnectionPath pathLocation = new FileGeodatabaseConnectionPath(uriLocation);
 
-        using (var geodatabase = new Geodatabase(location))
+        using (var geodatabase = new Geodatabase(pathLocation))
         {
           try
           {
@@ -760,7 +762,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       YearMonth.Clear();
     }
 
-    protected async Task<CIMMarker> GetPipSymbol(Color color)
+    protected CIMMarker GetPipSymbol(Color color)
     {
       var size025 = (int) _constants.SizeLayer;
       var size05 = size025 * 2;
@@ -795,12 +797,12 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       string tempPath = Path.GetTempPath();
       string writePath = Path.Combine(tempPath, $"{color.Name}pip.png");
       bitmap.Save(writePath, ImageFormat.Png);
-      CIMMarker marker = await SymbolFactory.ConstructMarkerFromFileAsync(writePath);
+      CIMMarker marker = SymbolFactory.Instance.ConstructMarkerFromFile(writePath);
       marker.Size = size075;
       return marker;
     }
 
-    protected async Task<CIMMarker> GetForbiddenSymbol(Color color)
+    protected CIMMarker GetForbiddenSymbol(Color color)
     {
       var size025 = (int) _constants.SizeLayer;
       var size075 = size025 * 3;
@@ -827,7 +829,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       string tempPath = Path.GetTempPath();
       string writePath = Path.Combine(tempPath, $"{color.Name}forbidden.bmp");
       bitmap.Save(writePath, ImageFormat.Png);
-      CIMMarker marker = await SymbolFactory.ConstructMarkerFromFileAsync(writePath);
+      CIMMarker marker = SymbolFactory.Instance.ConstructMarkerFromFile(writePath);
       marker.Size = size075;
       return marker;
     }

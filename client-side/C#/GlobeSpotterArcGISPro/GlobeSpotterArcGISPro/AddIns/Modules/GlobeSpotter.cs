@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2016, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -124,10 +124,10 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
       return CycloMediaGroupLayer.InsideScale;
     }
 
-    private bool ContainsCycloMediaLayer()
+    private bool ContainsCycloMediaLayer(MapView mapView = null)
     {
       return
-        MapView.Active?.Map?.Layers.Aggregate(false,
+        (mapView ?? MapView.Active)?.Map?.Layers.Aggregate(false,
           (current, layer) => (CycloMediaGroupLayer?.IsKnownName(layer.Name) ?? (layer.Name == "CycloMedia")) || current) ??
         false;
     }
@@ -161,21 +161,21 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
       return _vectorLayerList;
     }
 
-    public async Task AddLayersAsync()
+    public async Task AddLayersAsync(MapView mapView)
     {
-      await AddLayersAsync(null);
+      await AddLayersAsync(null, mapView);
     }
 
-    public async Task AddLayersAsync(string name)
+    public async Task AddLayersAsync(string name, MapView mapView = null)
     {
       if (CycloMediaGroupLayer.Count == 0)
       {
-        await CycloMediaGroupLayer.InitializeAsync();
+        await CycloMediaGroupLayer.InitializeAsync(mapView);
       }
 
       if (!string.IsNullOrEmpty(name))
       {
-        await CycloMediaGroupLayer.AddLayerAsync(name);
+        await CycloMediaGroupLayer.AddLayerAsync(name, mapView);
       }
     }
 
@@ -199,9 +199,9 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
       LayersRemovedEvent.Subscribe(OnLayerRemoved);
       DrawCompleteEvent.Subscribe(OnDrawComplete);
 
-      if (ContainsCycloMediaLayer())
+      if (ContainsCycloMediaLayer(args.MapView))
       {
-        await AddLayersAsync();
+        await AddLayersAsync(args.MapView);
       }
 
       Settings settings = Settings.Instance;

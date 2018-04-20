@@ -1,3 +1,10 @@
+Migratie naar ArcGIS Pro 2.0:
+=============================
+  - Test of alle functionaliteit nog steeds goed werkt, ook vooral meten testen, het opnieuw opstarten en dan in dezelfde state terecht komen, test of dat ook goed werkt.
+  - Test of de geodatabase kopeling via file goed werkt
+  - Ga alle xaml styles na en kijk of die allemaal goed zijn afgestemd op arcGIS Pro 2.0
+
+
 Recent Recording Layer:
 =======================
   - De limiet van 10 karakters per item in de database moet eruit.

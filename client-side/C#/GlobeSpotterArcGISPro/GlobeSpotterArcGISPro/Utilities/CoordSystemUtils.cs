@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2016, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -60,7 +60,7 @@ namespace GlobeSpotterArcGISPro.Utilities
             (gsSpatialReference.Wkid != mapSpatialReference.Wkid))
         {
           ProjectionTransformation projection = ProjectionTransformation.Create(gsSpatialReference, mapSpatialReference);
-          point = GeometryEngine.ProjectEx(mapPoint, projection) as MapPoint;
+          point = GeometryEngine.Instance.ProjectEx(mapPoint, projection) as MapPoint;
         }
         else
         {

@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2016, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -188,8 +188,8 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
           foreach (var value in added)
           {
             Color color = GetCol(value);
-            CIMColor cimColor = ColorFactory.CreateColor(color);
-            var pointSymbol = SymbolFactory.ConstructPointSymbol(cimColor, Constants.SizeLayer, SimpleMarkerStyle.Circle);
+            CIMColor cimColor = ColorFactory.Instance.CreateColor(color);
+            var pointSymbol = SymbolFactory.Instance.ConstructPointSymbol(cimColor, Constants.SizeLayer, SimpleMarkerStyle.Circle);
             var pointSymbolReference = pointSymbol.MakeSymbolReference();
 
             CIMUniqueValue uniqueValue = new CIMUniqueValue
@@ -222,8 +222,8 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
           {
             // ToDo: Add a rotation to the PIP symbols
             Color color = GetCol(value);
-            CIMMarker marker = GetPipSymbol(color).Result;
-            var pointSymbol = SymbolFactory.ConstructPointSymbol(marker);
+            CIMMarker marker = GetPipSymbol(color);
+            var pointSymbol = SymbolFactory.Instance.ConstructPointSymbol(marker);
             var pointSymbolReference = pointSymbol.MakeSymbolReference();
 
             CIMUniqueValue uniqueValue = new CIMUniqueValue
@@ -255,8 +255,8 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
           foreach (var value in forbiddenAdded)
           {
             Color color = GetCol(value);
-            CIMMarker marker = GetForbiddenSymbol(color).Result;
-            var pointSymbol = SymbolFactory.ConstructPointSymbol(marker);
+            CIMMarker marker = GetForbiddenSymbol(color);
+            var pointSymbol = SymbolFactory.Instance.ConstructPointSymbol(marker);
             var pointSymbolReference = pointSymbol.MakeSymbolReference();
 
             CIMUniqueValue uniqueValue = new CIMUniqueValue
@@ -316,8 +316,8 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       _minimumScale = Constants.MinimumScale;
     }
 
-    public RecordingLayer(CycloMediaGroupLayer layer)
-      : base(layer)
+    public RecordingLayer(CycloMediaGroupLayer layer, Envelope initialExtent = null)
+      : base(layer, initialExtent)
     {
     }
 
