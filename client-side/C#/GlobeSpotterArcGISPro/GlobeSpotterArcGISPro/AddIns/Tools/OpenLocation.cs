@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,9 +22,11 @@ using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Input;
+
 using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
+
 using GlobeSpotterArcGISPro.AddIns.Modules;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
@@ -140,7 +142,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Tools
         MapPoint point = geometry as MapPoint;
         MapView activeView = MapView.Active;
 
-        if ((point != null) && (activeView != null))
+        if (point != null && activeView != null)
         {
           var constants = ConstantsRecordingLayer.Instance;
           double size = constants.SizeLayer;
@@ -161,9 +163,9 @@ namespace GlobeSpotterArcGISPro.AddIns.Tools
           GlobeSpotter globeSpotter = GlobeSpotter.Current;
           CycloMediaGroupLayer groupLayer = globeSpotter?.CycloMediaGroupLayer;
 
-          if ((features != null) && (groupLayer != null))
+          if (features != null && groupLayer != null)
           {
-            _nearest = (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl));
+            _nearest = Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl);
 
             if (_nearest)
             {
@@ -210,7 +212,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Tools
                   {
                     Recording recording = cycloMediaLayer.GetRecordingAsync(uid).Result;
 
-                    if ((recording.IsAuthorized == null) || ((bool) recording.IsAuthorized))
+                    if (recording.IsAuthorized == null || (bool) recording.IsAuthorized)
                     {
                       _location = recording.ImageId;
                     }

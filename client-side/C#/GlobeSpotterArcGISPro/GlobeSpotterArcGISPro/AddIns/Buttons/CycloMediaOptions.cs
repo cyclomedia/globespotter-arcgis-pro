@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,7 @@
 
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
+
 using GlobeSpotterArcGISPro.Configuration.File;
 
 namespace GlobeSpotterArcGISPro.AddIns.Buttons
@@ -31,7 +32,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Buttons
       Agreement agreement = Agreement.Instance;
       Login login = Login.Instance;
 
-      if (agreement.Value && (!login.Credentials))
+      if (agreement.Value && !login.Credentials)
       {
         PropertySheet.ShowDialog("globeSpotterArcGISPro_optionsPropertySheet", "globeSpotterArcGISPro_loginPage");
       }

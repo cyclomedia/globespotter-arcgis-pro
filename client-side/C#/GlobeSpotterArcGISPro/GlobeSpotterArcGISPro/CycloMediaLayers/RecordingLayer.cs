@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,11 +22,13 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+
 using ArcGIS.Core.CIM;
 using ArcGIS.Core.Data;
 using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
+
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 
@@ -61,8 +63,8 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
 
     public override double MinimumScale
     {
-      get { return _minimumScale; }
-      set { _minimumScale = value; }
+      get => _minimumScale;
+      set => _minimumScale = value;
     }
 
     private static List<int> Years => _years ?? (_years = new List<int>());
@@ -106,7 +108,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       return result;
     }
 
-    protected async override Task PostEntryStepAsync(Envelope envelope)
+    protected override async Task PostEntryStepAsync(Envelope envelope)
     {
       await QueuedTask.Run(() =>
       {
@@ -154,7 +156,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
                     {
                       bool pip = bool.Parse((string) pipValue);
 
-                      if (pip && (!YearPip.Contains(year)))
+                      if (pip && !YearPip.Contains(year))
                       {
                         YearPip.Add(year);
                         pipAdded.Add(year);
@@ -167,7 +169,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
                     {
                       bool forbidden = !bool.Parse((string) forbiddenValue);
 
-                      if (forbidden && (!YearForbidden.Contains(year)))
+                      if (forbidden && !YearForbidden.Contains(year))
                       {
                         YearForbidden.Add(year);
                         forbiddenAdded.Add(year);
@@ -181,9 +183,8 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
         }
 
         CIMRenderer featureRenderer = Layer?.GetRenderer();
-        var uniqueValueRenderer = featureRenderer as CIMUniqueValueRenderer;
 
-        if (uniqueValueRenderer != null)
+        if (featureRenderer is CIMUniqueValueRenderer uniqueValueRenderer)
         {
           foreach (var value in added)
           {

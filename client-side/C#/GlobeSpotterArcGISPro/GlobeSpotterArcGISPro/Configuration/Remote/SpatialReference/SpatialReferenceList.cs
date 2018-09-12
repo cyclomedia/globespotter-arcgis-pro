@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -50,7 +50,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
 
     public SpatialReference[] SpatialReference
     {
-      get { return ToArray(); }
+      get => ToArray();
       set
       {
         if (value != null)
@@ -64,7 +64,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
     {
       get
       {
-        if ((_spatialReferenceList == null) || (_spatialReferenceList.Count == 0))
+        if (_spatialReferenceList == null || _spatialReferenceList.Count == 0)
         {
           try
           {
@@ -93,7 +93,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
     public SpatialReference GetCompatibleSrsNameItem(string srsName)
     {
       return this.Aggregate<SpatialReference, SpatialReference>
-        (null, (current, spatialReference) => (spatialReference.CompatibleSRSNames == srsName) ? spatialReference : current);
+        (null, (current, spatialReference) => spatialReference.CompatibleSRSNames == srsName ? spatialReference : current);
     }
 
     public string ToKnownSrsName(string srsName)

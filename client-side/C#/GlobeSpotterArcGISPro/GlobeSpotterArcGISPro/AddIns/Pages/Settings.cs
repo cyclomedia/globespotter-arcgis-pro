@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,7 +20,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+
 using ArcGIS.Desktop.Framework.Contracts;
+
 using GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference;
 
 using FileSettings = GlobeSpotterArcGISPro.Configuration.File.Settings;
@@ -91,7 +93,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
     /// </summary>
     public SpatialReference RecordingLayerCoordinateSystem
     {
-      get { return _settings.RecordingLayerCoordinateSystem; }
+      get => _settings.RecordingLayerCoordinateSystem;
       set
       {
         if (_settings.RecordingLayerCoordinateSystem != value)
@@ -108,7 +110,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
     /// </summary>
     public SpatialReference CycloramaViewerCoordinateSystem
     {
-      get { return _settings.CycloramaViewerCoordinateSystem; }
+      get => _settings.CycloramaViewerCoordinateSystem;
       set
       {
         if (_settings.CycloramaViewerCoordinateSystem != value)
@@ -125,17 +127,17 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
     /// <summary>
     /// Can measuring property
     /// </summary>
-    public bool CanMeasuring => (_settings.CycloramaViewerCoordinateSystem != null) && _settings.CycloramaViewerCoordinateSystem.CanMeasuring;
+    public bool CanMeasuring => _settings.CycloramaViewerCoordinateSystem != null && _settings.CycloramaViewerCoordinateSystem.CanMeasuring;
 
     /// <summary>
     /// CTRL-CLICK #
     /// </summary>
     public int CtrlClickHashTag
     {
-      get { return (_settings.CtrlClickHashTag - 1); }
+      get => _settings.CtrlClickHashTag - 1;
       set
       {
-        if ((_settings.CtrlClickHashTag - 1) != value)
+        if (_settings.CtrlClickHashTag - 1 != value)
         {
           IsModified = true;
           _settings.CtrlClickHashTag = value + 1;
@@ -149,10 +151,10 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
     /// </summary>
     public int CtrlClickDelta
     {
-      get { return (_settings.CtrlClickDelta - 1); }
+      get => _settings.CtrlClickDelta - 1;
       set
       {
-        if ((_settings.CtrlClickDelta - 1) != value)
+        if (_settings.CtrlClickDelta - 1 != value)
         {
           IsModified = true;
           _settings.CtrlClickDelta = value + 1;
@@ -166,7 +168,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
     /// </summary>
     public bool ShowDetailImages
     {
-      get { return _settings.ShowDetailImages; }
+      get => _settings.ShowDetailImages;
       set
       {
         if (_settings.ShowDetailImages != value)
@@ -183,7 +185,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
     /// </summary>
     public bool EnableSmartClickMeasurement
     {
-      get { return _settings.EnableSmartClickMeasurement; }
+      get => _settings.EnableSmartClickMeasurement;
       set
       {
         if (_settings.EnableSmartClickMeasurement != value)
@@ -223,7 +225,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
     #region Functions
 
-    private void NotifyPropertyChanged([CallerMemberName] string propertyName =null)
+    private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
     {
       PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
@@ -237,23 +239,23 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
       {
         bool exists = await spatialReference.ExistsInAreaAsync();
 
-        if (exists && (!_existsInAreaSpatialReferences.Contains(spatialReference)))
+        if (exists && !_existsInAreaSpatialReferences.Contains(spatialReference))
         {
           _existsInAreaSpatialReferences.Add(spatialReference);
         }
 
-        if ((!exists) && (_existsInAreaSpatialReferences.Contains(spatialReference)))
+        if (!exists && _existsInAreaSpatialReferences.Contains(spatialReference))
         {
           _existsInAreaSpatialReferences.Remove(spatialReference);
         }
 
-        if ((RecordingLayerCoordinateSystem != null) && (spatialReference == RecordingLayerCoordinateSystem))
+        if (RecordingLayerCoordinateSystem != null && spatialReference == RecordingLayerCoordinateSystem)
         {
           // ReSharper disable once ExplicitCallerInfoArgument
           NotifyPropertyChanged("RecordingLayerCoordinateSystem");
         }
 
-        if ((CycloramaViewerCoordinateSystem != null) && (spatialReference == CycloramaViewerCoordinateSystem))
+        if (CycloramaViewerCoordinateSystem != null && spatialReference == CycloramaViewerCoordinateSystem)
         {
           // ReSharper disable once ExplicitCallerInfoArgument
           NotifyPropertyChanged("CycloramaViewerCoordinateSystem");

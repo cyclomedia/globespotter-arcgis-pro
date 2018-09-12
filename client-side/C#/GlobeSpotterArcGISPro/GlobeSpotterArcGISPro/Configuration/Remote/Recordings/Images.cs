@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -32,7 +32,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.Recordings
     [XmlElement("Image", Namespace = "http://www.cyclomedia.com/atlas")]
     public Image[] Image
     {
-      get { return _images?.ToArray() ?? new Image[0]; }
+      get => _images?.ToArray() ?? new Image[0];
       set
       {
         if (value != null)

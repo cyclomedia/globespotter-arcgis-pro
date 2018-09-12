@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -111,7 +111,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
       streamFile.Close();
     }
 
-    private static ConstantsViewer Load()
+    private static void Load()
     {
       if (SystemIOFile.Exists(FileName))
       {
@@ -119,8 +119,6 @@ namespace GlobeSpotterArcGISPro.Configuration.File
         _constantsViewer = (ConstantsViewer) XmlConstantsViewer.Deserialize(streamFile);
         streamFile.Close();
       }
-
-      return _constantsViewer;
     }
 
     private static ConstantsViewer Create()

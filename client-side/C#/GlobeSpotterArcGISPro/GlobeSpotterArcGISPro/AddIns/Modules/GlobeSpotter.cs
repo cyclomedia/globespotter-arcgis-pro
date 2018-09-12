@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,11 +19,13 @@
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+
 using ArcGIS.Desktop.Core;
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
+
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.CycloMediaLayers;
 using GlobeSpotterArcGISPro.Overlays;
@@ -107,7 +109,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
       return true;
     }
 
-    protected async override void Uninitialize()
+    protected override async void Uninitialize()
     {
       await RemoveLayersAsync(true);
       MapViewInitializedEvent.Unsubscribe(OnMapViewInitialized);
@@ -128,13 +130,13 @@ namespace GlobeSpotterArcGISPro.AddIns.Modules
     {
       return
         (mapView ?? MapView.Active)?.Map?.Layers.Aggregate(false,
-          (current, layer) => (CycloMediaGroupLayer?.IsKnownName(layer.Name) ?? (layer.Name == "CycloMedia")) || current) ??
+          (current, layer) => (CycloMediaGroupLayer?.IsKnownName(layer.Name) ?? layer.Name == "CycloMedia") || current) ??
         false;
     }
 
     private async Task CloseCycloMediaLayerAsync(bool closeMap)
     {
-      if ((!ContainsCycloMediaLayer()) || closeMap)
+      if (!ContainsCycloMediaLayer() || closeMap)
       {
         await RemoveLayersAsync(false);
       }

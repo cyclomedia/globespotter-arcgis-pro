@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,6 +19,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+
 using ArcGIS.Desktop.Framework.Contracts;
 
 using FileLogin = GlobeSpotterArcGISPro.Configuration.File.Login;
@@ -57,7 +58,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
     public string Username
     {
-      get { return _login.Username; }
+      get => _login.Username;
       set
       {
         if (_login.Username != value)
@@ -71,7 +72,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
     public string Password
     {
-      get { return _login.Password; }
+      get => _login.Password;
       set
       {
         if (_login.Password != value)
@@ -91,7 +92,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
     protected override Task CommitAsync()
     {
-      if ((_login.Username != _username) || (_login.Password != _password))
+      if (_login.Username != _username || _login.Password != _password)
       {
         Save();
       }

@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,6 +20,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Xml.Serialization;
+
 using GlobeSpotterArcGISPro.Utilities;
 
 using SystemIOFile = System.IO.File;
@@ -64,7 +65,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     /// </summary>
     public bool UseDefaultBaseUrl
     {
-      get { return _useDefaultBaseUrl; }
+      get => _useDefaultBaseUrl;
       set
       {
         if (_useDefaultBaseUrl != value)
@@ -77,10 +78,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
 
     public string BaseUrlLocation
     {
-      get
-      {
-        return _baseUrlLocation;
-      }
+      get => _baseUrlLocation;
       set
       {
         if (_baseUrlLocation != value)
@@ -96,7 +94,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     /// </summary>
     public bool UseDefaultSwfUrl
     {
-      get { return _useDefaultSwfUrl; }
+      get => _useDefaultSwfUrl;
       set
       {
         if (_useDefaultSwfUrl != value)
@@ -109,7 +107,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
 
     public string SwfLocation
     {
-      get { return _swfLocation; }
+      get => _swfLocation;
       set
       {
         if (_swfLocation != value)
@@ -165,7 +163,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
       streamFile.Close();
     }
 
-    private static Configuration Load()
+    private static void Load()
     {
       if (SystemIOFile.Exists(FileName))
       {
@@ -173,8 +171,6 @@ namespace GlobeSpotterArcGISPro.Configuration.File
         _configuration = (Configuration) XmlConfiguration.Deserialize(streamFile);
         streamFile.Close();
       }
-
-      return _configuration;
     }
 
     protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)

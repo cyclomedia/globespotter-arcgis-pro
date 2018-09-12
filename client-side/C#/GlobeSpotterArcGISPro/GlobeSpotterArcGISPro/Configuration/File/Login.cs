@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,7 +23,9 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Serialization;
+
 using ArcGIS.Desktop.Framework;
+
 using GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter;
 using GlobeSpotterArcGISPro.Properties;
 using GlobeSpotterArcGISPro.Utilities;
@@ -85,7 +87,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     [XmlIgnore]
     public bool Credentials
     {
-      get { return _credentials; }
+      get => _credentials;
       set
       {
         if (_credentials != value)
@@ -109,7 +111,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     {
       get
       {
-        var ct1 = Encrypt(CheckWord, Salt, Encoding.UTF8.GetBytes(string.Format("{0};{1}", Username, Password)));
+        var ct1 = Encrypt(CheckWord, Salt, Encoding.UTF8.GetBytes($"{Username};{Password}"));
         return Convert.ToBase64String(ct1);
       }
       set
@@ -118,8 +120,8 @@ namespace GlobeSpotterArcGISPro.Configuration.File
         var pt1 = Decrypt(CheckWord, Salt, ct1);
         string result = Encoding.UTF8.GetString(pt1);
         var values = result.Split(';');
-        Username = (values.Length >= 1) ? values[0] : string.Empty;
-        Password = (values.Length >= 2) ? values[1] : string.Empty;
+        Username = values.Length >= 1 ? values[0] : string.Empty;
+        Password = values.Length >= 2 ? values[1] : string.Empty;
       }
     }
 
@@ -173,9 +175,9 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     public bool Check()
     {
       return
-        (Credentials =
-          (((!string.IsNullOrEmpty(Username)) && (!string.IsNullOrEmpty(Password))) &&
-           GlobeSpotterConfiguration.CheckCredentials()));
+        Credentials =
+          !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password) &&
+          GlobeSpotterConfiguration.CheckCredentials();
     }
 
     protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -262,12 +264,12 @@ namespace GlobeSpotterArcGISPro.Configuration.File
       // Salt may not be needed if password is safe
       if (password.Length < 8)
       {
-        throw new ArgumentException(Resources.Login_CreateAes_Password_must_be_at_least_8_characters_, "password");
+        throw new ArgumentException(Resources.Login_CreateAes_Password_must_be_at_least_8_characters_, nameof(password));
       }
 
       if (salt.Length < 8)
       {
-        throw new ArgumentException(Resources.Login_CreateAes_Salt_must_be_at_least_8_bytes_, "salt");
+        throw new ArgumentException(Resources.Login_CreateAes_Salt_must_be_at_least_8_bytes_, nameof(salt));
       }
 
       var pdb = new PasswordDeriveBytes(password, salt, "SHA512", 129);

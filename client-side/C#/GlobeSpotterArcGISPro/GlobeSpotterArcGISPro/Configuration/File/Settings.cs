@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,6 +20,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Xml.Serialization;
+
 using GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference;
 using GlobeSpotterArcGISPro.Utilities;
 
@@ -65,7 +66,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     /// </summary>
     public SpatialReference RecordingLayerCoordinateSystem
     {
-      get { return _recordingLayerCoordinateSystem; }
+      get => _recordingLayerCoordinateSystem;
       set
       {
         if (value != null)
@@ -95,7 +96,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     /// </summary>
     public SpatialReference CycloramaViewerCoordinateSystem
     {
-      get { return _cycloramaViewerCoordinateSystem; }
+      get => _cycloramaViewerCoordinateSystem;
       set
       {
         if (value != null)
@@ -125,7 +126,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     /// </summary>
     public int CtrlClickHashTag
     {
-      get { return _ctrlClickHashTag; }
+      get => _ctrlClickHashTag;
       set
       {
         if (_ctrlClickHashTag != value)
@@ -141,7 +142,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     /// </summary>
     public int CtrlClickDelta
     {
-      get { return _ctrlClickDelta; }
+      get => _ctrlClickDelta;
       set
       {
         if (_ctrlClickDelta != value)
@@ -157,7 +158,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     /// </summary>
     public bool ShowDetailImages
     {
-      get { return _showDetailImages; }
+      get => _showDetailImages;
       set
       {
         if (_showDetailImages != value)
@@ -173,10 +174,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
     /// </summary>
     public bool EnableSmartClickMeasurement
     {
-      get
-      {
-        return _enableSmartClickMeasurement;
-      }
+      get => _enableSmartClickMeasurement;
       set
       {
         if (_enableSmartClickMeasurement != value)
@@ -218,7 +216,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
       PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    private static Settings Load()
+    private static void Load()
     {
       if (SystemIOFile.Exists(FileName))
       {
@@ -226,8 +224,6 @@ namespace GlobeSpotterArcGISPro.Configuration.File
         _settings = (Settings) XmlSettings.Deserialize(streamFile);
         streamFile.Close();
       }
-
-      return _settings;
     }
 
     private static Settings Create()

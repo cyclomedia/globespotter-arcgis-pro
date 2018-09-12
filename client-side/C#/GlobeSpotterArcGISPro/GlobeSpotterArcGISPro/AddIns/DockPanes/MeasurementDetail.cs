@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,8 +18,10 @@
 
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
+
 using GlobeSpotterArcGISPro.Overlays.Measurement;
 using GlobeSpotterArcGISPro.Utilities;
 
@@ -70,7 +72,7 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
 
     public MeasurementObservation SelectedObservation
     {
-      get { return _selectedObservation; }
+      get => _selectedObservation;
       set
       {
         _selectedObservation = value;
@@ -80,12 +82,12 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
 
     public MeasurementPoint MeasurementPoint
     {
-      get { return _measurementPoint; }
+      get => _measurementPoint;
       set
       {
         if (_measurementPoint != value)
         {
-          if ((value != null) && (!IsVisible))
+          if (value != null && !IsVisible)
           {
             Activate();
           }
@@ -107,7 +109,7 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
 
     internal static MeasurementDetail Get()
     {
-      return (FrameworkApplication.DockPaneManager.Find(DockPaneId) as MeasurementDetail);
+      return FrameworkApplication.DockPaneManager.Find(DockPaneId) as MeasurementDetail;
     }
 
     protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)

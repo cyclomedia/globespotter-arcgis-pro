@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,8 +17,10 @@
  */
 
 using System.Collections.ObjectModel;
+
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
+
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 
 namespace GlobeSpotterArcGISPro.AddIns.DockPanes

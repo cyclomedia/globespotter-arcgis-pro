@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
+
 using GlobeSpotterArcGISPro.Utilities;
 
 using SystemIOFile = System.IO.File;
@@ -50,7 +51,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File.Layers
 
     public StoredLayer[] StoredLayer
     {
-      get { return ToArray(); }
+      get => ToArray();
       set
       {
         if (value != null)
@@ -64,7 +65,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File.Layers
     {
       get
       {
-        if ((_storedLayerList == null) || (_storedLayerList.Count == 0))
+        if (_storedLayerList == null || _storedLayerList.Count == 0)
         {
           try
           {
@@ -102,7 +103,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File.Layers
     public bool Get(string name)
     {
       StoredLayer storedLayer = GetLayer(name);
-      return (storedLayer != null) && storedLayer.Visible;
+      return storedLayer != null && storedLayer.Visible;
     }
 
     public void Update(string name, bool visible)

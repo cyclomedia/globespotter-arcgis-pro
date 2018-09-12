@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,7 +18,9 @@
 
 using System.ComponentModel;
 using System.Linq;
+
 using ArcGIS.Desktop.Framework.Contracts;
+
 using GlobeSpotterArcGISPro.AddIns.Modules;
 using GlobeSpotterArcGISPro.CycloMediaLayers;
 
@@ -46,11 +48,11 @@ namespace GlobeSpotterArcGISPro.AddIns.Buttons
         {
           if (layer.IsRemoved)
           {
-            IsChecked = (layer.Name != LayerName) && IsChecked;
+            IsChecked = layer.Name != LayerName && IsChecked;
           }
           else
           {
-            IsChecked = (layer.Name == LayerName) || IsChecked;
+            IsChecked = layer.Name == LayerName || IsChecked;
           }
         }
 
@@ -62,7 +64,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Buttons
 
     #region Overrides
 
-    protected async override void OnClick()
+    protected override async void OnClick()
     {
       OnUpdate();
       GlobeSpotter globeSpotter = GlobeSpotter.Current;
@@ -83,11 +85,9 @@ namespace GlobeSpotterArcGISPro.AddIns.Buttons
 
     private void OnLayerPropertyChanged(object sender, PropertyChangedEventArgs args)
     {
-      CycloMediaGroupLayer groupLayer = sender as CycloMediaGroupLayer;
-
-      if ((groupLayer != null) && (args.PropertyName == "Count"))
+      if (sender is CycloMediaGroupLayer groupLayer && args.PropertyName == "Count")
       {
-        IsChecked = groupLayer.Aggregate(false, (current, layer) => (layer.Name == LayerName) || current);
+        IsChecked = groupLayer.Aggregate(false, (current, layer) => layer.Name == LayerName || current);
       }
     }
 

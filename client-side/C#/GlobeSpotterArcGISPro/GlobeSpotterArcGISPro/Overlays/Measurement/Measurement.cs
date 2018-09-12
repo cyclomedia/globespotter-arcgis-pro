@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,10 +21,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+
 using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
+
 using GlobeSpotterAPI;
+
 using GlobeSpotterArcGISPro.AddIns.DockPanes;
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter;
@@ -63,11 +66,11 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
 
     public long? ObjectId { get; set; }
 
-    public bool IsPointMeasurement => (_geometryType == GeometryType.Point);
+    public bool IsPointMeasurement => _geometryType == GeometryType.Point;
 
-    public bool IsSketch => (_measurementList.Sketch == this);
+    public bool IsSketch => _measurementList.Sketch == this;
 
-    public bool IsOpen => (_measurementList.Open == this);
+    public bool IsOpen => _measurementList.Open == this;
 
     #endregion
 
@@ -115,7 +118,7 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
 
     public void SetDetailPanePoint(MeasurementPoint setPoint, MeasurementPoint fromPoint = null)
     {
-      if ((fromPoint == null) || (fromPoint == _detailPane.MeasurementPoint))
+      if ((fromPoint == null) || fromPoint == _detailPane.MeasurementPoint)
       {
         _detailPane.MeasurementPoint = setPoint;
       }
@@ -145,12 +148,12 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
 
     public bool IsGeometryType(GeometryType geometryType)
     {
-      return (_geometryType == geometryType);
+      return _geometryType == geometryType;
     }
 
     public MeasurementPoint GetPointByNr(int nr)
     {
-      return (Values.Count > nr) ? Values.ElementAt(nr) : null;
+      return Values.Count > nr ? Values.ElementAt(nr) : null;
     }
 
     public async Task CloseAsync()
@@ -320,9 +323,7 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
           case GeometryType.Point:
             if ((!geometry.IsEmpty) && IsPointMeasurement)
             {
-              MapPoint mapPoint = geometry as MapPoint;
-
-              if (mapPoint != null)
+              if (geometry is MapPoint mapPoint)
               {
                 result.Add(await AddZOffsetAsync(mapPoint));
               }
@@ -331,9 +332,8 @@ namespace GlobeSpotterArcGISPro.Overlays.Measurement
             break;
           case GeometryType.Polygon:
           case GeometryType.Polyline:
-            Multipart multipart = geometry as Multipart;
 
-            if (multipart != null)
+            if (geometry is Multipart multipart)
             {
               ReadOnlyPointCollection points = multipart.Points;
               IEnumerator<MapPoint> enumPoints = points.GetEnumerator();

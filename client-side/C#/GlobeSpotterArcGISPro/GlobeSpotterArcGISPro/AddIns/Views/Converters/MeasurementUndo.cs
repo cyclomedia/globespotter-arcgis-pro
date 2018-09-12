@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,7 +19,9 @@
 using System;
 using System.Globalization;
 using System.Windows.Data;
+
 using ArcGIS.Core.Geometry;
+
 using GlobeSpotterArcGISPro.Overlays.Measurement;
 
 namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
@@ -30,13 +32,13 @@ namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
 
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
-      MeasurementPoint point = (values.Length >= 1) ? (values[0] as MeasurementPoint) : null;
-      bool isOpen = (values.Length >= 2) && (values[1] is bool) && ((bool) values[1]);
-      MapPoint mapPoint = (values.Length >= 3) ? (values[2] as MapPoint) : null;
+      MeasurementPoint point = values.Length >= 1 ? values[0] as MeasurementPoint : null;
+      bool isOpen = values.Length >= 2 && values[1] is bool && (bool) values[1];
+      MapPoint mapPoint = values.Length >= 3 ? values[2] as MapPoint : null;
       Measurement measurement = point?.Measurement;
-      bool update = (((measurement?.ObjectId == null) && (mapPoint != null) && (!double.IsNaN(mapPoint.X)) && (!double.IsNaN(mapPoint.Y)) && (!double.IsNaN(mapPoint.Z)))
-        || ((point?.LastPoint != null) && (point.LastPoint != mapPoint)));
-      return (((!measurement?.IsPointMeasurement) ?? false) || isOpen) && update;
+      bool update = measurement?.ObjectId == null && mapPoint != null && !double.IsNaN(mapPoint.X) && !double.IsNaN(mapPoint.Y) && !double.IsNaN(mapPoint.Z)
+                    || point?.LastPoint != null && point.LastPoint != mapPoint;
+      return ((!measurement?.IsPointMeasurement ?? false) || isOpen) && update;
     }
 
     public object[] ConvertBack(object value, Type []targetTypes, object parameter, CultureInfo culture)

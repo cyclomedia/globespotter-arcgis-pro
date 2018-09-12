@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,12 +22,15 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+
 using ArcGIS.Core.CIM;
 using ArcGIS.Core.Data;
 using ArcGIS.Core.Geometry;
+
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
+
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 
@@ -64,8 +67,8 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
 
     public override double MinimumScale
     {
-      get { return _minimumScale; }
-      set { _minimumScale = value; }
+      get => _minimumScale;
+      set => _minimumScale = value;
     }
 
     private static List<int> Years => _years ?? (_years = new List<int>());
@@ -80,7 +83,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
 
     protected override bool Filter(Recording recording)
     {
-      bool result = (recording != null);
+      bool result = recording != null;
 
       if (result)
       {
@@ -188,9 +191,9 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
                     var dateTime = (DateTime) value;
                     int year = dateTime.Year;
                     int month = dateTime.Month;
-                    int calcYear = (year*4) + (int) Math.Floor(((double) (month - 1))/3);
+                    int calcYear = year*4 + (int) Math.Floor((double) (month - 1)/3);
 
-                    if ((!Years.Contains(calcYear)) && (!added.Contains(calcYear)) && YearInsideRange(year, month))
+                    if (!Years.Contains(calcYear) && !added.Contains(calcYear) && YearInsideRange(year, month))
                     {
                       added.Add(calcYear);
                     }
@@ -201,7 +204,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
                     {
                       bool pip = bool.Parse((string) pipValue);
 
-                      if (pip && (!YearPip.Contains(calcYear)) && (!pipAdded.Contains(calcYear)) && YearInsideRange(year, month))
+                      if (pip && !YearPip.Contains(calcYear) && !pipAdded.Contains(calcYear) && YearInsideRange(year, month))
                       {
                         pipAdded.Add(calcYear);
                       }
@@ -213,7 +216,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
                     {
                       bool forbidden = !bool.Parse((string) forbiddenValue);
 
-                      if (forbidden && (!YearForbidden.Contains(calcYear)) && (!forbiddenAdded.Contains(calcYear)) && YearInsideRange(year, month))
+                      if (forbidden && !YearForbidden.Contains(calcYear) && !forbiddenAdded.Contains(calcYear) && YearInsideRange(year, month))
                       {
                         forbiddenAdded.Add(calcYear);
                       }
@@ -226,18 +229,17 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
         }
 
         CIMRenderer featureRenderer = Layer?.GetRenderer();
-        var uniqueValueRenderer = featureRenderer as CIMUniqueValueRenderer;
 
-        if (uniqueValueRenderer != null)
+        if (featureRenderer is CIMUniqueValueRenderer uniqueValueRenderer)
         {
           foreach (var value in added)
           {
             bool realAdd = true;
             var newValue = (int) Math.Floor(((double) value)/4);
 
-            for (int i = (newValue * 4); i < ((newValue * 4) + 4); i++)
+            for (int i = newValue * 4; i < newValue * 4 + 4; i++)
             {
-              realAdd = (!Years.Contains(i)) && realAdd;
+              realAdd = !Years.Contains(i) && realAdd;
             }
 
             Years.Add(value);
@@ -280,11 +282,11 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
           foreach (var value in pipAdded)
           {
             bool realAdd = true;
-            var newValue = (int) Math.Floor(((double) value)/4);
+            var newValue = (int) Math.Floor((double) value/4);
 
-            for (int i = (newValue * 4); i < ((newValue * 4) + 4); i++)
+            for (int i = newValue * 4; i < newValue * 4 + 4; i++)
             {
-              realAdd = (!YearPip.Contains(i)) && realAdd;
+              realAdd = !YearPip.Contains(i) && realAdd;
             }
 
             YearPip.Add(value);
@@ -328,11 +330,11 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
           foreach (var value in forbiddenAdded)
           {
             bool realAdd = true;
-            var newValue = (int) Math.Floor(((double) value)/4);
+            var newValue = (int) Math.Floor((double) value/4);
 
-            for (int i = (newValue * 4); i < ((newValue * 4) + 4); i++)
+            for (int i = newValue * 4; i < newValue * 4 + 4; i++)
             {
-              realAdd = (!YearForbidden.Contains(i)) && realAdd;
+              realAdd = !YearForbidden.Contains(i) && realAdd;
             }
 
             YearForbidden.Add(value);
@@ -380,12 +382,12 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
           var removed = (from yearColor in Years
                          select yearColor
                          into year
-                         where ((!YearInsideRange((int) Math.Floor(((double) year)/4), (((year%4)*3) + 1))) && (!added.Contains(year)))
+                         where !YearInsideRange((int) Math.Floor((double) year/4), year%4*3 + 1) && !added.Contains(year)
                          select year).ToList();
 
           foreach (int year in removed)
           {
-            int newYear = (int) Math.Floor(((double) year)/4);
+            int newYear = (int) Math.Floor((double) year/4);
 
             if (YearPip.Contains(year))
             {
@@ -412,11 +414,11 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
           {
             foreach (var value in thisClass.Values)
             {
-              bool found = (value.FieldValues.Length >= classValues.Length);
+              bool found = value.FieldValues.Length >= classValues.Length;
 
               for (int i = 0; i < classValues.Length; i++)
               {
-                found = found && (classValues[i] == value.FieldValues[i]);
+                found = found && classValues[i] == value.FieldValues[i];
               }
 
               foundGroup = found ? group : foundGroup;
@@ -447,9 +449,9 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
         foreach (var value in thisClass.Values)
         {
           string[] fieldValues = value.FieldValues;
-          year1 = (fieldValues.Length >= 1) ? int.Parse(fieldValues[0]) : 0;
-          pip1 = (fieldValues.Length >= 2) && bool.Parse(fieldValues[1]);
-          forbidden1 = (fieldValues.Length >= 3) && bool.Parse(fieldValues[2]);
+          year1 = fieldValues.Length >= 1 ? int.Parse(fieldValues[0]) : 0;
+          pip1 = fieldValues.Length >= 2 && bool.Parse(fieldValues[1]);
+          forbidden1 = fieldValues.Length >= 3 && bool.Parse(fieldValues[2]);
         }
       }
 
@@ -458,18 +460,18 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
         foreach (var value in thisClass.Values)
         {
           string[] fieldValues = value.FieldValues;
-          year2 = (fieldValues.Length >= 1) ? int.Parse(fieldValues[0]) : 0;
-          pip2 = (fieldValues.Length >= 2) && bool.Parse(fieldValues[1]);
-          forbidden2 = (fieldValues.Length >= 3) && bool.Parse(fieldValues[2]);
+          year2 = fieldValues.Length >= 1 ? int.Parse(fieldValues[0]) : 0;
+          pip2 = fieldValues.Length >= 2 && bool.Parse(fieldValues[1]);
+          forbidden2 = fieldValues.Length >= 3 && bool.Parse(fieldValues[2]);
         }
       }
 
-      return (year1 > year2) ? -1
-        : ((year2 > year1) ? 1
-        : (((pip1 == false) && pip2) ? -1
-        : ((pip1 && (pip2 == false)) ? 1
-        : (((forbidden1 == false) && forbidden2) ? -1
-        : ((forbidden1 && (forbidden2 == false)) ? 1
+      return year1 > year2 ? -1
+        : (year2 > year1 ? 1
+        : (pip1 == false && pip2 ? -1
+        : (pip1 && pip2 == false ? 1
+        : (forbidden1 == false && forbidden2 ? -1
+        : (forbidden1 && forbidden2 == false ? 1
         : 0)))));
     }
 
@@ -491,7 +493,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       DateTime fromDateTime = _historicalRecordings.DateFrom;
       DateTime toDateTime = _historicalRecordings.DateTo;
       var checkDateTime = new DateTime(year, month, 1);
-      return (checkDateTime.CompareTo(fromDateTime) >= 0) && (checkDateTime.CompareTo(toDateTime) < 0);
+      return checkDateTime.CompareTo(fromDateTime) >= 0 && checkDateTime.CompareTo(toDateTime) < 0;
     }
 
     #endregion

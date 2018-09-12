@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,6 +19,7 @@
 using System;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+
 using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
@@ -47,7 +48,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
     // ReSharper restore InconsistentNaming
 
     [XmlIgnore]
-    public bool CanMeasuring => ((Units == "m") || (Units == "ft"));
+    public bool CanMeasuring => Units == "m" || Units == "ft";
 
     [XmlIgnore]
     public ArcGISSpatialReference ArcGisSpatialReference { get; private set; }
@@ -64,10 +65,9 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
       }
       else
       {
-        int srs;
         string strsrs = SRSName.Replace("EPSG:", string.Empty);
 
-        if (int.TryParse(strsrs, out srs))
+        if (int.TryParse(strsrs, out var srs))
         {
           try
           {
@@ -167,15 +167,14 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
             ArcGISSpatialReference spatEnv = envelope.SpatialReference;
             int spatEnvFactoryCode = spatEnv?.Wkid ?? 0;
 
-            if ((spatEnv != null) && (spatEnvFactoryCode != ArcGisSpatialReference.Wkid))
+            if (spatEnv != null && spatEnvFactoryCode != ArcGisSpatialReference.Wkid)
             {
               try
               {
                 ProjectionTransformation projection = ProjectionTransformation.Create(envelope.SpatialReference,
                   ArcGisSpatialReference);
-                var copyEnvelope = GeometryEngine.Instance.ProjectEx(envelope, projection) as Envelope;
 
-                if ((copyEnvelope == null) || (copyEnvelope.IsEmpty))
+                if (!(GeometryEngine.Instance.ProjectEx(envelope, projection) is Envelope copyEnvelope) || copyEnvelope.IsEmpty)
                 {
                   ArcGisSpatialReference = null;
                 }
@@ -188,8 +187,8 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
                     double xMax = NativeBounds.MaxX;
                     double yMax = NativeBounds.MaxY;
 
-                    if ((copyEnvelope.XMin < xMin) || (copyEnvelope.XMax > xMax) || (copyEnvelope.YMin < yMin) ||
-                        (copyEnvelope.YMax > yMax))
+                    if (copyEnvelope.XMin < xMin || copyEnvelope.XMax > xMax || copyEnvelope.YMin < yMin ||
+                        copyEnvelope.YMax > yMax)
                     {
                       ArcGisSpatialReference = null;
                     }
@@ -205,7 +204,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.SpatialReference
         }
       });
 
-      return (ArcGisSpatialReference != null);
+      return ArcGisSpatialReference != null;
     }
 
     #endregion

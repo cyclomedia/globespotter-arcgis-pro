@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,9 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
+
 using ArcGIS.Core.Geometry;
+
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Resource;
 
@@ -59,8 +61,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote
     private enum TypeDownloadConfig
     {
       // ReSharper disable once InconsistentNaming
-      XML = 0,
-      Image = 1
+      XML = 0
     }
 
     #endregion
@@ -126,7 +127,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote
       WebRequest request = OpenWebRequest(remoteLocation, WebRequestMethods.Http.Get, 0);
       var state = new State {Request = request};
 
-      while ((download == false) && (retry < _retryTimeService[configId]))
+      while (download == false && retry < _retryTimeService[configId])
       {
         try
         {
@@ -196,7 +197,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote
         }
       }
 
-      while ((download == false) && (retry < _retryTimeService[configId]))
+      while (download == false && retry < _retryTimeService[configId])
       {
         try
         {
@@ -222,9 +223,8 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote
         catch (WebException ex)
         {
           retry++;
-          var responce = ex.Response as HttpWebResponse;
 
-          if (responce != null)
+          if (ex.Response is HttpWebResponse responce)
           {
             Uri responseUri = responce.ResponseUri;
 
@@ -248,7 +248,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote
               }
             }
 
-            if ((responce.StatusCode == HttpStatusCode.InternalServerError) && (retry < _retryTimeService[configId]))
+            if (responce.StatusCode == HttpStatusCode.InternalServerError && retry < _retryTimeService[configId])
             {
               Thread.Sleep(_waitTimeInternalServerError[configId]);
             }

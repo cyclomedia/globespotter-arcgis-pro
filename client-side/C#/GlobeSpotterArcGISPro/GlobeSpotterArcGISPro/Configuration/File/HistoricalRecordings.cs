@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,6 +19,7 @@
 using System;
 using System.IO;
 using System.Xml.Serialization;
+
 using GlobeSpotterArcGISPro.Utilities;
 
 using SystemIOFile = System.IO.File;
@@ -89,7 +90,7 @@ namespace GlobeSpotterArcGISPro.Configuration.File
       Save();
     }
 
-    private static HistoricalRecordings Load()
+    private static void Load()
     {
       if (SystemIOFile.Exists(FileName))
       {
@@ -97,8 +98,6 @@ namespace GlobeSpotterArcGISPro.Configuration.File
         _historicalRecordings = (HistoricalRecordings) XmlHistoricalRecordings.Deserialize(streamFile);
         streamFile.Close();
       }
-
-      return _historicalRecordings;
     }
 
     private static HistoricalRecordings Create()

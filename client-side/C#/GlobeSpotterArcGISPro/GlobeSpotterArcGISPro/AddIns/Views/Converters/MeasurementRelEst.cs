@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -34,8 +34,8 @@ namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
     {
       ApiMeasurementPoint point = value as ApiMeasurementPoint;
       bool reliableEstimate = point?.reliableEstimate ?? false;
-      bool stdef = (point != null) && (!double.IsNaN(point.Std_x)) && (!double.IsNaN(point.Std_y)) &&
-                   (!double.IsNaN(point.Std_z));      
+      bool stdef = point != null && !double.IsNaN(point.Std_x) && !double.IsNaN(point.Std_y) &&
+                   !double.IsNaN(point.Std_z);      
       var circle = new Bitmap(18, 18);
 
       using (var ga = Graphics.FromImage(circle))

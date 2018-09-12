@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,12 +23,15 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+
 using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Framework.Dialogs;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
+
 using GlobeSpotterAPI;
+
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter;
 using GlobeSpotterArcGISPro.Configuration.Resource;
@@ -170,7 +173,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
           _api.SetMeasurementSmartClickModeEnabled(_settings.EnableSmartClickMeasurement);
         }
 
-        DockPaneGlobeSpotter globeSpotter = ((dynamic) DataContext);
+        DockPaneGlobeSpotter globeSpotter = (dynamic) DataContext;
         string location = globeSpotter.Location;
 
         globeSpotter.PropertyChanged += OnGlobeSpotterPropertyChanged;
@@ -214,7 +217,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     {
       MessageBox.Show(ThisResources.Globespotter_OnAPIFailed_Initialize_);
       RemoveApi();
-      DockPaneGlobeSpotter globeSpotter = ((dynamic) DataContext);
+      DockPaneGlobeSpotter globeSpotter = (dynamic) DataContext;
       globeSpotter.Hide();
     }
 
@@ -224,7 +227,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
     public void OnOpenImageResult(string input, bool opened, string imageId)
     {
-      if (!string.IsNullOrEmpty(input) && input.Contains("Vector3D") && opened && (_api != null))
+      if (!string.IsNullOrEmpty(input) && input.Contains("Vector3D") && opened && _api != null)
       {
         input = input.Remove(0, 9);
         input = input.Remove(input.Length - 1, 1);
@@ -277,7 +280,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
           viewer.HasMarker = false;
           List<Viewer> markerViewers = _viewerList.MarkerViewers;
 
-          if ((markerViewers.Count == 0) && (_crossCheck != null))
+          if (markerViewers.Count == 0 && _crossCheck != null)
           {
             _crossCheck.Dispose();
             _crossCheck = null;
@@ -290,7 +293,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     {
       Viewer viewer = _viewerList.Get(viewerId);
 
-      if ((viewer != null) && (_api != null))
+      if (viewer != null && _api != null)
       {
         CurrentCult cult = CurrentCult.Get();
         string dateFormat = cult.DateFormat;
@@ -428,7 +431,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
     {
       Viewer viewer = _viewerList.Get(viewerId);
 
-      if ((_api != null) && (viewer != null))
+      if (_api != null && viewer != null)
       {
         bool hasMarker = viewer.HasMarker;
 
@@ -441,7 +444,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
         {
           List<Viewer> markerViewers = _viewerList.MarkerViewers;
 
-          if ((markerViewers.Count == 0) && (_crossCheck != null))
+          if (markerViewers.Count == 0 && _crossCheck != null)
           {
             _crossCheck.Dispose();
             _crossCheck = null;
@@ -450,7 +453,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
         if (nrviewers == 0)
         {
-          DockPaneGlobeSpotter globeSpotter = ((dynamic) DataContext);
+          DockPaneGlobeSpotter globeSpotter = (dynamic) DataContext;
           globeSpotter.Hide();
           _lastSpatialReference = null;
         }
@@ -581,7 +584,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
       MapView thisView = MapView.Active;
       Envelope envelope = thisView?.Extent;
 
-      if ((envelope != null) && (point3D != null))
+      if (envelope != null && point3D != null)
       {
         MapPoint point = await CoordSystemUtils.CycloramaToMapPointAsync(point3D.x, point3D.y, point3D.z);
 
@@ -635,9 +638,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
     private void OnGroupLayerPropertyChanged(object sender, PropertyChangedEventArgs args)
     {
-      CycloMediaGroupLayer groupLayer = sender as CycloMediaGroupLayer;
-
-      if ((groupLayer != null) && (args.PropertyName == "Count"))
+      if (sender is CycloMediaGroupLayer groupLayer && args.PropertyName == "Count")
       {
         foreach (CycloMediaLayer layer in groupLayer)
         {
@@ -652,9 +653,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
     private void OnLayerPropertyChanged(object sender, PropertyChangedEventArgs args)
     {
-      CycloMediaLayer layer = sender as CycloMediaLayer;
-
-      if ((_api != null) && (layer != null))
+      if (_api != null && sender is CycloMediaLayer layer)
       {
         switch (args.PropertyName)
         {
@@ -692,9 +691,9 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
       switch (args.PropertyName)
       {
         case "Credentials":
-          if ((!_login.Credentials) && (_api != null) && (_api.GetAPIReadyState()))
+          if (!_login.Credentials && _api != null && _api.GetAPIReadyState())
           {
-            DockPaneGlobeSpotter globeSpotter = ((dynamic)DataContext);
+            DockPaneGlobeSpotter globeSpotter = (dynamic)DataContext;
             globeSpotter.Hide();
           }
 
@@ -775,7 +774,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
               await vectorLayer.GenerateGmlAsync();
               break;
             case "Gml":
-              if ((vectorLayer.LayerId == null) || vectorLayer.GmlChanged)
+              if (vectorLayer.LayerId == null || vectorLayer.GmlChanged)
               {
                 RemoveVectorLayer(vectorLayer);
                 AddVectorLayer(vectorLayer);
@@ -828,7 +827,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
       {
         _api = _configuration.UseDefaultSwfUrl
           ? new API(InitType.REMOTE)
-          : (!string.IsNullOrEmpty(_configuration.SwfLocation))
+          : !string.IsNullOrEmpty(_configuration.SwfLocation)
             ? new API(InitType.REMOTE, _configuration.SwfLocation)
             : null;
 
@@ -841,7 +840,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
       }
       else
       {
-        DockPaneGlobeSpotter globeSpotter = ((dynamic) DataContext);
+        DockPaneGlobeSpotter globeSpotter = (dynamic) DataContext;
         globeSpotter?.Hide();
       }
     }
@@ -858,14 +857,14 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
         {
           MySpatialReference spatialReference = _settings.CycloramaViewerCoordinateSystem;
           SpatialReference thisSpatialReference = spatialReference.ArcGisSpatialReference ??
-                                                    (await spatialReference.CreateArcGisSpatialReferenceAsync());
+                                                    await spatialReference.CreateArcGisSpatialReferenceAsync();
 
           if ((_lastSpatialReference != null) && (thisSpatialReference.Wkid != _lastSpatialReference.Wkid))
           {
             string[] splitLoc = location.Split(',');
             CultureInfo ci = CultureInfo.InvariantCulture;
-            double x = double.Parse(((splitLoc.Length >= 1) ? splitLoc[0] : "0.0"), ci);
-            double y = double.Parse(((splitLoc.Length >= 2) ? splitLoc[1] : "0.0"), ci);
+            double x = double.Parse(splitLoc.Length >= 1 ? splitLoc[0] : "0.0", ci);
+            double y = double.Parse(splitLoc.Length >= 2 ? splitLoc[1] : "0.0", ci);
             MapPoint point = null;
 
             await QueuedTask.Run(() =>
@@ -887,7 +886,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
           }
 
           _startOpenNearest = true;
-          _api.OpenNearestImage(location, (_settings.CtrlClickHashTag * _settings.CtrlClickDelta));
+          _api.OpenNearestImage(location, _settings.CtrlClickHashTag * _settings.CtrlClickDelta);
         }
         else
         {
@@ -896,17 +895,17 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
         MySpatialReference cycloSpatialReference = _settings.CycloramaViewerCoordinateSystem;
         _lastSpatialReference = cycloSpatialReference.ArcGisSpatialReference ??
-                                (await cycloSpatialReference.CreateArcGisSpatialReferenceAsync());
+                                await cycloSpatialReference.CreateArcGisSpatialReferenceAsync();
       }
     }
 
     private void RestartGlobeSpotter()
     {
-      if ((_api == null) || (_api.GetAPIReadyState()))
+      if (_api == null || _api.GetAPIReadyState())
       {
         DrawCompleteEvent.Unsubscribe(OnDrawComplete);
         _measurementList.Api = null;
-        DockPaneGlobeSpotter globeSpotter = ((dynamic) DataContext);
+        DockPaneGlobeSpotter globeSpotter = (dynamic) DataContext;
         globeSpotter.PropertyChanged -= OnGlobeSpotterPropertyChanged;
         _settings.PropertyChanged -= OnSettingsPropertyChanged;
         _cycloMediaGroupLayer.PropertyChanged -= OnGroupLayerPropertyChanged;
@@ -934,7 +933,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
         _viewerList.RemoveViewers();
 
-        if ((_api != null) && (_api.GetAPIReadyState()))
+        if (_api != null && _api.GetAPIReadyState())
         {
           int[] viewerIds = _api.GetViewerIDs();
 
@@ -973,13 +972,13 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
         MapView thisView = MapView.Active;
         Envelope envelope = thisView?.Extent;
 
-        if ((point != null) && (envelope != null))
+        if (point != null && envelope != null)
         {
           const double percent = 10.0;
-          double xBorder = ((envelope.XMax - envelope.XMin)*percent)/100;
-          double yBorder = ((envelope.YMax - envelope.YMin)*percent)/100;
-          bool inside = (point.X > (envelope.XMin + xBorder)) && (point.X < (envelope.XMax - xBorder)) &&
-                        (point.Y > (envelope.YMin + yBorder)) && (point.Y < (envelope.YMax - yBorder));
+          double xBorder = (envelope.XMax - envelope.XMin)*percent/100;
+          double yBorder = (envelope.YMax - envelope.YMin)*percent/100;
+          bool inside = point.X > envelope.XMin + xBorder && point.X < envelope.XMax - xBorder &&
+                        point.Y > envelope.YMin + yBorder && point.Y < envelope.YMax - yBorder;
 
           if (!inside)
           {
@@ -1108,7 +1107,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
             Unit cyclUnit = cyclSpatreference.Unit;
 
             double cyclFactor = cyclUnit.ConversionFactor;
-            var conversion = projected ? (factor/cyclFactor) : (factor*cyclFactor);
+            var conversion = projected ? factor/cyclFactor : factor*cyclFactor;
 
             _api.SetLengthUnitLabel(unitName);
             _api.SetLengthUnitFactor(conversion);

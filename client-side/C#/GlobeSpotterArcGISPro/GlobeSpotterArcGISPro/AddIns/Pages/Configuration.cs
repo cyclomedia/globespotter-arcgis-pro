@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,6 +19,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+
 using ArcGIS.Desktop.Framework.Contracts;
 
 using FileConfiguration = GlobeSpotterArcGISPro.Configuration.File.Configuration;
@@ -88,7 +89,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
     /// </summary>
     public bool UseDefaultBaseUrl
     {
-      get { return _configuration.UseDefaultBaseUrl; }
+      get => _configuration.UseDefaultBaseUrl;
       set
       {
         if (_configuration.UseDefaultBaseUrl != value)
@@ -102,7 +103,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
     public string BaseUrlLocation
     {
-      get { return _configuration.BaseUrlLocation; }
+      get => _configuration.BaseUrlLocation;
       set
       {
         if (_configuration.BaseUrlLocation != value)
@@ -119,7 +120,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
     /// </summary>
     public bool UseDefaultSwfUrl
     {
-      get { return _configuration.UseDefaultSwfUrl; }
+      get => _configuration.UseDefaultSwfUrl;
       set
       {
         if (_configuration.UseDefaultSwfUrl != value)
@@ -133,7 +134,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
     public string SwfLocation
     {
-      get { return _configuration.SwfLocation; }
+      get => _configuration.SwfLocation;
       set
       {
         if (_configuration.SwfLocation != value)
@@ -150,7 +151,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
     /// </summary>
     public bool UseProxyServer
     {
-      get { return _configuration.UseProxyServer; }
+      get => _configuration.UseProxyServer;
       set
       {
         if (_configuration.UseProxyServer != value)
@@ -164,7 +165,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
     public string ProxyAddress
     {
-      get { return _configuration.ProxyAddress; }
+      get => _configuration.ProxyAddress;
       set
       {
         if (_configuration.ProxyAddress != value)
@@ -178,7 +179,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
     public int ProxyPort
     {
-      get { return _configuration.ProxyPort; }
+      get => _configuration.ProxyPort;
       set
       {
         if (_configuration.ProxyPort != value)
@@ -192,7 +193,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
     public bool ProxyBypassLocalAddresses
     {
-      get { return _configuration.ProxyBypassLocalAddresses; }
+      get => _configuration.ProxyBypassLocalAddresses;
       set
       {
         if (_configuration.ProxyBypassLocalAddresses != value)
@@ -206,7 +207,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
     public bool ProxyUseDefaultCredentials
     {
-      get { return _configuration.ProxyUseDefaultCredentials; }
+      get => _configuration.ProxyUseDefaultCredentials;
       set
       {
         if (_configuration.ProxyUseDefaultCredentials != value)
@@ -220,7 +221,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
     public string ProxyUsername
     {
-      get { return _configuration.ProxyUsername; }
+      get => _configuration.ProxyUsername;
       set
       {
         if (_configuration.ProxyUsername != value)
@@ -234,7 +235,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
     public string ProxyPassword
     {
-      get { return _configuration.ProxyPassword; }
+      get => _configuration.ProxyPassword;
       set
       {
         if (_configuration.ProxyPassword != value)
@@ -248,7 +249,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
     public string ProxyDomain
     {
-      get { return _configuration.ProxyDomain; }
+      get => _configuration.ProxyDomain;
       set
       {
         if (_configuration.ProxyDomain != value)

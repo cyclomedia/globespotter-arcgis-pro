@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -63,7 +63,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter
     public Exception Exception { get; private set; }
 
     [XmlIgnore]
-    public bool Credentials => ((ApplicationConfiguration != null) && (ApplicationConfiguration.Functionalities.Length >= 1));
+    public bool Credentials => ApplicationConfiguration != null && ApplicationConfiguration.Functionalities.Length >= 1;
 
     public static bool MeasureSmartClick => Instance.CheckFunctionality("MeasureSmartClick");
 
@@ -94,13 +94,12 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter
           catch (WebException ex)
           {
             exception = ex;
-            var responce = ex.Response as HttpWebResponse;
 
-            if (responce != null)
+            if (ex.Response is HttpWebResponse responce)
             {
-              if ((responce.StatusCode == HttpStatusCode.Unauthorized) ||
-                  (responce.StatusCode == HttpStatusCode.Forbidden) ||
-                  (responce.StatusCode == HttpStatusCode.NotFound))
+              if (responce.StatusCode == HttpStatusCode.Unauthorized ||
+                  responce.StatusCode == HttpStatusCode.Forbidden ||
+                  responce.StatusCode == HttpStatusCode.NotFound)
               {
                 loginFailed = true;
               }
@@ -136,7 +135,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter
 
     private bool CheckFunctionality(string name)
     {
-      return (ApplicationConfiguration?.GetFunctionality(name) != null);
+      return ApplicationConfiguration?.GetFunctionality(name) != null;
     }
 
     public static GlobeSpotterConfiguration Load()

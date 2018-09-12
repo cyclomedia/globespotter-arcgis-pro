@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,9 +19,11 @@
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
+
 using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
+
 using GlobeSpotterArcGISPro.Overlays.Measurement;
 using GlobeSpotterArcGISPro.VectorLayers;
 
@@ -77,11 +79,11 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
             VectorLayer layer = measurement.VectorLayer;
             long? uid = measurement.ObjectId;
 
-            if ((geometry != null) && (uid == null) && (layer != null))
+            if (geometry != null && uid == null && layer != null)
             {
               await layer.AddFeatureAsync(geometry);
             }
-            else if ((uid != null) && (layer != null))
+            else if (uid != null && layer != null)
             {
               MapPoint mapPoint = measurementPoint.Point;
               await layer.UpdateFeatureAsync((long) uid, mapPoint);
@@ -129,8 +131,8 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
         MapView mapView = MapView.Active;
         Geometry geometry = await mapView.GetCurrentSketchAsync();
         List<MapPoint> points = await measurement.ToPointCollectionAsync(geometry);
-        int removePoints = ((measurement.IsGeometryType(GeometryType.Polygon)) && (points.Count == 2) &&
-                            (measurement.PointNr == 1)) ? 2 : 1;
+        int removePoints = measurement.IsGeometryType(GeometryType.Polygon) && points.Count == 2 &&
+                           measurement.PointNr == 1 ? 2 : 1;
 
         for (int i = 0; i < removePoints; i++)
         {

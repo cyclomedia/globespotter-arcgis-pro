@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -42,7 +42,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter
 
     public Functionality[] Functionalities
     {
-      get { return _functionalities.ToArray(); }
+      get => _functionalities.ToArray();
       set
       {
         if (value != null)
@@ -59,7 +59,7 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.GlobeSpotter
     public Functionality GetFunctionality(string name)
     {
       return _functionalities.Aggregate<Functionality, Functionality>
-        (null, (current, functionality) => (functionality.Name == name) ? functionality : current);
+        (null, (current, functionality) => functionality.Name == name ? functionality : current);
     }
 
     #endregion

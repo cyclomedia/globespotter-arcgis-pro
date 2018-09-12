@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Data;
+
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 using GlobeSpotterArcGISPro.CycloMediaLayers;
 
@@ -44,9 +45,9 @@ namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
       Task.Run(async () =>
       {
         Recording recording = await groupLayer.GetRecordingAsync(imageId);
-        double stdX = (recording == null) ? 0 : (recording.LongitudePrecision ?? 0);
-        double stdY = (recording == null) ? 0 : (recording.LatitudePrecision ?? 0);
-        double stdZ = (recording == null) ? 0 : (recording.HeightPrecision ?? 0);
+        double stdX = recording == null ? 0 : (recording.LongitudePrecision ?? 0);
+        double stdY = recording == null ? 0 : (recording.LatitudePrecision ?? 0);
+        double stdZ = recording == null ? 0 : (recording.HeightPrecision ?? 0);
         result = $"{stdX:0.00} {stdY:0.00} {stdZ:0.00}";
         taskWaiter.Set();
       });

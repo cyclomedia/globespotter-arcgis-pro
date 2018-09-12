@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,7 +18,9 @@
 
 using System.Windows.Controls;
 using System.Windows.Input;
+
 using ArcGIS.Core.Geometry;
+
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 using GlobeSpotterArcGISPro.CycloMediaLayers;
 
@@ -40,9 +42,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views
 
     private void OnMatchesMouseDoubleClicked(object sender, MouseButtonEventArgs e)
     {
-      ListBox listBox = sender as ListBox;
-
-      if (listBox != null)
+      if (sender is ListBox listBox)
       {
         foreach (Recording selectedItem in listBox.SelectedItems)
         {

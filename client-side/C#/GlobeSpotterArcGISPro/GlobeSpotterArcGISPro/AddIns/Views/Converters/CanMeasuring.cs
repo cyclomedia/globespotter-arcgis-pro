@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018 CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,7 +35,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-      return (((bool) value) ? MeasuringSupported : MeasuringNotSupported);
+      return value != null && (bool) value ? MeasuringSupported : MeasuringNotSupported;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

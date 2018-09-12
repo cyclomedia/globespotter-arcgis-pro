@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -39,7 +39,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
 
         for (int i = 1; i < values.Length; i++)
         {
-          enabled = enabled && ((bool) values[i]);
+          enabled = enabled && (bool) values[i];
         }
 
         result = enabled ? service : string.Empty;

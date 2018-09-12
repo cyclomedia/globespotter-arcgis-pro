@@ -22,6 +22,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
 
@@ -59,7 +60,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Pages
 
     public bool Value
     {
-      get { return _value; }
+      get => _value;
       set
       {
         if (_value != value)

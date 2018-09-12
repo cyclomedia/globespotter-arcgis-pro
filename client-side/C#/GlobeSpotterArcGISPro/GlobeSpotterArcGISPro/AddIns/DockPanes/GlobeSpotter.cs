@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,9 +18,11 @@
 
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+
 using ArcGIS.Desktop.Core.Events;
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
+
 using GlobeSpotterAPI;
 
 namespace GlobeSpotterArcGISPro.AddIns.DockPanes
@@ -62,7 +64,7 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
 
     public string Location
     {
-      get { return _location; }
+      get => _location;
       set
       {
         if (_location != value)
@@ -75,7 +77,7 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
 
     public bool IsActive
     {
-      get { return _isActive; }
+      get => _isActive;
       set
       {
         if (_isActive != value)
@@ -88,7 +90,7 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
 
     public bool Replace
     {
-      get { return _replace; }
+      get => _replace;
       set
       {
         if (_replace != value)
@@ -101,7 +103,7 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
 
     public bool Nearest
     {
-      get { return _nearest; }
+      get => _nearest;
       set
       {
         if (_nearest != value)
@@ -114,7 +116,7 @@ namespace GlobeSpotterArcGISPro.AddIns.DockPanes
 
     public Point3D LookAt
     {
-      get { return _lookAt; }
+      get => _lookAt;
       set
       {
         _lookAt = value;

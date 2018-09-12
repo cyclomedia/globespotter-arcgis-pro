@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,6 +19,7 @@
 using System;
 using System.Globalization;
 using System.Windows.Data;
+
 using GlobeSpotterArcGISPro.Overlays.Measurement;
 
 namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
@@ -32,7 +33,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
       double totalWidth = (double) values[0];
       MeasurementPoint point = values[1] as MeasurementPoint;
       int count = point?.Count ?? 0;
-      return (totalWidth - (15*count))/Math.Max(count, 1);
+      return (totalWidth - 15*count)/Math.Max(count, 1);
     }
 
     public object[] ConvertBack(object value, Type[] targetType, object parameter, CultureInfo culture)

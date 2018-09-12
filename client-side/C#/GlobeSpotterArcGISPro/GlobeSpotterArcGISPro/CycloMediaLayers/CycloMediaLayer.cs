@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -26,6 +26,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+
 using ArcGIS.Core.CIM;
 using ArcGIS.Core.Data;
 using ArcGIS.Core.Geometry;
@@ -36,6 +37,7 @@ using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
+
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 using GlobeSpotterArcGISPro.Utilities;
@@ -102,7 +104,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
 
     public bool Visible
     {
-      get { return _visible; }
+      get => _visible;
       set
       {
         _visible = value;
@@ -115,11 +117,11 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
 
     public FeatureLayer Layer { get; private set; }
 
-    public bool IsVisible => (Layer != null) && Layer.IsVisible;
+    public bool IsVisible => Layer != null && Layer.IsVisible;
 
     public bool IsVisibleInGlobespotter
     {
-      get { return (_isVisibleInGlobespotter && IsVisible); }
+      get => _isVisibleInGlobespotter && IsVisible;
       set
       {
         _isVisibleInGlobespotter = value;
@@ -132,7 +134,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       get
       {
         Camera camera = MapView.Active?.Camera;
-        return (camera != null) && (Layer != null) && (Math.Floor(camera.Scale) <= (MinimumScale = Layer.MinScale));
+        return camera != null && Layer != null && Math.Floor(camera.Scale) <= (MinimumScale = Layer.MinScale);
       }
     }
 
@@ -207,7 +209,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
         SpatialReference envSpat = envelope.SpatialReference;
         Envelope result;
 
-        if ((spatialReference != null) && (envSpat.Wkid != spatialReference.Wkid))
+        if (spatialReference != null && envSpat.Wkid != spatialReference.Wkid)
         {
           ProjectionTransformation projection = ProjectionTransformation.Create(envSpat, spatialReference);
           result = GeometryEngine.Instance.ProjectEx(envelope, projection) as Envelope;
@@ -534,7 +536,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
         }
       });
 
-      result = (result != null) ? (result/Math.Max(count, 1)) : null;
+      result = result != null ? result/Math.Max(count, 1) : null;
       return result;
     }
 
@@ -603,7 +605,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
           if (map != null)
           {
             Layer thisLayer =
-              (map.GetLayersAsFlattenedList().OfType<FeatureLayer>()).FirstOrDefault(
+              map.GetLayersAsFlattenedList().OfType<FeatureLayer>().FirstOrDefault(
                 checkLayer => checkLayer.Name == fcName);
             map.RemoveLayer(thisLayer);
           }
@@ -703,7 +705,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
                     {
                       string recValue = row?.GetOriginalValue(imId) as string;
 
-                      if ((!string.IsNullOrEmpty(recValue)) && (!exists.ContainsKey(recValue)))
+                      if (!string.IsNullOrEmpty(recValue) && !exists.ContainsKey(recValue))
                       {
                         long objectId = row.GetObjectID();
                         exists.Add(recValue, objectId);
@@ -720,7 +722,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
                   Location location = recording?.Location;
                   RecordingPoint point = location?.Point;
 
-                  if ((location != null) && (point != null))
+                  if (location != null && point != null)
                   {
                     if (!exists.ContainsKey((string)recording.FieldToItem(idField)))
                     {
@@ -844,15 +846,15 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       {
         MapView mapView = MapView.Active;
 
-        if ((mapView != null) && (Layer != null) && (_cycloMediaGroupLayer != null) && (_addData == null))
+        if (mapView != null && Layer != null && _cycloMediaGroupLayer != null && _addData == null)
         {
           const double epsilon = 0.0;
           var extent = mapView.Extent;
 
-          if (((Math.Abs(extent.XMax - _lastextent.XMax) > epsilon) ||
-               (Math.Abs(extent.YMin - _lastextent.YMin) > epsilon) ||
-               (Math.Abs(extent.XMin - _lastextent.XMin) > epsilon) ||
-               (Math.Abs(extent.YMax - _lastextent.YMax) > epsilon)))
+          if (Math.Abs(extent.XMax - _lastextent.XMax) > epsilon ||
+              Math.Abs(extent.YMin - _lastextent.YMin) > epsilon ||
+              Math.Abs(extent.XMin - _lastextent.XMin) > epsilon ||
+              Math.Abs(extent.YMax - _lastextent.YMax) > epsilon)
           {
             _lastextent = extent;
             Envelope thisEnvelope = await GetExtentAsync(extent);

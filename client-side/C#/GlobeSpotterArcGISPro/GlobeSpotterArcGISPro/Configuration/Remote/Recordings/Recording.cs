@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Xml.Serialization;
+
 using ArcGIS.Core.Data;
 using ArcGIS.Core.Geometry;
 
@@ -259,9 +260,8 @@ namespace GlobeSpotterArcGISPro.Configuration.Remote.Recordings
           case FieldPip2Yaw:
             break;
           case FieldShape:
-            var mapPoint = item as MapPoint;
 
-            if (mapPoint != null)
+            if (item is MapPoint mapPoint)
             {
               Location = new Location
               {

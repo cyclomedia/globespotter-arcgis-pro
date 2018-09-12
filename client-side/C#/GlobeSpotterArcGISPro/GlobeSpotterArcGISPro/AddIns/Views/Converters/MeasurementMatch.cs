@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,6 +20,7 @@ using System;
 using System.Drawing;
 using System.Globalization;
 using System.Windows.Data;
+
 using GlobeSpotterArcGISPro.Utilities;
 
 namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
@@ -30,9 +31,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-      Bitmap bitmap = value as Bitmap;
-
-      if (bitmap == null)
+      if (!(value is Bitmap bitmap))
       {
         bitmap = new Bitmap(64, 64);
 

@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -33,9 +33,9 @@ namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
       CultureInfo ci = CultureInfo.InvariantCulture;
       ApiMeasurementPoint apiPoint = value as ApiMeasurementPoint;
 
-      string x = ((apiPoint == null) || double.IsNaN(apiPoint.x)) ? "---" : apiPoint.x.ToString("#0.00", ci);
-      string y = ((apiPoint == null) || double.IsNaN(apiPoint.y)) ? "---" : apiPoint.y.ToString("#0.00", ci);
-      string z = ((apiPoint == null) || double.IsNaN(apiPoint.z)) ? "---" : apiPoint.z.ToString("#0.00", ci);
+      string x = apiPoint == null || double.IsNaN(apiPoint.x) ? "---" : apiPoint.x.ToString("#0.00", ci);
+      string y = apiPoint == null || double.IsNaN(apiPoint.y) ? "---" : apiPoint.y.ToString("#0.00", ci);
+      string z = apiPoint == null || double.IsNaN(apiPoint.z) ? "---" : apiPoint.z.ToString("#0.00", ci);
       return string.Format(ci, "{0}, {1}, {2}", x, y, z);
     }
 

@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -43,7 +43,7 @@ namespace GlobeSpotterArcGISPro.AddIns.Views.Converters
 
         foreach (char item in text)
         {
-          if ((((item >= 'A') && (item <= 'Z')) || ((item >= '0') && (item <= '9'))) && (counter <= 7))
+          if ((item >= 'A' && item <= 'Z' || item >= '0' && item <= '9') && counter <= 7)
           {
             counter++;
             result = result + item;

@@ -1,6 +1,6 @@
 ﻿/*
  * Integration in ArcMap for Cycloramas
- * Copyright (c) 2015 - 2017, CycloMedia, All rights reserved.
+ * Copyright (c) 2015 - 2018, CycloMedia, All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,11 +22,13 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+
 using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
+
 using GlobeSpotterArcGISPro.Configuration.File;
 using GlobeSpotterArcGISPro.Configuration.Remote.Recordings;
 
@@ -59,7 +61,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
       new HistoricalLayer(this, InitialExtent)
     });
 
-    public bool ContainsLayers => (Count != 0);
+    public bool ContainsLayers => Count != 0;
 
     public bool InsideScale
     {
@@ -137,14 +139,14 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
     public CycloMediaLayer GetLayer(Layer layer)
     {
       return this.Aggregate<CycloMediaLayer, CycloMediaLayer>(null,
-        (current, layerCheck) => (layerCheck.Layer == layer) ? layerCheck : current);
+        (current, layerCheck) => layerCheck.Layer == layer ? layerCheck : current);
     }
 
     public async Task<CycloMediaLayer> AddLayerAsync(string name, MapView mapView = null)
     {
       CycloMediaLayer thisLayer = null;
 
-      if (!this.Aggregate(false, (current, cycloLayer) => (cycloLayer.Name == name) || current))
+      if (!this.Aggregate(false, (current, cycloLayer) => cycloLayer.Name == name || current))
       {
         thisLayer = AllLayers.Aggregate<CycloMediaLayer, CycloMediaLayer>
           (null, (current, checkLayer) => (checkLayer.Name == name) ? checkLayer : current);
@@ -170,7 +172,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
     public async Task RemoveLayerAsync(string name, bool fromGroup)
     {
       CycloMediaLayer layer = this.Aggregate<CycloMediaLayer, CycloMediaLayer>
-        (null, (current, checkLayer) => (checkLayer.Name == name) ? checkLayer : current);
+        (null, (current, checkLayer) => checkLayer.Name == name ? checkLayer : current);
 
       if (layer != null)
       {
@@ -193,7 +195,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
 
     public bool IsKnownName(string name)
     {
-      return this.Aggregate((name == _constants.CycloMediaLayerName), (current, layer) => (layer.Name == name) || current);
+      return this.Aggregate(name == _constants.CycloMediaLayerName, (current, layer) => layer.Name == name || current);
     }
 
     public async Task DisposeAsync(bool fromMap)
@@ -209,7 +211,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
         {
           Map map = MapView.Active?.Map;
 
-          if ((map != null) && (GroupLayer != null))
+          if ((map != null) && GroupLayer != null)
           {
             map.RemoveLayer(GroupLayer);
           }
@@ -249,7 +251,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
         }
       }
 
-      result = (result != null) ? (result/Math.Max(count, 1)) : null;
+      result = result != null ? result/Math.Max(count, 1) : null;
       return result;
     }
 
@@ -261,7 +263,7 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
 
         foreach (var layer in AllLayers)
         {
-          if (!this.Aggregate(false, (current, visLayer) => current || (visLayer == layer)))
+          if (!this.Aggregate(false, (current, visLayer) => current || visLayer == layer))
           {
             await layer.SetVisibleAsync(true);
             layer.Visible = false;
@@ -269,15 +271,15 @@ namespace GlobeSpotterArcGISPro.CycloMediaLayers
         }
 
         CycloMediaLayer changedLayer = this.Aggregate<CycloMediaLayer, CycloMediaLayer>
-          (null, (current, layer) => (layer.IsVisible && (!layer.Visible)) ? layer : current);
+          (null, (current, layer) => layer.IsVisible && !layer.Visible ? layer : current);
         CycloMediaLayer refreshLayer = null;
 
         foreach (var layer in this)
         {
           if (layer.IsInitialized)
           {
-            bool visible = ((changedLayer == null) || (layer == changedLayer)) && layer.IsVisible;
-            refreshLayer = (layer.IsVisible != visible) ? layer : refreshLayer;
+            bool visible = (changedLayer == null || layer == changedLayer) && layer.IsVisible;
+            refreshLayer = layer.IsVisible != visible ? layer : refreshLayer;
             await layer.SetVisibleAsync(visible);
             layer.Visible = layer.IsVisible;
           }
